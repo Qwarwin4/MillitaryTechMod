@@ -44,8 +44,9 @@ public class AircraftEntity extends VehicleEntity {
         return spec.air;
     }
 
+    /** In the air (on clients other than the pilot's only the on-ground flag is known, so that's what counts). */
     public boolean isFlying() {
-        return !isOnGround() && speed > 0.4;
+        return !isOnGround() && (level.isClientSide || speed > 0.3);
     }
 
     public boolean isGearDown() {
