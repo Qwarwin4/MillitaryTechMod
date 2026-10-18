@@ -248,7 +248,7 @@ public final class Specs {
         b.camHeight = 8.38;
         b.engineSound = "truck_engine";
         b.weapon("oreshnik").ammo(new Munition[]{Munition.ORESHNIK, Munition.ORESHNIK_NUKE}, new int[]{1, 1}).interval(100).spread(0F)
-                .mount(WeaponSpec.Mount.HULL, v(0, 22.6, -11.2)).sound("oreshnik_launch", 30F);
+                .mount(WeaponSpec.Mount.HULL, v(0, 24.5, -11.2)).sound("oreshnik_launch", 30F);
 
         // ---- TOS-1A "Solntsepyok": T-72 chassis, 24 thermobaric rockets
         b = TOS1A;
@@ -330,7 +330,8 @@ public final class Specs {
         b.width = 4.75F;
         b.height = 3.69F;
         b.box(-1.121, 0.791, -7.783, 1.121, 3.034, 6.991).box(-6.793, 1.319, -2.638, 6.793, 2.242, 0.264);
-        b.seats = new Vector3d[]{v(0, 1.913, 3.298)};
+        b.seats = new Vector3d[]{v(0, 1.61, 2.5)};
+        b.riderScale = 0.73F;
         b.separateGunner = false;
         b.hasTurret = false;
         b.tracked = false;
@@ -345,7 +346,7 @@ public final class Specs {
         a.takeoffSpeed = 1.35;
         a.pitchRate = 3.4F;
         a.yawRate = 2.8F;
-        a.cockpit = v(0, 2.638, 3.298);
+        a.cockpit = v(0, 2.79, 2.55);
         a.camDistance = 26.38;
         a.exhaust = v(1.121, 1.649, -3.957);
         a.exhaustSpread = 1.12;
@@ -365,7 +366,8 @@ public final class Specs {
         b.width = 6.08F;
         b.height = 4.8F;
         b.box(-2.08, 0.96, -10.96, 2.08, 3.84, 11.12).box(-6.88, 1.92, -6.08, 6.88, 2.72, 0.8);
-        b.seats = new Vector3d[]{v(0.56, 2.08, 5.92), v(-0.56, 2.08, 5.92)};
+        b.seats = new Vector3d[]{v(0.38, 2.39, 4.5), v(-0.38, 2.39, 4.5)};
+        b.riderScale = 0.68F;
         b.separateGunner = false;
         b.hasTurret = false;
         b.tracked = false;
@@ -380,7 +382,7 @@ public final class Specs {
         a.takeoffSpeed = 1.55;
         a.pitchRate = 2.8F;
         a.yawRate = 2.4F;
-        a.cockpit = v(0.56, 3.04, 5.92);
+        a.cockpit = v(0.38, 3.49, 4.5);
         a.camDistance = 36.8;
         a.exhaust = v(1.04, 1.92, -10.08);
         a.exhaustSpread = 1.04;
@@ -404,7 +406,8 @@ public final class Specs {
         b.width = 5.22F;
         b.height = 4.06F;
         b.box(-1.451, 0.435, -7.982, 1.451, 2.902, 7.837).box(-3.555, 1.306, -5.805, 3.555, 2.322, -0.726);
-        b.seats = new Vector3d[]{v(0, 1.741, 3.483), v(0, 1.814, 2.032)};
+        b.seats = new Vector3d[]{v(0, 1.61, 2.8), v(0, 1.66, 1.5)};
+        b.riderScale = 0.6F;
         b.separateGunner = false;
         b.hasTurret = false;
         b.tracked = false;
@@ -418,7 +421,7 @@ public final class Specs {
         a.takeoffSpeed = 1.75;
         a.pitchRate = 2.8F;
         a.yawRate = 2.3F;
-        a.cockpit = v(0, 2.467, 3.483);
+        a.cockpit = v(0, 2.58, 2.85);
         a.camDistance = 29.02;
         a.exhaust = v(0, 1.669, -7.982);
         a.exhaustSpread = 0.0;

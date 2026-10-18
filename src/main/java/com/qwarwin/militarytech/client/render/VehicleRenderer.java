@@ -38,16 +38,6 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
     public void render(VehicleEntity e, float entityYaw, float partial, MatrixStack ms, IRenderTypeBuffer buf, int light) {
         VehicleSpec s = e.spec;
         float hullYaw = MathHelper.rotLerp(partial, e.yRotO, e.yRot);
-        if (VehicleCamera.hideWhole(e)) {
-            // sitting in the cockpit: only the cockpit itself, the canopy would block the view
-            ms.pushPose();
-            ms.mulPose(Vector3f.YP.rotationDegrees(-hullYaw));
-            ms.mulPose(Vector3f.XP.rotationDegrees(MathHelper.lerp(partial, e.xRotO, e.xRot)));
-            ms.mulPose(Vector3f.ZP.rotationDegrees(MathHelper.lerp(partial, e.rollO, e.getRoll())));
-            BoxModel.get(s.id + "_cockpit").render(ms, buf, lit(light));
-            ms.popPose();
-            return;
-        }
         boolean inside = VehicleCamera.showInterior(e);
         // flash red for a moment after taking a hit is vanilla's job for mobs; vehicles just show smoke
         int overlay = OverlayTexture.NO_OVERLAY;
@@ -57,7 +47,11 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             ms.mulPose(Vector3f.XP.rotationDegrees(MathHelper.lerp(partial, e.xRotO, e.xRot)));
             ms.mulPose(Vector3f.ZP.rotationDegrees(MathHelper.lerp(partial, e.rollO, e.getRoll())));
         }
-        BoxModel.get(s.hullModel).render(ms, buf, light, overlay, 1F, 1F, 1F, 1F);
+        // inside an armoured vehicle the armour itself isn't drawn: you look out through the vision slits
+        boolean shell = !(inside && s.category == VehicleSpec.Category.TANK);
+        if (shell) {
+            BoxModel.get(s.hullModel).render(ms, buf, light, overlay, 1F, 1F, 1F, 1F);
+        }
         if (inside || s.category == VehicleSpec.Category.TRUCK) {
             // truck cabs have windows, so their insides are always there
             BoxModel.get(s.id + "_interior").render(ms, buf, lit(light));
@@ -65,9 +59,11 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         if (e instanceof AircraftEntity) {
             BoxModel.get(s.id + "_cockpit").render(ms, buf, lit(light));
         }
+        // generated additions to a real model (the Oreshnik's rear housing)
+        BoxModel.get(s.id + "_extra").render(ms, buf, light);
 
         float wheel = MathHelper.lerp(partial, e.trackAngleO, e.trackAngle);
-        if (s.wheelModel == null && !(e instanceof AircraftEntity)) {
+        if (s.wheelModel == null && !(e instanceof AircraftEntity) && shell) {
             // real-model wheels: each spins about its own axle, smaller ones faster; truck front wheels steer
             float steer = 0F;
             if (e instanceof TruckEntity) {
@@ -120,9 +116,9 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         } else if (e instanceof OreshnikEntity) {
             OreshnikEntity o = (OreshnikEntity) e;
             ms.pushPose();
-            // the canister swings up about its hinge and is let down until its base stands on the ground
+            // the canister swings up about its hinge in the rear housing
             float up = o.erectProgress(partial);
-            ms.translate(s.pivot.x, s.pivot.y - (s.pivot.y - 0.15) * up, s.pivot.z);
+            ms.translate(s.pivot.x, s.pivot.y, s.pivot.z);
             ms.mulPose(Vector3f.XP.rotationDegrees(-90F * up));
             BoxModel.get(s.gunModel).render(ms, buf, light);
             if (o.getAmmo(0) > 0) {
@@ -132,13 +128,17 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         } else if (s.hasTurret && s.turretModel != null && !VehicleCamera.hideTurret(e)) {
             ms.translate(s.pivot.x, s.pivot.y, s.pivot.z);
             ms.mulPose(Vector3f.YP.rotationDegrees(-MathHelper.wrapDegrees(e.getTurretYaw(partial) - hullYaw)));
-            BoxModel.get(s.turretModel).render(ms, buf, light);
+            if (shell) {
+                BoxModel.get(s.turretModel).render(ms, buf, light);
+            }
             if (inside) {
                 BoxModel.get(s.id + "_interior_turret").render(ms, buf, lit(light));
             }
             ms.translate(s.trunnion.x, s.trunnion.y, s.trunnion.z);
             ms.mulPose(Vector3f.XP.rotationDegrees(e.getGunPitch(partial)));
-            BoxModel.get(s.gunModel).render(ms, buf, light);
+            if (shell) {
+                BoxModel.get(s.gunModel).render(ms, buf, light);
+            }
             if (inside) {
                 BoxModel.get(s.id + "_interior_gun").render(ms, buf, lit(light));
             }

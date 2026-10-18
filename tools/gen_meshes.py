@@ -80,7 +80,9 @@ VEHICLES = {
     "bmpt": dict(
         src="bmpt", bake=True, ry=0, k=0.7, dy=0.04, dz=-0.6, tris=45000,
         rules=[("gun", box(-1.1, 2.3, -1.6, 1.1, 2.85, 2.0)),
-               ("turret", box(-1.6, 1.5, -2.4, 1.6, 6.0, 2.0))],
+               # the module only: the long stowage boxes along the hull sides stay on the hull
+               ("turret", both(box(-1.6, 1.5, -2.4, 1.6, 6.0, 2.0), lambda i: i["max"][2] - i["min"][2] < 2.6
+                               and abs(i["center"][0]) < 1.25))],
         pivot=(0, 1.8, -0.4), trunnion=(0, 0.62, 0.0), empty=["wheel"]),
     "bmp1": dict(
         src="bmp1", ry=0, k=1.0, dy=0.99, dz=-0.43, tris=45000, by="node",
@@ -107,7 +109,9 @@ VEHICLES = {
     "su25": dict(src="su25", wheels=False, ry=0, k=0.0463, dy=0.062, dz=0, tris=40000,
                  rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.65)]),
     "su34": dict(src="su34", wheels=False, ry=0, k=0.92, dy=1.87, dz=0, tris=45000,
-                 rules=[("gear", lambda i: i["min"][1] < 0.88 and i["max"][1] < 2.16)]),
+                 rules=[("drop", lambda i: i["mat"] in ("o892-FACES", "o877-FACES", "o882-FACES") or
+                         i["mat"] == "o905-FACES" and i["max"][2] < 4.62 and i["min"][1] > 2.5 and abs(i["center"][0]) < 0.8),
+                        ("gear", lambda i: i["min"][1] < 0.88 and i["max"][1] < 2.16)]),
     "mig23": dict(src="mig-23_ub", wheels=False, ry=0, k=0.0357, dy=0.046, dz=2.61, tris=40000,
                   rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.52 and i["max"][2] - i["min"][2] < 2.9)]),
 }
@@ -132,6 +136,13 @@ def extract_wheels(hull, tracked=True):
         cy = (lo[1] + hi[1]) / 2
         if cy > 1.3 or lo[1] > 1.1:
             continue
+        pts = hull.P[m].reshape(-1, 3)
+        yz = pts[:, 1:3] - np.array([cy, (lo[2] + hi[2]) / 2])
+        rad = np.hypot(yz[:, 0], yz[:, 1])
+        sec = ((np.arctan2(yz[:, 0], yz[:, 1]) + np.pi) / (np.pi / 4)).astype(int) % 8
+        reach = np.array([rad[sec == k].max() if (sec == k).any() else 0 for k in range(8)])
+        if reach.min() < 0.85 * reach.max():
+            continue
         wheels.append([np.array([(lo[0] + hi[0]) / 2, cy, (lo[2] + hi[2]) / 2]), d / 2, lo.copy(), hi.copy(), m.copy()])
     # concentric pieces are one wheel
     merged = []
@@ -154,7 +165,7 @@ def extract_wheels(hull, tracked=True):
         ctr = (lo + hi) / 2
         for w in merged:
             if w[2][0] - 0.02 <= lo[0] and hi[0] <= w[3][0] + 0.02 and \
-                    np.hypot(ctr[1] - w[0][1], ctr[2] - w[0][2]) + max(hi[1] - lo[1], hi[2] - lo[2]) / 2 <= w[1] * 1.02:
+                    np.hypot(ctr[1] - w[0][1], ctr[2] - w[0][2]) < 0.03 and max(hi[1] - lo[1], hi[2] - lo[2]) / 2 <= w[1] * 1.02:
                 w[4] |= m
                 taken |= m
                 break
@@ -333,7 +344,8 @@ def build(vid, v):
         groups = []
     for (p, mi, sub), ar in zip(groups, area):
         share = 0.5 * ar / atot + 0.5 * len(sub) / ntot
-        n = max(min(len(sub), 900), int(budget * share))
+        keep = 0.15 if p == "hull" else 0.45
+        n = max(min(len(sub), 900), int(budget * share), int(len(sub) * keep))
         V, F, UVw = mk.decimate_textured(sub, n)
         P3 = V[F]
         N3 = mk._corner_normals(V, F)

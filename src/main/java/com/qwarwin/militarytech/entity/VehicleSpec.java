@@ -53,6 +53,8 @@ public final class VehicleSpec {
     public double camDistance = 9.0, camHeight = 3.0;
     /** has a crew compartment to look around in (third camera mode): models NAME_interior[_turret|_gun] */
     public boolean interior;
+    /** riders drawn smaller so they fit under a canopy built for real people (aircraft) */
+    public float riderScale = 1F;
 
     // models (under models/entity/), wheel stations
     public String hullModel, wheelModel, turretModel, gunModel;

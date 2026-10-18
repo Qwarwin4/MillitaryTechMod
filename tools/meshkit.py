@@ -116,7 +116,8 @@ class Scene:
         for g in np.unique(groups):
             m = groups == g
             p = self.P[m].reshape(-1, 3)
-            info = {"name": self.node_names[self.node[m][0]], "center": (p.min(0) + p.max(0)) / 2,
+            info = {"name": self.node_names[self.node[m][0]], "mat": self.materials[self.mat[m][0]].name,
+                    "center": (p.min(0) + p.max(0)) / 2,
                     "min": p.min(0), "max": p.max(0), "tris": int(m.sum())}
             part = default
             for name, test in rules:
@@ -609,7 +610,7 @@ def decimate_textured(sc, target):
             ms = pymeshlab.MeshSet()
             ms.load_new_mesh(os.path.join(d, "m.obj"))
             ms.meshing_remove_null_faces()
-            ms.meshing_decimation_quadric_edge_collapse_with_texture(targetfacenum=int(target), qualitythr=0.3,
+            ms.meshing_decimation_quadric_edge_collapse_with_texture(targetfacenum=int(target), qualitythr=0.6,
                                                                      extratcoordw=1.0, preserveboundary=True,
                                                                      boundaryweight=1.5, optimalplacement=True,
                                                                      preservenormal=True, planarquadric=True)

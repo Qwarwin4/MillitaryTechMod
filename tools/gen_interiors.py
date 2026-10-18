@@ -30,6 +30,21 @@ material("int_scope", mat_glass("#2c4250"))
 material("cockpit", mat_flat("#4f9c9a", 0.04, 0.03, worn=True))
 material("cockpit_dark", mat_flat("#2a3133", 0.04, 0.03, worn=False))
 
+def mat_vision():
+    """vision block glass: tinted, every other texel see-through, so you can look out of the vehicle"""
+    import numpy as np
+
+    def paint(face):
+        rgb = np.zeros((face.h, face.w, 3))
+        rgb[:] = (52, 78, 86)
+        yy, xx = np.mgrid[0:face.h, 0:face.w]
+        a = (((xx + yy) % 2) == 0) * 255.0
+        return np.concatenate([rgb, a[..., None]], -1)
+    return paint
+
+
+material("int_glass", mat_vision())
+
 GAUGE = (16, 18, 16)
 GAUGE_RIM = (190, 196, 186)
 
@@ -47,6 +62,27 @@ def gauges(cols, rows, r=0.07, start=(0.12, 0.2), step=None):
     return out
 
 
+def slit_wall(p, x1, y1, z1, x2, y2, z2, mat, slits, frame="int_box"):
+    """a wall with vision slits: solid bands, glass bands at the crew's eye heights, a dark frame round each"""
+    cuts = sorted((max(y1, lo), min(y2, hi)) for lo, hi in slits if hi > y1 and lo < y2)
+    y = y1
+    for lo, hi in cuts:
+        if lo > y:
+            p.B(x1, y, z1, x2, lo, z2, mat)
+        p.B(x1, lo, z1, x2, hi, z2, "int_glass")
+        th = 0.02
+        thin_x = x2 - x1 < z2 - z1
+        if thin_x:
+            p.B(x1 - 0.01, lo - th, z1, x2 + 0.01, lo, z2, frame)
+            p.B(x1 - 0.01, hi, z1, x2 + 0.01, hi + th, z2, frame)
+        else:
+            p.B(x1, lo - th, z1 - 0.01, x2, lo, z2 + 0.01, frame)
+            p.B(x1, hi, z1 - 0.01, x2, hi + th, z2 + 0.01, frame)
+        y = hi
+    if y < y2:
+        p.B(x1, y, z1, x2, y2, z2, mat)
+
+
 def panel(p, x1, y1, z1, x2, y2, z2, face, cols=3, rows=2, r=0.035):
     p.B(x1, y1, z1, x2, y2, z2, {"all": "int_box", face: ("int_box", gauges(cols, rows, r))})
 
@@ -59,8 +95,18 @@ def seat(p, x, y, z, w=0.42, mat="int_seat", back=0.5, facing=1):
     p.B(x - 0.04, y - 0.4, z - 0.04, x + 0.04, y - 0.08, z + 0.04, "int_steel")
 
 
-def ring_wall(p, r, y1, y2, mat="int_wall_dark", t=0.03):
-    """hollow octagonal wall around the y axis, made of thin panels (a solid cylinder would show its insides)"""
+def ring_wall(p, r, y1, y2, mat="int_wall_dark", t=0.03, slit=None):
+    """hollow octagonal wall around the y axis, made of thin panels (a solid cylinder would show its insides);
+    with a slit (lo, hi) a ring of glass at the crew's eye height, like the cupola's periscopes all round"""
+    if slit:
+        lo, hi = max(y1, slit[0]), min(y2, slit[1])
+        if lo < hi:
+            if lo > y1:
+                ring_wall(p, r, y1, lo, mat, t)
+            ring_wall(p, r, lo, hi, "int_glass", t)
+            if y2 > hi:
+                ring_wall(p, r, hi, y2, mat, t)
+            return
     half = r * math.tan(math.radians(22.5)) + 0.01
     for k in range(8):
         a = k * 45
@@ -115,7 +161,7 @@ TANKS = {
                  roof=0.75, carousel=True, breech=0.95),
     "bmpt": dict(floor=0.52, ceil=1.38, front=2.2, rear=-1.7, hw=1.15, pivot=(0, 1.8, -0.4), tr=(0, 0.62, 0.0), ring=0.95,
                  roof=0.35, carousel=False, breech=0, hull_gunners=True),
-    "tos1a": dict(floor=0.375, ceil=1.25, front=2.44, rear=0.63, hw=1.31, pivot=None, tr=None, ring=0, roof=0, carousel=False,
+    "tos1a": dict(eyes=(1.12,), floor=0.375, ceil=1.25, front=2.44, rear=0.63, hw=1.31, pivot=None, tr=None, ring=0, roof=0, carousel=False,
                   breech=0, console=True),
 }
 
@@ -127,10 +173,12 @@ def tank(vid, c):
     t = 0.03
     # shell: floor, walls, front, bulkhead
     h.B(-hw, f - t, zr, hw, f, zf, ("int_floor", [("stripe", 0.0, 0.03, (40, 40, 36))]))
-    h.B(-hw - t, f, zr, -hw, top, zf, "int_wall")
-    h.B(hw, f, zr, hw + t, top, zf, "int_wall")
-    h.B(-hw, f, zf, hw, top, zf + t, "int_wall")
-    h.B(-hw, f, zr - t, hw, top, zr, {"all": "int_wall_dark", "south": ("int_wall_dark", [("vent", 0.2, 0.3, 0.8, 0.7, 6)])})
+    # vision slits round the hull at the crew's eye heights (the outer hull isn't drawn from inside)
+    slits = [(e - 0.13, e + 0.1) for e in c.get("eyes", (1.07, 1.32))]
+    slit_wall(h, -hw - t, f, zr, -hw, top, zf, "int_wall", slits)
+    slit_wall(h, hw, f, zr, hw + t, top, zf, "int_wall", slits)
+    slit_wall(h, -hw, f, zf, hw, top, zf + t, "int_wall", slits)
+    slit_wall(h, -hw, f, zr - t, hw, top, zr, "int_wall_dark", slits)
     # ceiling, with the turret ring cut out
     if c["pivot"]:
         px, py, pz = c["pivot"]
@@ -183,7 +231,8 @@ def tank(vid, c):
         tt = b.part(vid + "_interior_turret")
         r = c["ring"]
         y0 = top - py - 0.02
-        ring_wall(tt, r - 0.02, y0, c["roof"])
+        teye = c.get("turret_eye", 1.32) - py
+        ring_wall(tt, r - 0.02, y0, c["roof"], slit=(teye - 0.13, teye + 0.12))
         tt.B(-r, c["roof"], -r, r, c["roof"] + 0.03, r, ("int_wall", [("hatch", 0.3, 0.6, 0.12), ("hatch", 0.7, 0.6, 0.12)]))
         if c["carousel"]:
             shell_carousel(tt, f - py + 0.01)
@@ -218,11 +267,10 @@ def bmp1():
     px, py, pz = 0, 1.53, -0.63
     r = 0.68
     h.B(-hw, f - t, zr, hw, f, zf, "int_floor")
-    h.B(-hw - t, f, zr, -hw, top, zf, ("int_wall", [("disc", 0.2, 0.45, 0.04, (30, 32, 28)), ("disc", 0.35, 0.45, 0.04, (30, 32, 28)),
-                                                   ("disc", 0.5, 0.45, 0.04, (30, 32, 28)), ("disc", 0.65, 0.45, 0.04, (30, 32, 28))]))
-    h.B(hw, f, zr, hw + t, top, zf, ("int_wall", [("disc", 0.35, 0.45, 0.04, (30, 32, 28)), ("disc", 0.5, 0.45, 0.04, (30, 32, 28)),
-                                                 ("disc", 0.65, 0.45, 0.04, (30, 32, 28)), ("disc", 0.8, 0.45, 0.04, (30, 32, 28))]))
-    h.B(-hw, f, zf, hw, top, zf + t, "int_wall")
+    slits = [(0.89, 1.12)]
+    slit_wall(h, -hw - t, f, zr, -hw, top, zf, "int_wall", slits)
+    slit_wall(h, hw, f, zr, hw + t, top, zf, "int_wall", slits)
+    slit_wall(h, -hw, f, zf, hw, top, zf + t, "int_wall", slits)
     # rear doors with their vision blocks
     h.B(-hw, f, zr - t, hw, top, zr, {"all": "int_wall_dark", "north": "int_wall_dark", "south": ("int_wall_dark", [
         ("rect", 0.05, 0.08, 0.48, 0.95, (120, 140, 130)), ("rect", 0.52, 0.08, 0.95, 0.95, (120, 140, 130)),
@@ -259,7 +307,7 @@ def bmp1():
     h.B(hw - 0.12, f + 0.2, -1.1, hw - 0.02, f + 0.65, -1.0, "int_red")
 
     tt = b.part("bmp1_interior_turret")
-    ring_wall(tt, r - 0.02, top - py - 0.02, 0.5)
+    ring_wall(tt, r - 0.02, top - py - 0.02, 0.5, slit=(1.27 - py - 0.12, 1.27 - py + 0.12))
     tt.B(-r, 0.5, -r, r, 0.53, r, ("int_wall", [("hatch", 0.5, 0.35, 0.15)]))
     seat(tt, 0.25, f + 0.55 - py, -0.15, w=0.34)
     tt.B(0.12, 0.15, 0.25, 0.38, 0.42, 0.45, {"all": "int_box", "north": ("int_box", [("disc", 0.5, 0.5, 0.06, (20, 30, 34))])})
@@ -362,15 +410,42 @@ def cockpit(vid, eyes, half_width=0.4):
     gv.finish(b, {p.name: 8 for p in b.parts})
 
 
+def oreshnik_housing():
+    """the closed rear body of the launcher, round the canister's hinge (the model leaves a gap there)"""
+    material("ore_paint", mat_flat("#4a5240", 0.07, 0.05, worn=True))
+    material("ore_dark", mat_flat("#30362b", 0.06, 0.05, worn=True))
+    b = Bake("oreshnik_extra", gv.MODID, gv.GREEN, density=24)
+    h = b.part("oreshnik_extra")
+    x, z1, z2, y1, y2, t = 1.5, -11.75, -8.6, 0.75, 3.05, 0.08
+    # side walls with stiffening ribs, the rear wall, the floor the canister rests on
+    for sx in (-1, 1):
+        wall = ("ore_paint", [("vstripe", 0.18, 0.21, (52, 58, 46)), ("vstripe", 0.48, 0.51, (52, 58, 46)),
+                              ("vstripe", 0.78, 0.81, (52, 58, 46)), ("bolts", 0.4, 0.06)])
+        h.B(sx * x - t if sx > 0 else -x, y1, z1, sx * x if sx > 0 else -x + t, y2, z2,
+            {"all": "ore_paint", "east": wall, "west": wall})
+        h.B(sx * x - 0.12 if sx > 0 else -x, y2 - 0.12, z1, sx * x if sx > 0 else -x + 0.12, y2, z2, "ore_dark")
+    h.B(-x, y1, z1, x, y2, z1 + t, {"all": "ore_paint", "north": ("ore_paint", [
+        ("rect", 0.08, 0.1, 0.46, 0.9, (66, 74, 58)), ("rect", 0.54, 0.1, 0.92, 0.9, (66, 74, 58)),
+        ("disc", 0.4, 0.5, 0.04, (40, 40, 36)), ("disc", 0.6, 0.5, 0.04, (40, 40, 36)),
+        ("rect", 0.05, 0.92, 0.95, 0.97, (200, 40, 30))])})
+    h.B(-x, y1, z1, x, y1 + t, z2, "ore_dark")
+    # the hinge cradle under the canister and two jacks behind
+    h.B(-1.0, 1.7, z1 + 0.1, 1.0, 2.06, z1 + 0.9, "ore_dark")
+    for sx in (-1, 1):
+        h.B(sx * 1.1 - 0.12, 0.0, z1 + 0.25, sx * 1.1 + 0.12, y1, z1 + 0.55, "ore_dark")
+        h.B(sx * 1.1 - 0.3, 0.0, z1 + 0.1, sx * 1.1 + 0.3, 0.08, z1 + 0.7, "ore_dark")
+    gv.finish(b, {"oreshnik_extra": 16})
+
+
 def main():
     for vid, c in TANKS.items():
         tank(vid, c)
     bmp1()
     cab("grad", (0.5, 2.15, 2.6), 2.1, 1.35)
     cab("oreshnik", (1.223, 2.429, 8.877), 1.09, 0.70, depth=0.5)
-    cockpit("su25", [(0, 2.638, 3.298)], 0.45)
-    cockpit("su34", [(0.56, 3.04, 5.92), (-0.56, 3.04, 5.92)], 0.45)
-    cockpit("mig23", [(0, 2.467, 3.482), (0, 2.583, 2.032)], 0.42)
+    oreshnik_housing()
+    # the Su-34 and MiG-23 models have proper cockpits of their own
+    cockpit("su25", [(0, 2.79, 2.55)], 0.45)
 
 
 if __name__ == "__main__":

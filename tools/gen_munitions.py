@@ -32,6 +32,17 @@ material("m_nuke", mat_missile("#2e3328", band="#d6b11e", band_at=0.55))
 PARTS = {}
 
 
+def cyl16(p, cx, cy, cz, r, length, axis, faces):
+    """a rounder cylinder along z: eight thin boxes at 22.5 degree steps make a sixteen-sided body"""
+    assert axis == "z"
+    a, t = r * 0.98, r * 0.199
+    mid = (cx, cy, cz + length / 2)
+    for ang in (0, 22.5, 45, -22.5):
+        rot = None if ang == 0 else (mid, "z", ang)
+        p.B(cx - a, cy - t, cz, cx + a, cy + t, cz + length, faces, rot=rot)
+        p.B(cx - t, cy - a, cz, cx + t, cy + a, cz + length, faces, rot=rot)
+
+
 def part(b, name, scale=2):
     p = b.part(name)
     PARTS[name] = scale
@@ -41,14 +52,15 @@ def part(b, name, scale=2):
 def body(p, r, z1, z2, mat, y=None):
     """octagonal body along z, hanging with its top at y=0 unless y is given"""
     yc = -r if y is None else y
-    p.cyl(0, yc, z1, r, z2 - z1, "z", mat)
+    cyl16(p, 0, yc, z1, r, z2 - z1, "z", mat)
     return yc
 
 
 def nose(p, r, z, length, mat, yc, steps=3):
+    steps = steps * 2
     for i in range(steps):
         k = 1 - (i + 1) / (steps + 1)
-        p.cyl(0, yc, z + length * i / steps, r * k, length / steps, "z", mat)
+        cyl16(p, 0, yc, z + length * i / steps, r * k, length / steps, "z", mat)
 
 
 def fins(p, r, z1, z2, span, yc, mat, thick=0.02, x_shape=False):
@@ -59,7 +71,7 @@ def fins(p, r, z1, z2, span, yc, mat, thick=0.02, x_shape=False):
 
 
 def build():
-    b = Bake("munitions", gv.MODID, dict(gv.GREEN, base="#3d4a3a", mud_line=-5, dustiness=0.2), density=64)
+    b = Bake("munitions", gv.MODID, dict(gv.GREEN, base="#3d4a3a", mud_line=-5, dustiness=0.2), density=160)
 
     py = part(b, "pylon", 1)
     py.B(-0.06, -0.3, -0.55, 0.06, 0.0, 0.55, {"all": "gunmetal", "down": ("gunmetal", [("bolts", 0.3, 0.2)])})
@@ -73,13 +85,13 @@ def build():
 
     # gun ammunition
     d = part(b, "munition/dart", 1)
-    d.cyl(0, 0, -0.45, 0.025, 0.85, "z", "m_steel")
+    cyl16(d, 0, 0, -0.45, 0.025, 0.85, "z", "m_steel")
     fins(d, 0.025, -0.45, -0.3, 0.04, 0, "m_steel", 0.008)
     s = part(b, "munition/shell_125", 1)
-    s.cyl(0, 0, -0.3, 0.065, 0.42, "z", "m_olive_band")
+    cyl16(s, 0, 0, -0.3, 0.065, 0.42, "z", "m_olive_band")
     nose(s, 0.065, 0.12, 0.2, "m_olive", 0)
     s = part(b, "munition/shell_73", 1)
-    s.cyl(0, 0, -0.2, 0.04, 0.25, "z", "m_grey")
+    cyl16(s, 0, 0, -0.2, 0.04, 0.25, "z", "m_grey")
     nose(s, 0.04, 0.05, 0.14, "m_dark", 0)
 
     # rockets
@@ -93,8 +105,8 @@ def build():
     fins(s8, 0.042, -0.7, -0.55, 0.05, yc, "m_dark", 0.008)
     pod = part(b, "munition/b8_pod", 2)
     yc = body(pod, 0.24, -1.15, 1.0, "m_olive")
-    pod.cyl(0, yc, 1.0, 0.2, 0.12, "z", {"all": "m_olive", "south": ("m_dark", [("tubes", 5, 4, (18, 18, 16))])})
-    pod.cyl(0, yc, -1.25, 0.2, 0.1, "z", {"all": "m_dark", "north": ("m_dark", [("tubes", 5, 4, (30, 30, 28))])})
+    cyl16(pod, 0, yc, 1.0, 0.2, 0.12, "z", {"all": "m_olive", "south": ("m_dark", [("tubes", 5, 4, (18, 18, 16))])})
+    cyl16(pod, 0, yc, -1.25, 0.2, 0.1, "z", {"all": "m_dark", "north": ("m_dark", [("tubes", 5, 4, (30, 30, 28))])})
 
     tos = part(b, "munition/tos_rocket", 2)
     yc = body(tos, 0.11, -1.6, 1.25, "m_olive_band", 0)
@@ -112,7 +124,7 @@ def build():
         half = length / 2
         yc = body(p, r, -half * 0.55, half * 0.6, mat)
         nose(p, r, half * 0.6, half * 0.4, "m_olive", yc, 2)
-        p.cyl(0, yc, -half, r * 0.55, half * 0.45, "z", "m_olive")
+        cyl16(p, 0, yc, -half, r * 0.55, half * 0.45, "z", "m_olive")
         fins(p, r * 0.55, -half, -half * 0.6, r * 0.5, yc, "m_dark", 0.015, x_shape=True)
         # suspension lugs on top
         p.B(-0.03, -0.04, -0.15, 0.03, 0.0, -0.05, "m_steel")
@@ -152,24 +164,31 @@ def build():
     k59.B(-0.75, yc - 0.02, -0.4, 0.75, yc + 0.02, 0.3, "m_grey")
     fins(k59, 0.19, -2.3, -1.9, 0.22, yc, "m_grey", 0.015)
 
-    # Oreshnik missile and its glowing submunitions
-    om = part(b, "munition/oreshnik_missile", 8)
-    om.cyl(0, 0, -5.0, 0.82, 8.6, "z", "m_canister")
-    nose(om, 0.82, 3.6, 1.6, "m_dark", 0, 4)
-    for z in (-3.0, 0.0, 2.6):
-        om.cyl(0, 0, z, 0.84, 0.15, "z", "m_dark")
-    nk = part(b, "munition/nuke", 2)
-    nk.cyl(0, 0, -1.1, 0.42, 1.2, "z", "m_nuke")
-    nose(nk, 0.42, 0.1, 1.1, "m_nuke", 0, 4)
-    nk.cyl(0, 0, -1.25, 0.32, 0.15, "z", "m_dark")
-    wh = part(b, "munition/warhead", 1)
-    wh.cyl(0, 0, -0.6, 0.22, 0.7, "z", "glow_hot")
-    nose(wh, 0.22, 0.1, 0.5, "glow_white", 0, 3)
-
     size = b.bake(gv.tex_path("munitions"))
     for p in b.parts:
         gv.save_json(b.model_json(p, PARTS[p.name], texture=gv.MODID + ":entity/munitions"), gv.model_path(p.name))
     print(f"  munitions: {size}x{size}")
+
+    # the big ones on their own atlas, so they don't eat the small stores' pixels
+    b = Bake("munitions_big", gv.MODID, dict(gv.GREEN, base="#3d4a3a", mud_line=-5, dustiness=0.2), density=48)
+    # Oreshnik missile and its glowing submunitions
+    om = part(b, "munition/oreshnik_missile", 8)
+    cyl16(om, 0, 0, -5.0, 0.82, 8.6, "z", "m_canister")
+    nose(om, 0.82, 3.6, 1.6, "m_dark", 0, 4)
+    for z in (-3.0, 0.0, 2.6):
+        cyl16(om, 0, 0, z, 0.84, 0.15, "z", "m_dark")
+    nk = part(b, "munition/nuke", 2)
+    cyl16(nk, 0, 0, -1.1, 0.42, 1.2, "z", "m_nuke")
+    nose(nk, 0.42, 0.1, 1.1, "m_nuke", 0, 4)
+    cyl16(nk, 0, 0, -1.25, 0.32, 0.15, "z", "m_dark")
+    wh = part(b, "munition/warhead", 1)
+    cyl16(wh, 0, 0, -0.6, 0.22, 0.7, "z", "glow_hot")
+    nose(wh, 0.22, 0.1, 0.5, "glow_white", 0, 3)
+
+    size = b.bake(gv.tex_path("munitions_big"))
+    for p in b.parts:
+        gv.save_json(b.model_json(p, PARTS[p.name], texture=gv.MODID + ":entity/munitions_big"), gv.model_path(p.name))
+    print(f"  munitions_big: {size}x{size}")
 
 
 if __name__ == "__main__":

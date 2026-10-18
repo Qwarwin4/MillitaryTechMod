@@ -204,6 +204,23 @@ public final class VehicleCamera {
             event.setCanceled(true);
         } else if (veh instanceof AircraftEntity && mode == SIGHT && event.getPlayer() == Minecraft.getInstance().player) {
             event.setCanceled(true);
+        } else if (veh instanceof VehicleEntity && ((VehicleEntity) veh).spec.riderScale != 1F) {
+            // pilots sit in the cockpit, scaled to fit under the canopy
+            float k = ((VehicleEntity) veh).spec.riderScale;
+            event.getMatrixStack().pushPose();
+            event.getMatrixStack().scale(k, k, k);
+            scaledRider = event.getPlayer();
+        }
+    }
+
+    @Nullable
+    private static Entity scaledRider;
+
+    @SubscribeEvent
+    public static void onRenderPlayerPost(RenderPlayerEvent.Post event) {
+        if (scaledRider == event.getPlayer()) {
+            event.getMatrixStack().popPose();
+            scaledRider = null;
         }
     }
 
