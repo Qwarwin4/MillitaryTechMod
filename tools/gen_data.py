@@ -97,7 +97,7 @@ RU = {
     "screen.militarytech.bad_coords": "Неверные координаты", "screen.militarytech.oreshnik_note": "Дальность ограничена настройками сервера",
     "screen.militarytech.grad_note": "Пакет сам наведётся на цель, стрелять — ЛКМ",
     # keys
-    "key.categories.militarytech": "Военная техника", "key.militarytech.camera": "Камера: снаружи / прицел",
+    "key.categories.militarytech": "Военная техника", "key.militarytech.camera": "Камера: снаружи / прицел / внутри",
     "key.militarytech.cycle": "Сменить боеприпас / ввод цели", "key.militarytech.action": "Шасси / подъём пусковой",
     "key.militarytech.loadout": "Сменить подвеску (на земле)", "key.militarytech.free_look": "Свободный обзор",
     # tooltips
@@ -206,7 +206,7 @@ EN = {
     "screen.militarytech.from_sight": "From sight", "screen.militarytech.clear_target": "Clear",
     "screen.militarytech.bad_coords": "Bad coordinates", "screen.militarytech.oreshnik_note": "Range is limited by the server config",
     "screen.militarytech.grad_note": "The pack lays itself, LMB fires",
-    "key.categories.militarytech": "Military Tech", "key.militarytech.camera": "Camera: outside / sight",
+    "key.categories.militarytech": "Military Tech", "key.militarytech.camera": "Camera: outside / sight / inside",
     "key.militarytech.cycle": "Change round / enter target", "key.militarytech.action": "Gear / raise launcher",
     "key.militarytech.loadout": "Change loadout (on the ground)", "key.militarytech.free_look": "Free look",
     "tooltip.militarytech.t72b3": "Main battle tank. 125 mm: APFSDS, HE, Refleks. Coaxial PKT.",

@@ -167,10 +167,10 @@ public final class VehicleControl {
         GameSettings o = mc.options;
         boolean noScreen = mc.screen == null;
         for (int n = KeyBinds.presses(KeyBinds.CAMERA); n > 0; n--) {
-            VehicleCamera.toggle();
+            VehicleCamera.toggle(v);
         }
         while (o.keyTogglePerspective.consumeClick()) {
-            VehicleCamera.toggle();
+            VehicleCamera.toggle(v);
         }
         for (int n = KeyBinds.presses(KeyBinds.CYCLE); n > 0; n--) {
             if ((v instanceof FireControl || v instanceof OreshnikEntity) && v.isGunner(mc.player)) {
@@ -199,7 +199,9 @@ public final class VehicleControl {
         CONTROLS.strafe = noScreen ? (o.keyLeft.isDown() ? 1F : 0F) - (o.keyRight.isDown() ? 1F : 0F) : 0F;
         CONTROLS.jump = noScreen && o.keyJump.isDown();
         CONTROLS.sprint = noScreen && o.keySprint.isDown();
-        if (!KeyBinds.FREE_LOOK.isDown() || !VehicleCamera.isExternal()) {
+        // looking around inside doesn't swing the turret
+        boolean freeLook = VehicleCamera.isInside() || KeyBinds.FREE_LOOK.isDown() && VehicleCamera.isExternal();
+        if (!freeLook) {
             ctlYaw = mc.player.yRot;
             ctlPitch = mc.player.xRot;
         }

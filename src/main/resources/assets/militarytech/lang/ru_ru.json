@@ -148,7 +148,7 @@
  "screen.militarytech.oreshnik_note": "Дальность ограничена настройками сервера",
  "screen.militarytech.grad_note": "Пакет сам наведётся на цель, стрелять — ЛКМ",
  "key.categories.militarytech": "Военная техника",
- "key.militarytech.camera": "Камера: снаружи / прицел",
+ "key.militarytech.camera": "Камера: снаружи / прицел / внутри",
  "key.militarytech.cycle": "Сменить боеприпас / ввод цели",
  "key.militarytech.action": "Шасси / подъём пусковой",
  "key.militarytech.loadout": "Сменить подвеску (на земле)",

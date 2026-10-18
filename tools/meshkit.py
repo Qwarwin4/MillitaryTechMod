@@ -346,10 +346,11 @@ def surface_samples(scene, total=3_000_000, seed=1, min_per_tri=1):
         if mat.alpha_mode == "OPAQUE":
             c[:, 3] = 1.0
         elif mat.alpha_mode == "BLEND":
-            # glass and the like: cutout rendering can't blend, so tint it dark and keep it solid
+            # glass: cutout rendering can't blend, so it becomes a fine screen door (alpha 0.5 marks it for the
+            # bake): tinted from outside, and you can see out of a cab or a cockpit
             a = c[:, 3:4]
             c[:, :3] = c[:, :3] * a + np.array([0.16, 0.2, 0.24], dtype=np.float32) * (1 - a)
-            c[:, 3] = 1.0
+            c[:, 3] = 0.5
         else:
             c[:, 3] = np.where(c[:, 3] >= mat.cutoff, 1.0, 0.0)
         col[m] = c
@@ -503,6 +504,9 @@ def bake(parts, size=1024, samples=3_000_000, pad=3, padding_px=4):
     w[none, 0] = 1.0
     w /= w.sum(1, keepdims=True)
     c = np.einsum("nk,nkd->nd", w, cols[idx])
+    a = c[:, 3]
+    checker = ((TX + TY) % 2 == 0).astype(np.float32)
+    c[:, 3] = np.where(a < 0.25, 0.0, np.where(a > 0.75, 1.0, checker))
     img[TY, TX] = c
     filled[TY, TX] = True
 

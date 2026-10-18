@@ -4,6 +4,7 @@ import com.qwarwin.militarytech.MilitaryTech;
 import com.qwarwin.militarytech.entity.AircraftEntity;
 import com.qwarwin.militarytech.entity.CameraEntity;
 import com.qwarwin.militarytech.entity.VehicleEntity;
+import com.qwarwin.militarytech.entity.VehicleSpec;
 import com.qwarwin.militarytech.registry.ModEntities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.PointOfView;
@@ -25,14 +26,16 @@ import net.minecraftforge.fml.common.Mod;
 import javax.annotation.Nullable;
 
 /**
- * Camera while in a vehicle: either outside, orbiting with the mouse (War Thunder style), or at the sight /
- * in the cockpit with zoom. The view is carried by a client-only {@link CameraEntity} placed every frame.
+ * Camera while in a vehicle: outside, orbiting with the mouse (War Thunder style); at the sight / in the cockpit
+ * with zoom; or inside the crew compartment, looking around at the interior. The view is carried by a client-only
+ * {@link CameraEntity} placed every frame.
  */
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(modid = MilitaryTech.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class VehicleCamera {
     private static final int CAMERA_ID = -77_000_123;
-    private static boolean sight;
+    private static final int OUTSIDE = 0, SIGHT = 1, INSIDE = 2;
+    private static int mode = OUTSIDE;
     private static float zoom = 1F;
     private static float distance = 1F;
     @Nullable
@@ -41,24 +44,30 @@ public final class VehicleCamera {
     private static PointOfView savedView;
 
     public static boolean isExternal() {
-        return !sight;
+        return mode == OUTSIDE;
     }
 
     public static boolean isSight() {
-        return sight;
+        return mode == SIGHT;
+    }
+
+    public static boolean isInside() {
+        return mode == INSIDE;
     }
 
     public static float zoom() {
-        return sight ? zoom : 1F;
+        return mode == SIGHT ? zoom : 1F;
     }
 
-    static void toggle() {
-        sight = !sight;
+    /** C / F5: outside -> sight -> inside (when the vehicle has an interior) -> outside. */
+    static void toggle(VehicleEntity v) {
+        boolean inside = v.spec.interior && !(v instanceof AircraftEntity);
+        mode = mode == OUTSIDE ? SIGHT : mode == SIGHT && inside ? INSIDE : OUTSIDE;
         zoom = 1F;
     }
 
     static void scroll(double delta) {
-        if (sight) {
+        if (mode == SIGHT) {
             zoom = MathHelper.clamp(zoom * (delta > 0 ? 1.3F : 1F / 1.3F), 1F, 10F);
         } else {
             distance = MathHelper.clamp(distance * (delta > 0 ? 0.88F : 1F / 0.88F), 0.45F, 2.5F);
@@ -68,7 +77,7 @@ public final class VehicleCamera {
     static void onVehicleChanged(@Nullable VehicleEntity v) {
         Minecraft mc = Minecraft.getInstance();
         if (v == null) {
-            sight = false;
+            mode = OUTSIDE;
             zoom = 1F;
             if (mc.player != null && mc.getCameraEntity() != mc.player) {
                 mc.setCameraEntity(mc.player);
@@ -85,7 +94,7 @@ public final class VehicleCamera {
         } else if (savedView == null) {
             savedView = mc.options.getCameraType();
             // aircraft start outside, ground vehicles too: it's the fun view
-            sight = false;
+            mode = OUTSIDE;
         }
     }
 
@@ -93,7 +102,10 @@ public final class VehicleCamera {
     public static Vector3d position(Minecraft mc, VehicleEntity v, float partial) {
         Vector3d base = new Vector3d(MathHelper.lerp(partial, v.xo, v.getX()), MathHelper.lerp(partial, v.yo, v.getY()),
                 MathHelper.lerp(partial, v.zo, v.getZ()));
-        if (sight) {
+        if (mode == INSIDE) {
+            return v.toWorld(insideEye(v, mc.player)).subtract(v.position()).add(base);
+        }
+        if (mode == SIGHT) {
             if (v instanceof AircraftEntity) {
                 return v.toWorld(((AircraftEntity) v).air().cockpit).subtract(v.position()).add(base);
             }
@@ -123,6 +135,16 @@ public final class VehicleCamera {
             want = hit.add(center.subtract(hit).normalize().scale(0.4));
         }
         return want;
+    }
+
+    /** Eye of a crew member sitting in their seat; truck crews look out of the cab beside the driver. */
+    private static Vector3d insideEye(VehicleEntity v, Entity who) {
+        int i = Math.max(0, v.getPassengers().indexOf(who));
+        Vector3d seat = v.spec.seats[Math.min(i, v.spec.seats.length - 1)];
+        if (v.spec.category == VehicleSpec.Category.TRUCK) {
+            return new Vector3d(seat.x, v.spec.driverEye.y, v.spec.driverEye.z);
+        }
+        return seat.add(0, 0.72, 0);
     }
 
     @SubscribeEvent
@@ -160,7 +182,7 @@ public final class VehicleCamera {
     @SubscribeEvent
     public static void onCameraSetup(EntityViewRenderEvent.CameraSetup event) {
         VehicleEntity v = VehicleControl.current();
-        if (sight && v instanceof AircraftEntity) {
+        if (mode == SIGHT && v instanceof AircraftEntity) {
             float pt = (float) event.getRenderPartialTicks();
             event.setRoll(MathHelper.lerp(pt, v.rollO, v.getRoll()));
         }
@@ -180,7 +202,7 @@ public final class VehicleCamera {
         if (veh instanceof VehicleEntity && ((VehicleEntity) veh).spec.enclosed && !((VehicleEntity) veh).isOutside(event.getPlayer())) {
             // the crew sits inside
             event.setCanceled(true);
-        } else if (veh instanceof AircraftEntity && sight && event.getPlayer() == Minecraft.getInstance().player) {
+        } else if (veh instanceof AircraftEntity && mode == SIGHT && event.getPlayer() == Minecraft.getInstance().player) {
             event.setCanceled(true);
         }
     }
@@ -195,12 +217,18 @@ public final class VehicleCamera {
     /** Hide the bits of our own vehicle the camera sits inside. */
     public static boolean hideTurret(VehicleEntity v) {
         Minecraft mc = Minecraft.getInstance();
-        return sight && v.hasPassenger(mc.player) && v.spec.hasTurret && v.isGunner(mc.player);
+        return mode == SIGHT && v.hasPassenger(mc.player) && v.spec.hasTurret && v.isGunner(mc.player);
     }
 
     public static boolean hideWhole(VehicleEntity v) {
         Minecraft mc = Minecraft.getInstance();
-        return sight && v instanceof AircraftEntity && v.hasPassenger(mc.player);
+        return mode == SIGHT && v instanceof AircraftEntity && v.hasPassenger(mc.player);
+    }
+
+    /** We're inside this vehicle looking at its interior. */
+    public static boolean showInterior(VehicleEntity v) {
+        Minecraft mc = Minecraft.getInstance();
+        return mode == INSIDE && v.spec.interior && v.hasPassenger(mc.player);
     }
 
     private VehicleCamera() {

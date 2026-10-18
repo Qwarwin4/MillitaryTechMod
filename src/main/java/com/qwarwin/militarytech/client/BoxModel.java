@@ -115,6 +115,10 @@ public final class BoxModel {
             }
         }
         ResourceLocation loc = MilitaryTech.id("models/entity/" + name + ".json");
+        if (!Minecraft.getInstance().getResourceManager().hasResource(loc)) {
+            // optional parts (an interior a vehicle doesn't have) are just empty
+            return new BoxModel(MilitaryTech.id("textures/entity/munitions.png"), new float[0][]);
+        }
         try (IResource res = Minecraft.getInstance().getResourceManager().getResource(loc);
              InputStream in = res.getInputStream()) {
             JsonObject root = new JsonParser().parse(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();

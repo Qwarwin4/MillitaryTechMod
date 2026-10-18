@@ -21,6 +21,7 @@ import gen_icons  # noqa: E402
 import gen_sounds  # noqa: E402
 import gen_data  # noqa: E402
 import gen_meshes  # noqa: E402
+import gen_interiors  # noqa: E402
 
 
 def clean():
@@ -74,6 +75,7 @@ def main():
     gen_aircraft.main()
     gen_munitions.build()
     gen_turrets.main()
+    gen_interiors.main()
     if gen_meshes.have_sources():
         gen_meshes.main([])
     else:

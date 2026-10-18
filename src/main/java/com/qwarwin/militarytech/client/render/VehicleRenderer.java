@@ -33,11 +33,19 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
 
     @Override
     public void render(VehicleEntity e, float entityYaw, float partial, MatrixStack ms, IRenderTypeBuffer buf, int light) {
-        if (VehicleCamera.hideWhole(e)) {
-            return;
-        }
         VehicleSpec s = e.spec;
         float hullYaw = MathHelper.rotLerp(partial, e.yRotO, e.yRot);
+        if (VehicleCamera.hideWhole(e)) {
+            // sitting in the cockpit: only the cockpit itself, the canopy would block the view
+            ms.pushPose();
+            ms.mulPose(Vector3f.YP.rotationDegrees(-hullYaw));
+            ms.mulPose(Vector3f.XP.rotationDegrees(MathHelper.lerp(partial, e.xRotO, e.xRot)));
+            ms.mulPose(Vector3f.ZP.rotationDegrees(MathHelper.lerp(partial, e.rollO, e.getRoll())));
+            BoxModel.get(s.id + "_cockpit").render(ms, buf, lit(light));
+            ms.popPose();
+            return;
+        }
+        boolean inside = VehicleCamera.showInterior(e);
         // flash red for a moment after taking a hit is vanilla's job for mobs; vehicles just show smoke
         int overlay = OverlayTexture.NO_OVERLAY;
         ms.pushPose();
@@ -47,6 +55,13 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             ms.mulPose(Vector3f.ZP.rotationDegrees(MathHelper.lerp(partial, e.rollO, e.getRoll())));
         }
         BoxModel.get(s.hullModel).render(ms, buf, light, overlay, 1F, 1F, 1F, 1F);
+        if (inside || s.category == VehicleSpec.Category.TRUCK) {
+            // truck cabs have windows, so their insides are always there
+            BoxModel.get(s.id + "_interior").render(ms, buf, lit(light));
+        }
+        if (e instanceof AircraftEntity) {
+            BoxModel.get(s.id + "_cockpit").render(ms, buf, lit(light));
+        }
 
         float wheel = MathHelper.lerp(partial, e.trackAngleO, e.trackAngle);
         if (s.wheelModel != null) {
@@ -90,13 +105,24 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             ms.translate(s.pivot.x, s.pivot.y, s.pivot.z);
             ms.mulPose(Vector3f.YP.rotationDegrees(-MathHelper.wrapDegrees(e.getTurretYaw(partial) - hullYaw)));
             BoxModel.get(s.turretModel).render(ms, buf, light);
+            if (inside) {
+                BoxModel.get(s.id + "_interior_turret").render(ms, buf, lit(light));
+            }
             ms.translate(s.trunnion.x, s.trunnion.y, s.trunnion.z);
             ms.mulPose(Vector3f.XP.rotationDegrees(e.getGunPitch(partial)));
             BoxModel.get(s.gunModel).render(ms, buf, light);
+            if (inside) {
+                BoxModel.get(s.id + "_interior_gun").render(ms, buf, lit(light));
+            }
             loadedTubes(e, ms, buf, light);
         }
         ms.popPose();
         super.render(e, entityYaw, partial, ms, buf, light);
+    }
+
+    /** Interiors have their own lamps: never darker than block light 11. */
+    private static int lit(int light) {
+        return Math.max(light & 0xFFFF, 11 << 4) | (light & 0xFFFF0000);
     }
 
     /** Caps on the ATGM tubes that still hold a missile; rockets peeking out of the Grad's tubes. */

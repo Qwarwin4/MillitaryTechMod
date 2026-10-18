@@ -27,6 +27,7 @@ public final class Specs {
         s.seats = new Vector3d[]{v(0, 0.35, 1.9), v(0.45, 0.6, 0.0), v(-0.45, 0.6, 0.0),
                 v(0.7, 1.35, -1.9), v(-0.7, 1.35, -1.9), v(0.7, 1.35, -2.7), v(-0.7, 1.35, -2.7)};
         s.insideSeats = 3;
+        s.interior = true;
         s.wheelZ = T72_WHEELS;
         s.wheelModel = null;
         s.pivot = v(0, 1.45, 0.1);
@@ -124,6 +125,7 @@ public final class Specs {
         b.seats = new Vector3d[]{v(0, 0.35, 1.9), v(0.45, 0.6, -0.2), v(-0.45, 0.6, -0.2), v(0.7, 0.35, 1.9), v(-0.7, 0.35, 1.9),
                 v(0.7, 1.55, -2.2), v(-0.7, 1.55, -2.2), v(0.7, 1.55, -3.0), v(-0.7, 1.55, -3.0)};
         b.insideSeats = 5;
+        b.interior = true;
         b.wheelZ = T72_WHEELS;
         b.wheelModel = null;
         b.pivot = v(0, 1.8, -0.4);
@@ -157,6 +159,7 @@ public final class Specs {
                 v(0.65, 1.55, -1.7), v(-0.65, 1.55, -1.7), v(0.65, 1.55, -2.4), v(-0.65, 1.55, -2.4),
                 v(0.65, 1.55, -3.05), v(-0.65, 1.55, -3.05)};
         b.insideSeats = 11;
+        b.interior = true;
         b.wheelZ = BMP_WHEELS;
         b.wheelModel = null;
         b.pivot = v(0, 1.53, -0.63);
@@ -185,6 +188,7 @@ public final class Specs {
         b.height = 3.0F;
         b.box(-1.3, 0, -3.65, 1.3, 2.8, 3.75);
         b.seats = new Vector3d[]{v(0.5, 1.3, 2.5), v(-0.5, 1.3, 2.5), v(0, 1.3, 2.5)};
+        b.interior = true;
         b.separateGunner = false;
         b.tracked = false;
         b.maxSpeed = 0.6;
@@ -225,6 +229,7 @@ public final class Specs {
         b.height = 3.6F;
         b.box(-1.25, 0, -6.7, 1.25, 2.7, 6.7);
         b.seats = new Vector3d[]{v(0.73, 0.8, 5.0), v(-0.73, 0.8, 5.0)};
+        b.interior = true;
         b.separateGunner = false;
         b.tracked = false;
         b.hasTurret = false;
@@ -252,7 +257,8 @@ public final class Specs {
         b.width = 3.6F;
         b.height = 2.6F;
         b.box(-1.7, 0, -3.7, 1.7, 1.4, 3.05).box(-1.2, 1.4, -2.75, 1.1, 2.95, 1.6);
-        b.seats = new Vector3d[]{v(0, 0.35, 1.9), v(0.45, 0.6, -1.5), v(-0.45, 0.6, -1.5)};
+        b.seats = new Vector3d[]{v(0, 0.35, 1.9), v(0.45, 0.35, 1.2), v(-0.45, 0.35, 1.2)};
+        b.interior = true;
         b.wheelZ = T72_WHEELS;
         b.wheelModel = null;
         b.pivot = v(0, 1.31, -1.06);

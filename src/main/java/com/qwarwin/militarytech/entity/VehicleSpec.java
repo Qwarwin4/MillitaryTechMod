@@ -51,6 +51,8 @@ public final class VehicleSpec {
     /** driver's eye in sight view when there is no turret, hull-local */
     public Vector3d driverEye = new Vector3d(0, 2, 1);
     public double camDistance = 9.0, camHeight = 3.0;
+    /** has a crew compartment to look around in (third camera mode): models NAME_interior[_turret|_gun] */
+    public boolean interior;
 
     // models (under models/entity/), wheel stations
     public String hullModel, wheelModel, turretModel, gunModel;

@@ -148,7 +148,7 @@
  "screen.militarytech.oreshnik_note": "Range is limited by the server config",
  "screen.militarytech.grad_note": "The pack lays itself, LMB fires",
  "key.categories.militarytech": "Military Tech",
- "key.militarytech.camera": "Camera: outside / sight",
+ "key.militarytech.camera": "Camera: outside / sight / inside",
  "key.militarytech.cycle": "Change round / enter target",
  "key.militarytech.action": "Gear / raise launcher",
  "key.militarytech.loadout": "Change loadout (on the ground)",
