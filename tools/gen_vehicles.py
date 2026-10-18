@@ -338,6 +338,36 @@ def build_bmpt():
 
 
 # ---------------------------------------------------------------------------
+# TOS-1A "Solntsepyok": the pack pivots at its rear end, 24 tubes in 4 rows of 6
+
+def build_tos1a():
+    b = Bake("tos1a", MODID, dict(GREEN, base="#4d5832"), density=32)
+    hull_t72(b, "tos1a_hull")
+    road_wheel(b, "tos1a_wheel")
+    m = b.part("tos1a_mount")
+    # turntable and the armoured box over the laying gear
+    m.B(-1.2, 0.0, -1.35, 1.2, 0.28, 1.0, {"all": "armor", "up": ("armor", [("ring", 0.5, 0.5, 0.8, (30, 32, 26), 0.05)])})
+    m.B(-0.9, 0.28, -1.0, 0.9, 0.5, 0.8, {"all": "armor_dark", "up": ("armor_dark", [("bolts", 0.3, 0.1)])})
+    # trunnion brackets at the back and the elevating ram in front
+    m.both(1.0, 0.0, -1.6, 1.16, 0.78, -0.9, ("armor", [("disc", 0.5, 0.35, 0.08, (36, 38, 30))]))
+    m.B(-0.15, 0.28, 0.4, 0.15, 0.62, 0.75, "gunmetal")
+    # sight on the right
+    m.B(-1.2, 0.28, 0.0, -0.9, 0.62, 0.35, {"all": "armor_dark", "south": "periscope"})
+    r = b.part("tos1a_rack")
+    r.B(-0.95, -0.05, -0.25, 0.95, 1.12, 3.75, {"all": "armor", "east": ("armor", [("bolts", 0.4, 0.06), ("vent", 0.1, 0.2, 0.9, 0.8, 5)]),
+                                               "west": ("armor", [("bolts", 0.4, 0.06), ("vent", 0.1, 0.2, 0.9, 0.8, 5)]),
+                                               "up": ("armor", [("bolts", 0.4, 0.04)]),
+                                               "south": ("armor_dark", [("tubes", 6, 4, (14, 15, 12))]),
+                                               "north": ("armor_dark", [("tubes", 6, 4, (24, 24, 22))])})
+    for z in (0.3, 1.7, 3.1):
+        r.B(-0.98, -0.08, z, 0.98, 1.15, z + 0.2, "armor_dark")
+    r.B(-0.12, -0.45, 0.6, 0.12, -0.05, 1.4, "gunmetal")
+    tip = b.part("tos1a_rocket_tip")
+    tip.B(-0.1, -0.1, 0.0, 0.1, 0.1, 0.08, "armor_light")
+    return finish(b, {"tos1a_wheel": 1, "tos1a_rocket_tip": 1})
+
+
+# ---------------------------------------------------------------------------
 # BMP-1
 
 BMP1_WHEELS = [1.95, 1.17, 0.39, -0.39, -1.17, -1.95]
@@ -403,6 +433,7 @@ def main():
     build_t90m()
     build_bmpt()
     build_bmp1()
+    build_tos1a()
 
 
 if __name__ == "__main__":

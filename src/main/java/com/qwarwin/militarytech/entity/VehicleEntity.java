@@ -72,7 +72,7 @@ public abstract class VehicleEntity extends Entity {
         }
     }
 
-    public static final int FLAG_GEAR_UP = 1, FLAG_ERECT = 2, FLAG_BRAKE = 4, FLAG_ENGINE = 8;
+    public static final int FLAG_GEAR_UP = 1, FLAG_ERECT = 2, FLAG_BRAKE = 4, FLAG_ENGINE = 8, FLAG_ACTIVE = 16;
     protected static final float DEG = (float) (Math.PI / 180.0);
 
     public final VehicleSpec spec;
@@ -454,6 +454,18 @@ public abstract class VehicleEntity extends Entity {
         gunPitchC = np;
     }
 
+    /** Server side slewing for mounts nobody sits in. Returns the error left in degrees. */
+    protected float slewServer(float yaw, float pitch) {
+        float cy = entityData.get(TURRET_YAW), cp = entityData.get(GUN_PITCH);
+        yaw = limitYaw(yaw);
+        float sp = spec.traverse;
+        float tp = MathHelper.clamp(pitch, spec.minPitch, spec.maxPitch);
+        float ny = cy + MathHelper.clamp(MathHelper.wrapDegrees(yaw - cy), -sp, sp);
+        float np = cp + MathHelper.clamp(tp - cp, -sp * 0.8F, sp * 0.8F);
+        setAimRaw(ny, np);
+        return Math.abs(MathHelper.wrapDegrees(yaw - ny)) + Math.abs(tp - np);
+    }
+
     /** Yaw/pitch that points the gun from the trunnion at a world point. */
     public float[] aimAt(Vector3d point) {
         Vector3d from = turretToWorld(spec.trunnion, getTurretYaw());
@@ -731,15 +743,18 @@ public abstract class VehicleEntity extends Entity {
     }
 
     /** Fire one round of weapon {@code w}. Returns false when empty. */
-    protected boolean fire(int w, ServerPlayerEntity shooter) {
+    /** Fire one round of weapon {@code w}; shooter is null for automatic mounts. Returns false when empty. */
+    protected boolean fire(int w, @Nullable ServerPlayerEntity shooter) {
         WeaponSpec ws = spec.weapons.get(w);
         int opt = getSelectedFor(w);
         int slot = spec.ammoBase(w) + opt;
         int left = getAmmo(slot);
         if (left <= 0) {
             if (cooldown[w] <= 0) {
-                shooter.displayClientMessage(new TranslationTextComponent("msg.militarytech.no_ammo",
-                        new TranslationTextComponent(ws.key())), true);
+                if (shooter != null) {
+                    shooter.displayClientMessage(new TranslationTextComponent("msg.militarytech.no_ammo",
+                            new TranslationTextComponent(ws.key())), true);
+                }
                 level.playSound(null, getX(), getY(), getZ(), SoundEvents.DISPENSER_FAIL, SoundCategory.NEUTRAL, 1F, 1.2F);
                 cooldown[w] = 10;
             }
@@ -761,7 +776,7 @@ public abstract class VehicleEntity extends Entity {
                     pitchOf(dir) + (random.nextFloat() - 0.5F) * spread * 2F,
                     yawOf(dir) + (random.nextFloat() - 0.5F) * spread * 2F);
         }
-        ProjectileEntity pe = ProjectileEntity.launch(level, m, this, shooter.getUUID(), pos,
+        ProjectileEntity pe = ProjectileEntity.launch(level, m, this, shooter != null ? shooter.getUUID() : owner, pos,
                 dir.scale(m.speed).add(launchVelocity()));
         if (pe != null) {
             prepareProjectile(pe, m);

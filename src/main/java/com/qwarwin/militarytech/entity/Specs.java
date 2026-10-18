@@ -55,6 +55,12 @@ public final class Specs {
 
     public static final VehicleSpec ORESHNIK = new VehicleSpec("oreshnik", VehicleSpec.Category.TRUCK);
 
+    public static final VehicleSpec TOS1A = new VehicleSpec("tos1a", VehicleSpec.Category.TANK);
+
+    public static final VehicleSpec ZAK = new VehicleSpec("zak", VehicleSpec.Category.TURRET);
+
+    public static final VehicleSpec ZRK = new VehicleSpec("zrk", VehicleSpec.Category.TURRET);
+
     public static final VehicleSpec SU25 = new VehicleSpec("su25", VehicleSpec.Category.AIRCRAFT);
 
     public static final VehicleSpec SU34 = new VehicleSpec("su34", VehicleSpec.Category.AIRCRAFT);
@@ -206,6 +212,72 @@ public final class Specs {
         b.weapon("oreshnik").ammo(Munition.ORESHNIK, 1).interval(100).spread(0F)
                 .mount(WeaponSpec.Mount.HULL, v(0, 13.1, -6.9)).sound("oreshnik_launch", 30F);
 
+        // ---- TOS-1A "Solntsepyok": T-72 chassis, 24 thermobaric rockets
+        b = TOS1A;
+        b.health = 300F;
+        b.armor = Armor.HEAVY;
+        b.width = 3.6F;
+        b.height = 2.6F;
+        b.box(-1.85, 0, -3.3, 1.85, 1.5, 3.05).box(-1.2, 1.45, -2.2, 1.2, 2.9, 2.0);
+        b.seats = new Vector3d[]{v(0, 0.35, 1.9), v(0.45, 0.6, -1.5)};
+        b.wheelZ = T72_WHEELS;
+        b.turretModel = "tos1a_mount";
+        b.gunModel = "tos1a_rack";
+        b.pivot = v(0, 1.45, -0.6);
+        b.trunnion = v(0, 0.55, -1.25);
+        b.sight = v(1.0, 1.0, 0.2);
+        b.driverEye = v(0, 1.9, 2.2);
+        b.minPitch = -55F;
+        b.maxPitch = 0F;
+        b.yawLimit = 100F;
+        b.traverse = 2F;
+        b.maxSpeed = 0.42;
+        b.camDistance = 11;
+        Vector3d[] tos = new Vector3d[24];
+        for (int i = 0; i < 24; i++) {
+            int col = i % 6, row = i / 6;
+            int c = (col % 2 == 0) ? col / 2 : 5 - col / 2;
+            tos[i] = v(-0.75 + c * 0.3, 0.16 + row * 0.27, 3.75);
+        }
+        b.weapon("tos").ammo(Munition.TOS_220, 24).interval(8).spread(1.2F).ripple()
+                .mount(WeaponSpec.Mount.GUN, tos)
+                .sound("grad_launch", 12F);
+
+        // ---- automatic air defence: twin 30 mm gun turret and a missile turret
+        for (VehicleSpec t : new VehicleSpec[]{ZAK, ZRK}) {
+            t.armor = Armor.LIGHT;
+            t.width = 2.2F;
+            t.height = 2.8F;
+            t.box(-1.1, 0, -1.1, 1.1, 2.8, 1.1);
+            t.seats = new Vector3d[0];
+            t.separateGunner = false;
+            t.tracked = false;
+            t.maxSpeed = 0;
+            t.stepHeight = 0F;
+            t.wheelModel = null;
+            t.hullModel = t.id + "_base";
+            t.pivot = v(0, 1.2, 0);
+        }
+        ZAK.health = 140F;
+        ZAK.trunnion = v(0, 0.55, 0.05);
+        ZAK.minPitch = -85F;
+        ZAK.maxPitch = 5F;
+        ZAK.traverse = 9F;
+        ZAK.gunModel = "zak_guns";
+        ZAK.weapon("zak_30").ammo(Munition.AA_30, 800).auto(2).spread(0.7F)
+                .mount(WeaponSpec.Mount.GUN, v(0.62, 0, 2.35), v(-0.62, 0, 2.35))
+                .sound("cannon_30", 6F);
+        ZRK.health = 120F;
+        ZRK.trunnion = v(0, 0.65, 0);
+        ZRK.minPitch = -80F;
+        ZRK.maxPitch = 0F;
+        ZRK.traverse = 6F;
+        ZRK.gunModel = "zrk_launcher";
+        ZRK.weapon("zrk").ammo(Munition.SAM, 8).interval(40).spread(0F)
+                .mount(WeaponSpec.Mount.GUN, v(0.8, 0, 1.35), v(-0.8, 0, 1.35), v(0.8, 0.32, 1.35), v(-0.8, 0.32, 1.35),
+                        v(1.12, 0, 1.35), v(-1.12, 0, 1.35), v(1.12, 0.32, 1.35), v(-1.12, 0.32, 1.35))
+                .sound("missile_launch", 6F);
+
         // ---- aircraft
         b = SU25;
         b.health = 190F;
@@ -312,7 +384,7 @@ public final class Specs {
         b.air = a;
     }
 
-    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, GRAD, ORESHNIK, SU25, SU34, MIG25};
+    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG25, ZAK, ZRK};
 
     private Specs() {
     }

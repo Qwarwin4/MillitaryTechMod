@@ -12,7 +12,7 @@ import java.util.List;
  */
 public final class VehicleSpec {
     public enum Category {
-        TANK, TRUCK, AIRCRAFT
+        TANK, TRUCK, AIRCRAFT, TURRET
     }
 
     public final String id;

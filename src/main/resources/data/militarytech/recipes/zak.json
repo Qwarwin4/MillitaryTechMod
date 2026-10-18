@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "AFA",
+  "PDP",
+  "III"
+ ],
+ "key": {
+  "A": {
+   "item": "militarytech:autocannon"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "I": {
+   "item": "minecraft:iron_block"
+  }
+ },
+ "result": {
+  "item": "militarytech:zak",
+  "count": 1
+ }
+}

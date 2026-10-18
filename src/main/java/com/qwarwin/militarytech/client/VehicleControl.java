@@ -3,7 +3,7 @@ package com.qwarwin.militarytech.client;
 import com.qwarwin.militarytech.MilitaryTech;
 import com.qwarwin.militarytech.client.screen.TargetScreen;
 import com.qwarwin.militarytech.entity.AircraftEntity;
-import com.qwarwin.militarytech.entity.GradEntity;
+import com.qwarwin.militarytech.entity.FireControl;
 import com.qwarwin.militarytech.entity.Munition;
 import com.qwarwin.militarytech.entity.OreshnikEntity;
 import com.qwarwin.militarytech.entity.ProjectileEntity;
@@ -172,7 +172,7 @@ public final class VehicleControl {
             VehicleCamera.toggle();
         }
         for (int n = KeyBinds.presses(KeyBinds.CYCLE); n > 0; n--) {
-            if ((v instanceof GradEntity || v instanceof OreshnikEntity) && v.isGunner(mc.player)) {
+            if ((v instanceof FireControl || v instanceof OreshnikEntity) && v.isGunner(mc.player)) {
                 mc.setScreen(new TargetScreen(v));
             } else {
                 cycles++;
@@ -231,8 +231,8 @@ public final class VehicleControl {
         if (v.spec.hasTurret) {
             float[] want;
             BlockPos target = v.getTarget();
-            if (v instanceof GradEntity && target != null) {
-                want = ((GradEntity) v).solution(target);
+            if (v instanceof FireControl && target != null) {
+                want = ((FireControl) v).solution(target);
             } else {
                 want = v.aimAt(aimFar);
             }

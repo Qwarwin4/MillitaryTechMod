@@ -33,6 +33,12 @@ VEHICLES = {
                  pivot=(0, 1.75, -1.6), tr=(0, 0.55, -0.2), pitch=-25),
     "oreshnik": dict(wheels=[4.4, 3.0, 1.0, -0.3, -1.6, -2.9, -4.2, -5.5], wx=1.15, wy=0.62, wheel="mzkt_wheel",
                      canister=True, pivot=(0, 2.55, -6.0)),
+    "tos1a": dict(wheels=W72, wx=1.43, wy=0.52, turret="tos1a_mount", gun="tos1a_rack", pivot=(0, 1.45, -0.6),
+                  tr=(0, 0.55, -1.25), pitch=-25),
+    "zak": dict(wheels=[], hull="zak_base", turret="zak_turret", gun="zak_guns", pivot=(0, 1.2, 0), tr=(0, 0.55, 0.05),
+                pitch=-30, yaw=200),
+    "zrk": dict(wheels=[], hull="zrk_base", turret="zrk_turret", gun="zrk_launcher", pivot=(0, 1.2, 0), tr=(0, 0.65, 0),
+                pitch=-30, yaw=200),
     "su25": dict(air=True), "su34": dict(air=True), "mig25": dict(air=True),
 }
 
@@ -48,7 +54,7 @@ def vehicle_scene(name):
         sc.part(ref(name + "_hull"))
         sc.part(ref(name + "_gear"))
         return sc, 145, 35
-    sc.part(ref(name + "_hull"))
+    sc.part(ref(L.get("hull", name + "_hull")))
     wheel = L.get("wheel", name + "_wheel")
     for z in L["wheels"]:
         for sx in (-1, 1):
@@ -58,7 +64,7 @@ def vehicle_scene(name):
         sc.part(ref("oreshnik_canister"), Mc)
         sc.part(ref("oreshnik_cap"), Mc)
     else:
-        Mt = T(*L["pivot"]) @ R("y", 0)
+        Mt = T(*L["pivot"]) @ R("y", L.get("yaw", 0))
         sc.part(ref(L.get("turret", name + "_turret")), Mt)
         sc.part(ref(L.get("gun", name + "_gun")), Mt @ T(*L["tr"]) @ R("x", L.get("pitch", -3)))
     return sc, 40, 28

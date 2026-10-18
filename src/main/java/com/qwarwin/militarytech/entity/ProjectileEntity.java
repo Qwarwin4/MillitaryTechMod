@@ -119,6 +119,11 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
         return shooterId;
     }
 
+    @Nullable
+    public UUID getOwnerId() {
+        return owner;
+    }
+
     @Override
     protected void defineSynchedData() {
     }
@@ -175,7 +180,7 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             impact(hit.pos, hit.entity, null);
             return;
         }
-        if (munition.kind == Munition.Kind.AIR) {
+        if (munition.hasProximityFuse() && life > 2) {
             Vector3d burst = proximity(from, end);
             if (burst != null) {
                 impact(burst, null, null);
@@ -232,12 +237,11 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
     /** Point of this step closest to an air target within fuse range, if any. */
     @Nullable
     private Vector3d proximity(Vector3d from, Vector3d to) {
-        double fuse = munition == Munition.R40 ? 6.0 : 4.5;
         Vector3d seg = to.subtract(from);
         double len2 = seg.dot(seg);
         Vector3d best = null;
-        double bestD = fuse * fuse;
-        for (Entity e : level.getEntities(this, new AxisAlignedBB(from, to).inflate(fuse + 4), Targeting::isAirborne)) {
+        double bestD = Double.MAX_VALUE;
+        for (Entity e : level.getEntities(this, new AxisAlignedBB(from, to).inflate(10), Targeting::isAirborne)) {
             if (e.getId() == shooterId || life < 10 && e.getUUID().equals(owner)) {
                 continue;
             }
@@ -247,8 +251,9 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             Vector3d c = e.getBoundingBox().getCenter();
             double t = len2 < 1e-6 ? 0 : MathHelper.clamp(c.subtract(from).dot(seg) / len2, 0, 1);
             Vector3d p = from.add(seg.scale(t));
+            double fuse = munition.fuseRadius(e.getBbWidth());
             double d = p.distanceToSqr(c) - e.getBbWidth() * e.getBbWidth() * 0.25;
-            if (d < bestD) {
+            if (d < fuse * fuse && d < bestD) {
                 bestD = d;
                 best = p;
             }
@@ -462,6 +467,9 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             case HEAT:
                 Explosions.heat(level, attacker, pos, dir, direct, p, munition.damage, p * 1.4 + 1.5);
                 break;
+            case THERMOBARIC:
+                Explosions.thermobaric(level, attacker, pos, direct, p, munition.damage);
+                break;
             case BOMB:
                 if (direct != null) {
                     direct.hurt(DamageSource.explosion(attacker instanceof LivingEntity ? (LivingEntity) attacker : null), 80F);
@@ -553,7 +561,7 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             default:
                 level.addParticle(ParticleTypes.FLAME, back.x, back.y, back.z, 0, 0, 0);
                 level.addParticle(ParticleTypes.CLOUD, back.x, back.y, back.z, 0, 0.01, 0);
-                if (munition == Munition.GRAD || munition == Munition.KH59) {
+                if (munition == Munition.GRAD || munition == Munition.TOS_220 || munition == Munition.KH59) {
                     level.addParticle(ParticleTypes.LARGE_SMOKE, back.x, back.y, back.z, 0, 0.02, 0);
                 }
                 break;

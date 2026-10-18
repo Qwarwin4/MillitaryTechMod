@@ -3,6 +3,7 @@ package com.qwarwin.militarytech.client;
 import com.qwarwin.militarytech.entity.Munition;
 import com.qwarwin.militarytech.entity.ProjectileEntity;
 import com.qwarwin.militarytech.entity.VehicleEntity;
+import com.qwarwin.militarytech.entity.VehicleSpec;
 import com.qwarwin.militarytech.registry.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -13,6 +14,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public final class ClientHooks {
 
     public static void onVehicleSeen(VehicleEntity v) {
+        if (v.spec.category == VehicleSpec.Category.TURRET) {
+            return;
+        }
         float vol = v.spec.isAircraft() ? 8F : 2.2F;
         Minecraft.getInstance().getSoundManager().play(new EntityLoopSound(v, ModSounds.get(v.spec.engineSound), vol));
     }

@@ -16,6 +16,9 @@ public enum Munition {
     HE_125(Kind.HE, Guidance.NONE, 11.0, 0.025, 0.997, 90, 40F, 4.5F, "shell_125", Tracer.NONE),
     HEAT_73(Kind.HEAT, Guidance.NONE, 7.0, 0.030, 0.995, 80, 140F, 1.6F, "shell_73", Tracer.NONE),
     GRAD(Kind.HE, Guidance.NONE, 5.5, 0.035, 0.999, 600, 30F, 4.0F, "grad_rocket", Tracer.NONE),
+    TOS_220(Kind.THERMOBARIC, Guidance.NONE, 4.6, 0.035, 0.999, 600, 40F, 6.5F, "tos_rocket", Tracer.NONE),
+    AA_30(Kind.SHELL, Guidance.NONE, 11.0, 0.018, 0.996, 60, 20F, 1.2F, null, Tracer.ORANGE),
+    SAM(Kind.AIR, Guidance.IR, 9.0, 0.0, 1.0, 240, 220F, 0F, "sam", Tracer.NONE),
     S8KO(Kind.HEAT, Guidance.NONE, 8.0, 0.020, 0.999, 160, 160F, 2.5F, "s8_rocket", Tracer.NONE),
     FAB250(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.995, 600, 0F, 6.0F, "fab250", Tracer.NONE),
     FAB500(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.995, 600, 0F, 9.0F, "fab500", Tracer.NONE),
@@ -31,7 +34,7 @@ public enum Munition {
     WARHEAD(Kind.WARHEAD, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 5.0F, "warhead", Tracer.NONE);
 
     public enum Kind {
-        BULLET, SHELL, DART, HE, HEAT, BOMB, AIR, BALLISTIC, WARHEAD
+        BULLET, SHELL, DART, HE, HEAT, THERMOBARIC, BOMB, AIR, BALLISTIC, WARHEAD
     }
 
     public enum Guidance {
@@ -81,7 +84,29 @@ public enum Munition {
     }
 
     public boolean isRocket() {
-        return this == GRAD || this == S8KO;
+        return this == GRAD || this == S8KO || this == TOS_220;
+    }
+
+    /**
+     * Proximity fuse reach around a target, 0 for contact fuses. The AA shell's programmable fuse sees further
+     * around a big aircraft than around a small drone.
+     */
+    public double fuseRadius(double targetWidth) {
+        switch (this) {
+            case R73:
+                return 4.5;
+            case R40:
+            case SAM:
+                return 6.0;
+            case AA_30:
+                return Math.min(4.0, 0.7 + 0.8 * targetWidth);
+            default:
+                return 0;
+        }
+    }
+
+    public boolean hasProximityFuse() {
+        return kind == Kind.AIR || this == AA_30;
     }
 
     /** Turn rate of guided ones, degrees per tick. */
@@ -89,6 +114,8 @@ public enum Munition {
         switch (this) {
             case R73:
                 return 14F;
+            case SAM:
+                return 11F;
             case R40:
                 return 7F;
             case KH29:

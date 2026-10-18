@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "RRR",
+  "PDP",
+  "TFT"
+ ],
+ "key": {
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "T": {
+   "item": "militarytech:track_links"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  }
+ },
+ "result": {
+  "item": "militarytech:tos1a",
+  "count": 1
+ }
+}

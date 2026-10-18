@@ -18,7 +18,7 @@ import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-/** Fire control for the Grad and the Oreshnik: type in X and Z, or take the point under the crosshair. */
+/** Fire control for the Grad, the TOS-1A and the Oreshnik: type in X and Z, or take the point under the crosshair. */
 @OnlyIn(Dist.CLIENT)
 public class TargetScreen extends Screen {
     private final VehicleEntity vehicle;

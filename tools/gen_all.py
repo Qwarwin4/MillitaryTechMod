@@ -15,6 +15,7 @@ import gen_vehicles  # noqa: E402
 import gen_trucks  # noqa: E402
 import gen_aircraft  # noqa: E402
 import gen_munitions  # noqa: E402
+import gen_turrets  # noqa: E402
 import gen_icons  # noqa: E402
 import gen_sounds  # noqa: E402
 import gen_data  # noqa: E402
@@ -33,6 +34,7 @@ def main():
     gen_trucks.main()
     gen_aircraft.main()
     gen_munitions.build()
+    gen_turrets.main()
     gen_icons.main()
     gen_sounds.main()
     gen_data.main()

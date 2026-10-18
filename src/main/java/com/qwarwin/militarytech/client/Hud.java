@@ -4,7 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.qwarwin.militarytech.MilitaryTech;
 import com.qwarwin.militarytech.entity.AirSpec;
 import com.qwarwin.militarytech.entity.AircraftEntity;
-import com.qwarwin.militarytech.entity.GradEntity;
+import com.qwarwin.militarytech.entity.FireControl;
 import com.qwarwin.militarytech.entity.Munition;
 import com.qwarwin.militarytech.entity.OreshnikEntity;
 import com.qwarwin.militarytech.entity.VehicleEntity;
@@ -91,8 +91,8 @@ public final class Hud {
             } else {
                 cross(ms, w / 2, h / 2, 3, WHITE);
             }
-            if (v instanceof GradEntity) {
-                grad(ms, mc, (GradEntity) v, w, h);
+            if (v instanceof FireControl) {
+                fireControl(ms, mc, v, (FireControl) v, w, h);
             } else if (v instanceof OreshnikEntity) {
                 oreshnik(ms, mc, (OreshnikEntity) v, w, h);
             }
@@ -114,11 +114,11 @@ public final class Hud {
         double dist = aim == null ? 400 : Math.max(10, aim.distanceTo(from));
         Vector3d gunDir = Vector3d.directionFromRotation(v.getGunPitch(pt), v.getTurretYaw(pt));
         int[] g = Projection.toScreen(from.add(gunDir.scale(dist)), w, h);
-        if (g != null && !(v instanceof GradEntity && v.getTarget() != null)) {
+        if (g != null && !(v instanceof FireControl && v.getTarget() != null)) {
             boolean on = Math.abs(g[0] - cx) < 3 && Math.abs(g[1] - cy) < 3;
             circle(ms, g[0], g[1], 5, on ? GREEN : AMBER);
         }
-        if (aim != null && !(v instanceof GradEntity)) {
+        if (aim != null && !(v instanceof FireControl)) {
             String r = I18n.get("hud.militarytech.meters", (int) aim.distanceTo(from));
             text(ms, mc, r, cx + 8, cy + 6, GREEN_DIM);
         }
@@ -219,17 +219,17 @@ public final class Hud {
         }
     }
 
-    private static void grad(MatrixStack ms, Minecraft mc, GradEntity g, int w, int h) {
+    private static void fireControl(MatrixStack ms, Minecraft mc, VehicleEntity g, FireControl fc, int w, int h) {
         int now = mc.player.tickCount;
         if (predictedTick != now) {
             predictedTick = now;
-            Vector3d from = g.rackOrigin();
+            Vector3d from = fc.rackOrigin();
             Vector3d dir = Vector3d.directionFromRotation(g.getGunPitch(), g.getTurretYaw());
-            predicted = predict(mc, Munition.GRAD, from, dir.scale(Munition.GRAD.speed));
+            predicted = predict(mc, fc.rocket(), from, dir.scale(fc.rocket().speed));
         }
         int x = w - 160, y = 8;
         AbstractGui.fill(ms, x - 4, y - 4, w - 4, y + 54, PANEL);
-        text(ms, mc, I18n.get("hud.militarytech.fire_control"), x, y, WHITE);
+        text(ms, mc, I18n.get(g.spec.key()) + " — " + I18n.get("hud.militarytech.fire_control"), x, y, WHITE);
         if (predicted != null) {
             int d = (int) Math.sqrt(predicted.distanceToSqr(g.getX(), predicted.y, g.getZ()));
             text(ms, mc, I18n.get("hud.militarytech.impact", d), x, y + 11, GREEN);
@@ -244,7 +244,7 @@ public final class Hud {
         if (t != null) {
             int d = (int) Math.sqrt(t.distSqr(g.getX(), t.getY(), g.getZ(), true));
             text(ms, mc, I18n.get("hud.militarytech.target", t.getX(), t.getZ(), d), x, y + 22, WHITE);
-            if (g.solution(t) != null && g.lastSolutionShort) {
+            if (fc.solution(t)[2] > 0) {
                 text(ms, mc, I18n.get("hud.militarytech.out_of_reach"), x, y + 33, RED);
             } else {
                 text(ms, mc, I18n.get("hud.militarytech.laid"), x, y + 33, GREEN);

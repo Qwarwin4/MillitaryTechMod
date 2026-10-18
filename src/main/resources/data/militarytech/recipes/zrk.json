@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "RFR",
+  "RDR",
+  "III"
+ ],
+ "key": {
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "I": {
+   "item": "minecraft:iron_block"
+  }
+ },
+ "result": {
+  "item": "militarytech:zrk",
+  "count": 1
+ }
+}

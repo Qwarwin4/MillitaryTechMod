@@ -233,6 +233,11 @@ public final class Explosions {
             if (d > radius) {
                 continue;
             }
+            // sparse fragments: a small drone is easily missed, an aircraft hardly ever
+            double size = Math.max(e.getBbWidth(), e.getBbHeight());
+            if (level.random.nextDouble() > Math.min(1.0, 0.25 + size * 0.35) * (1.0 - 0.6 * d / radius)) {
+                continue;
+            }
             float dmg = (float) (6.0 * (1.0 - d / radius)) + 2F;
             if (e instanceof LivingEntity) {
                 e.invulnerableTime = 0;
@@ -267,6 +272,44 @@ public final class Explosions {
         sw.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE, SoundCategory.BLOCKS, 6F, 1.1F);
         sw.sendParticles(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
         sw.sendParticles(ParticleTypes.LARGE_SMOKE, pos.x, pos.y, pos.z, 25, 1.2, 1.2, 1.2, 0.05);
+    }
+
+    /**
+     * Thermobaric warhead (TOS-1A): the fuel cloud goes off as one big, hot blast. The pressure wave reaches
+     * round corners (only halved behind cover), everything near the centre catches fire.
+     */
+    public static void thermobaric(World level, @Nullable Entity attacker, Vector3d pos, @Nullable Entity direct, float power,
+                                   float directDamage) {
+        if (level.isClientSide) {
+            return;
+        }
+        if (direct != null && direct.isAlive()) {
+            direct.invulnerableTime = 0;
+            direct.hurt(ModDamageSources.shell(null, attacker), directDamage);
+        }
+        explode(level, attacker, pos, power, true);
+        double radius = power * 2.6;
+        float mul = Config.FRAGMENT_DAMAGE.get().floatValue();
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(pos, pos).inflate(radius), LivingEntity::isAlive)) {
+            double d = e.getEyePosition(1F).distanceTo(pos);
+            if (d > radius || e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew()) {
+                continue;
+            }
+            boolean covered = level.clip(new RayTraceContext(pos, e.getEyePosition(1F), RayTraceContext.BlockMode.COLLIDER,
+                    RayTraceContext.FluidMode.NONE, e)).getType() != RayTraceResult.Type.MISS;
+            float dmg = (float) (30.0 * (1.0 - d / radius) + 2.0) * mul * (covered ? 0.5F : 1F);
+            e.invulnerableTime = 0;
+            e.hurt(DamageSource.explosion(attacker instanceof LivingEntity ? (LivingEntity) attacker : null), dmg);
+            if (d < radius * 0.5) {
+                e.setSecondsOnFire(8);
+            }
+        }
+        ServerWorld sw = (ServerWorld) level;
+        sw.sendParticles(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y + 1, pos.z, 3, power * 0.3, power * 0.2, power * 0.3, 0);
+        sw.sendParticles(ParticleTypes.FLAME, pos.x, pos.y + 1, pos.z, 120, power * 0.5, power * 0.3, power * 0.5, 0.12);
+        sw.sendParticles(ParticleTypes.LAVA, pos.x, pos.y + 0.5, pos.z, 30, power * 0.4, 0.5, power * 0.4, 0.1);
+        sw.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, pos.x, pos.y + 2, pos.z, 50, power * 0.4, power * 0.3, power * 0.4, 0.05);
+        sw.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE, SoundCategory.BLOCKS, 8F, 0.55F);
     }
 
     /** Oreshnik submunition: a white-hot slug coming down at hypersonic speed. */

@@ -95,6 +95,16 @@ def build():
     pod.cyl(0, yc, 1.0, 0.2, 0.12, "z", {"all": "m_olive", "south": ("m_dark", [("tubes", 5, 4, (18, 18, 16))])})
     pod.cyl(0, yc, -1.25, 0.2, 0.1, "z", {"all": "m_dark", "north": ("m_dark", [("tubes", 5, 4, (30, 30, 28))])})
 
+    tos = part(b, "munition/tos_rocket", 2)
+    yc = body(tos, 0.11, -1.6, 1.25, "m_olive_band", 0)
+    nose(tos, 0.11, 1.25, 0.45, "m_dark", yc, 3)
+    fins(tos, 0.11, -1.6, -1.25, 0.12, yc, "m_dark", 0.015)
+    sam = part(b, "munition/sam", 2)
+    yc = body(sam, 0.085, -1.3, 0.95, "m_white_band", 0)
+    nose(sam, 0.085, 0.95, 0.35, "m_seeker", yc, 2)
+    fins(sam, 0.085, 0.55, 0.75, 0.08, yc, "m_white", 0.01, x_shape=True)
+    fins(sam, 0.085, -1.3, -1.0, 0.16, yc, "m_white", 0.012, x_shape=True)
+
     # bombs: body, nose, the tail cone with its box fins
     for name, r, length, mat in (("fab250", 0.15, 1.3, "m_bomb"), ("fab500", 0.2, 1.75, "m_bomb"), ("fab1500", 0.32, 2.9, "m_bomb")):
         p = part(b, "munition/" + name, 2)

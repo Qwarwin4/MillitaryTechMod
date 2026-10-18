@@ -105,6 +105,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             WeaponSpec ws = e.spec.weapons.get(w);
             Munition m = ws.ammo[0];
             String cap = m == Munition.ATAKA ? "bmpt_cap" : m == Munition.GRAD ? "grad_rocket_tip"
+                    : m == Munition.TOS_220 ? "tos1a_rocket_tip" : m == Munition.SAM ? "zrk_cap"
                     : m == Munition.MALYUTKA ? "malyutka_rail" : null;
             if (cap == null) {
                 continue;
@@ -123,7 +124,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             for (int i = fired; i < ws.capacity[0]; i++) {
                 Vector3d t = ws.muzzles[i % ws.muzzles.length];
                 ms.pushPose();
-                ms.translate(t.x, t.y, t.z - (m == Munition.GRAD ? 0.05 : 0.3));
+                ms.translate(t.x, t.y, t.z - (m == Munition.GRAD || m == Munition.TOS_220 ? 0.05 : 0.3));
                 BoxModel.get(cap).render(ms, buf, light);
                 ms.popPose();
             }

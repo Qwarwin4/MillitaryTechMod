@@ -1,6 +1,7 @@
 package com.qwarwin.militarytech.registry;
 
 import com.qwarwin.militarytech.MilitaryTech;
+import com.qwarwin.militarytech.entity.AirDefenseTurretEntity;
 import com.qwarwin.militarytech.entity.AircraftEntity;
 import com.qwarwin.militarytech.entity.CameraEntity;
 import com.qwarwin.militarytech.entity.GradEntity;
@@ -8,6 +9,7 @@ import com.qwarwin.militarytech.entity.OreshnikEntity;
 import com.qwarwin.militarytech.entity.ProjectileEntity;
 import com.qwarwin.militarytech.entity.Specs;
 import com.qwarwin.militarytech.entity.TankEntity;
+import com.qwarwin.militarytech.entity.TosEntity;
 import com.qwarwin.militarytech.entity.VehicleEntity;
 import com.qwarwin.militarytech.entity.VehicleSpec;
 import net.minecraft.entity.EntityClassification;
@@ -29,6 +31,14 @@ public final class ModEntities {
     public static final RegistryObject<EntityType<TankEntity>> T90M = tank(Specs.T90M);
     public static final RegistryObject<EntityType<TankEntity>> BMPT = tank(Specs.BMPT);
     public static final RegistryObject<EntityType<TankEntity>> BMP1 = tank(Specs.BMP1);
+
+    public static final RegistryObject<EntityType<TosEntity>> TOS1A = reg(Specs.TOS1A, ENTITIES.register("tos1a",
+            () -> EntityType.Builder.<TosEntity>of(TosEntity::new, EntityClassification.MISC)
+                    .sized(Specs.TOS1A.width, Specs.TOS1A.height).clientTrackingRange(16).updateInterval(1)
+                    .setShouldReceiveVelocityUpdates(false).build("tos1a")));
+
+    public static final RegistryObject<EntityType<AirDefenseTurretEntity>> ZAK = turret(Specs.ZAK);
+    public static final RegistryObject<EntityType<AirDefenseTurretEntity>> ZRK = turret(Specs.ZRK);
 
     public static final RegistryObject<EntityType<GradEntity>> GRAD = reg(Specs.GRAD, ENTITIES.register("grad",
             () -> EntityType.Builder.<GradEntity>of(GradEntity::new, EntityClassification.MISC)
@@ -58,6 +68,12 @@ public final class ModEntities {
         return reg(s, ENTITIES.register(s.id, () -> EntityType.Builder.<TankEntity>of((t, w) -> new TankEntity(t, w, s),
                 EntityClassification.MISC).sized(s.width, s.height).clientTrackingRange(16).updateInterval(1)
                 .setShouldReceiveVelocityUpdates(false).build(s.id)));
+    }
+
+    private static RegistryObject<EntityType<AirDefenseTurretEntity>> turret(VehicleSpec s) {
+        return reg(s, ENTITIES.register(s.id, () -> EntityType.Builder.<AirDefenseTurretEntity>of(
+                (t, w) -> new AirDefenseTurretEntity(t, w, s), EntityClassification.MISC).sized(s.width, s.height)
+                .clientTrackingRange(16).updateInterval(1).setShouldReceiveVelocityUpdates(false).build(s.id)));
     }
 
     private static RegistryObject<EntityType<AircraftEntity>> aircraft(VehicleSpec s) {
