@@ -18,6 +18,7 @@ public final class Config {
     public static final ForgeConfigSpec.IntValue NUKE_BLAST;
     public static final ForgeConfigSpec.IntValue NUKE_FALLOUT;
     public static final ForgeConfigSpec.BooleanValue NEED_AMMO_CRATES;
+    public static final ForgeConfigSpec.BooleanValue REALISTIC_AMMO;
     public static final ForgeConfigSpec.BooleanValue LOAD_CHUNKS;
 
     static {
@@ -39,6 +40,9 @@ public final class Config {
         AIR_SPEED = b.comment("Speed multiplier for aircraft").defineInRange("airSpeed", 1.0, 0.2, 2.0);
         NEED_AMMO_CRATES = b.comment("Placed vehicles start empty and are rearmed with ammo crates (creative ones always come loaded)")
                 .define("needAmmoCrates", true);
+        REALISTIC_AMMO = b.comment("Shells, rockets, missiles and bombs are items loaded into vehicles one by one; the ammo crate",
+                        "only tops up machine-gun belts and 30 mm. Off: the crate fills everything but nuclear weapons.")
+                .define("realisticAmmo", true);
         LOAD_CHUNKS = b.comment("Rockets and missiles keep the chunks they fly through loaded")
                 .define("loadChunks", true);
         b.pop();
@@ -49,7 +53,8 @@ public final class Config {
         b.push("nuke");
         NUKE_CRATER = b.comment("Crater radius of the nuclear Oreshnik, blocks").defineInRange("crater", 42, 5, 80);
         NUKE_BLAST = b.comment("Radius of the blast that kills, burns and throws things, blocks").defineInRange("blast", 200, 20, 500);
-        NUKE_FALLOUT = b.comment("Seconds the fallout keeps hurting near ground zero").defineInRange("falloutSeconds", 120, 0, 1200);
+        NUKE_FALLOUT = b.comment("Seconds the ground around a nuclear crater stays radioactive (0: no fallout)")
+                .defineInRange("radiationSeconds", 1800, 0, 72000);
         b.pop();
         SPEC = b.build();
     }

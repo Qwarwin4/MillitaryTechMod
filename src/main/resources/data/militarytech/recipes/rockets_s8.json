@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "WWW",
+  "RRR",
+  "III"
+ ],
+ "key": {
+  "W": {
+   "item": "minecraft:tnt"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  }
+ },
+ "result": {
+  "item": "militarytech:rockets_s8",
+  "count": 1
+ }
+}

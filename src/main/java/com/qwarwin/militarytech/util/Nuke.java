@@ -3,20 +3,22 @@ package com.qwarwin.militarytech.util;
 import com.qwarwin.militarytech.Config;
 import com.qwarwin.militarytech.MilitaryTech;
 import com.qwarwin.militarytech.entity.VehicleEntity;
-import com.qwarwin.militarytech.registry.ModSounds;
+import com.qwarwin.militarytech.network.Network;
+import com.qwarwin.militarytech.network.NukeFxPacket;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -24,10 +26,12 @@ import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.gen.Heightmap;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -37,98 +41,160 @@ import java.util.Random;
 import java.util.UUID;
 
 /**
- * The Oreshnik's nuclear warhead, game-sized: a flash, a fireball, a crater dug out a slice per tick (so the server
- * doesn't stall), a blast that knocks over and burns everything around, the mushroom cloud rising for a few
- * seconds, and fallout that keeps hurting near ground zero for a while.
+ * A nuclear detonation done the way the old big mods did it (ICBM / Ballistix, Flan's): everything happens in
+ * stages spread over many ticks so the server keeps running.
+ * <ol>
+ *     <li>Flash and heat pulse: everyone who can see the fireball is blinded and set alight, things right under it
+ *     are simply gone, vehicle electronics die (EMP).</li>
+ *     <li>The crater is cut by thousands of rays from the centre. Each ray spends its energy on what it passes through,
+ *     so soft ground gives a wide bowl, rock a smaller one, obsidian and bedrock stop it.</li>
+ *     <li>The shock wave runs outwards at a visible speed, hitting things as it reaches them, cover helping.</li>
+ *     <li>Around the crater buildings are torn up, windows blown in, trees stripped, fires started.</li>
+ *     <li>The ground stays radioactive ({@link Radiation}) for a long while.</li>
+ * </ol>
+ * The fireball, mushroom cloud, dome and dust ring are drawn by the client (NukeFx) from one packet.
  */
 @Mod.EventBusSubscriber(modid = MilitaryTech.MODID)
 public final class Nuke {
+    /** blocks per tick: the shock front, here and in the client's picture of it */
+    public static final double SHOCK_SPEED = 9.0;
     private static final List<Burst> ACTIVE = new ArrayList<>();
-    private static final int BLOCKS_PER_TICK = 6000;
+    private static final int RAY_STEPS_PER_TICK = 140_000;
+    private static final int BLOCKS_PER_TICK = 9_000;
     private static int nextKey = 900000;
 
     private static final class Burst {
         final ServerWorld world;
         final Vector3d pos;
+        final BlockPos center;
         @Nullable
         final UUID owner;
-        final int crater;
+        final double crater, blast;
+        final boolean nuclear;
         final int key;
         final Random rand;
         int age;
-        /** crater carving: next x slice and the z inside it */
-        int cx, cz;
-        boolean dug;
+        // crater rays
+        final Vector3d[] dirs;
+        int nextRay;
+        final LongOpenHashSet doomed = new LongOpenHashSet();
+        final LongArrayList order = new LongArrayList();
+        final LongArrayList floor = new LongArrayList();
+        int removed;
+        boolean carved, scorched;
+        int outerPass;
+        // shock wave
+        double shock;
+        final it.unimi.dsi.fastutil.ints.IntOpenHashSet struck = new it.unimi.dsi.fastutil.ints.IntOpenHashSet();
 
-        Burst(ServerWorld world, Vector3d pos, @Nullable UUID owner, int crater) {
+        Burst(ServerWorld world, Vector3d pos, @Nullable UUID owner, double crater, double blast, boolean nuclear) {
+            this.nuclear = nuclear;
             this.world = world;
             this.pos = pos;
+            this.center = new BlockPos(pos);
             this.owner = owner;
             this.crater = crater;
+            this.blast = blast;
             this.key = nextKey++;
             this.rand = new Random(world.random.nextLong());
-            this.cx = -crater - 2;
-            this.cz = -crater - 2;
+            // enough rays that neighbours are less than a block apart at the crater's edge
+            int n = (int) MathHelper.clamp(4 * Math.PI * crater * crater * 1.4, 2000, 60000);
+            this.dirs = sphere(n);
         }
     }
 
+    /** The Oreshnik's warhead. */
     public static void detonate(ServerWorld world, Vector3d pos, @Nullable UUID owner) {
-        int crater = Config.NUKE_CRATER.get();
-        Burst b = new Burst(world, pos, owner, crater);
+        detonate(world, pos, owner, 1.0);
+    }
+
+    /** {@code yield} scales the crater and the blast (1 = the config's numbers). */
+    public static void detonate(ServerWorld world, Vector3d pos, @Nullable UUID owner, double yield) {
+        double crater = Config.NUKE_CRATER.get() * yield;
+        double blast = Config.NUKE_BLAST.get() * yield;
+        Burst b = new Burst(world, pos, owner, crater, blast, true);
         ACTIVE.add(b);
         ChunkTickets.target(world, pos, b.key);
-        double blast = Config.NUKE_BLAST.get();
-        Entity attacker = Explosions.player(world, owner);
 
-        // flash and sound for everyone who could see it
+        // the picture: fireball, mushroom, dome, sound arriving late with the shock
+        Network.CHANNEL.send(PacketDistributor.DIMENSION.with(world::dimension),
+                new NukeFxPacket(pos, (float) crater, (float) blast, true));
         for (ServerPlayerEntity p : world.players()) {
             double d = p.position().distanceTo(pos);
-            if (d < 1500) {
-                send(world, p, ParticleTypes.FLASH, pos.x, pos.y + 6, pos.z, 6, 4, 4, 4, 0);
-                float vol = (float) Math.max(2.0, 60.0 - d / 25.0);
-                p.playNotifySound(ModSounds.get("nuke"), SoundCategory.HOSTILE, vol, 1F);
-                if (d < blast * 3) {
-                    p.addEffect(new EffectInstance(Effects.BLINDNESS, d < blast ? 60 : 30, 0, false, false));
-                }
+            if (d < blast * 3 && sees(world, pos.add(0, crater * 0.4, 0), p)) {
+                p.addEffect(new EffectInstance(Effects.BLINDNESS, d < blast ? 80 : 40, 0, false, false));
             }
-            if (d < 3000) {
+            if (d < 6000) {
                 p.displayClientMessage(new TranslationTextComponent("msg.militarytech.nuke_flash"), true);
             }
         }
-        world.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE, SoundCategory.HOSTILE, 30F, 0.4F);
+        heatPulse(b);
+        Radiation.get(world).add(pos, crater * 3.0, Config.NUKE_FALLOUT.get() * 20L, world.getGameTime());
+    }
 
-        // blast and heat: everything in the open dies close in; cover helps further out
-        float mul = Config.FRAGMENT_DAMAGE.get().floatValue();
+    /**
+     * FAB-3000 / FAB-9000: the same crater rays and shock wave at a smaller scale, a fireball and a column of
+     * smoke and dust instead of the mushroom, no heat flash, no EMP, no fallout.
+     */
+    public static void heavyBomb(ServerWorld world, Vector3d pos, @Nullable UUID owner, double crater, double blast) {
+        Burst b = new Burst(world, pos, owner, crater, blast, false);
+        ACTIVE.add(b);
+        ChunkTickets.target(world, pos, b.key);
+        Network.CHANNEL.send(PacketDistributor.DIMENSION.with(world::dimension),
+                new NukeFxPacket(pos, (float) crater, (float) blast, false));
+    }
+
+    // ------------------------------------------------------------------ stage 1: flash, heat, EMP
+
+    private static void heatPulse(Burst b) {
+        Entity attacker = Explosions.player(b.world, b.owner);
         DamageSource src = DamageSource.explosion(attacker instanceof LivingEntity ? (LivingEntity) attacker : null)
-                .bypassArmor();
-        Vector3d fireball = pos.add(0, crater * 0.4, 0);
-        for (Entity e : world.getEntities((Entity) null, new AxisAlignedBB(pos, pos).inflate(blast), Entity::isAlive)) {
-            double d = e.position().distanceTo(pos);
-            if (d > blast) {
+                .bypassArmor().setIsFire();
+        Vector3d fireball = b.pos.add(0, b.crater * 0.4, 0);
+        double thermal = b.blast * 1.3;
+        for (Entity e : b.world.getEntities((Entity) null, new AxisAlignedBB(b.pos, b.pos).inflate(b.blast * 1.5), Entity::isAlive)) {
+            double d = e.position().distanceTo(b.pos);
+            if (e instanceof VehicleEntity) {
+                // the electromagnetic pulse kills engines and electronics for a while
+                if (d < b.blast * 1.5) {
+                    ((VehicleEntity) e).emp((int) (200 + 600 * (1 - d / (b.blast * 1.5))));
+                }
+                if (d < b.crater * 1.1) {
+                    e.hurt(src, 100000F);
+                }
                 continue;
             }
-            double k = 1.0 - d / blast;
-            boolean open = world.clip(new RayTraceContext(fireball, e.getEyePosition(1F), RayTraceContext.BlockMode.COLLIDER,
-                    RayTraceContext.FluidMode.NONE, e)).getType() == RayTraceResult.Type.MISS;
-            // the inner third is certain death whatever the cover; further out it falls off, walls still help
-            float cover = d < blast * 0.35 || open ? 1F : 0.5F;
-            double hit = d < blast * 0.35 ? 1.0 : k * k * 1.6;
-            if (e instanceof VehicleEntity) {
-                e.hurt(src, (float) (8000 * hit) * cover);
-            } else if (e instanceof LivingEntity) {
+            if (d < b.crater * 1.1) {
+                // inside the fireball nothing survives, whatever the cover
                 e.invulnerableTime = 0;
-                e.hurt(src, (float) (1500 * hit + 6) * cover * Math.max(mul, 0.25F));
-                if (open && d < blast * 0.85) {
-                    e.setSecondsOnFire(15 + (int) (15 * k));
+                if (e instanceof LivingEntity) {
+                    e.hurt(src, 100000F);
+                } else if (e instanceof ItemEntity) {
+                    e.remove();
                 }
+                continue;
             }
-            if (!(e instanceof VehicleEntity) || d < crater * 1.5) {
-                Vector3d push = e.position().subtract(pos).add(0, 4, 0).normalize().scale(4.0 * k * k * cover);
-                e.setDeltaMovement(e.getDeltaMovement().add(push));
-                e.hurtMarked = true;
+            if (!(e instanceof LivingEntity) || d > thermal) {
+                continue;
+            }
+            if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew(e)) {
+                continue;
+            }
+            if (sees(b.world, fireball, e)) {
+                double k = 1 - d / thermal;
+                e.setSecondsOnFire(5 + (int) (25 * k));
+                e.invulnerableTime = 0;
+                e.hurt(src, (float) (10 + 80 * k * k));
             }
         }
     }
+
+    private static boolean sees(ServerWorld w, Vector3d from, Entity e) {
+        return w.clip(new RayTraceContext(from, e.getEyePosition(1F), RayTraceContext.BlockMode.COLLIDER,
+                RayTraceContext.FluidMode.NONE, e)).getType() == RayTraceResult.Type.MISS;
+    }
+
+    // ------------------------------------------------------------------ ticking
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
@@ -139,175 +205,278 @@ public final class Nuke {
         while (it.hasNext()) {
             Burst b = it.next();
             b.age++;
-            if (!b.dug) {
-                dig(b);
+            shock(b);
+            if (Config.EXPLOSIONS_BREAK_BLOCKS.get()) {
+                if (b.nextRay < b.dirs.length) {
+                    castRays(b);
+                } else if (!b.carved) {
+                    carve(b);
+                } else if (!b.scorched) {
+                    scorch(b);
+                } else if (b.outerPass < 6) {
+                    outer(b);
+                }
+            } else {
+                b.carved = b.scorched = true;
+                b.outerPass = 6;
             }
-            cloud(b);
+            dust(b);
             if (b.age % 20 == 0) {
-                fallout(b);
                 ChunkTickets.target(b.world, b.pos, b.key);
             }
-            if (b.age > Config.NUKE_FALLOUT.get() * 20 && b.dug) {
+            if (b.outerPass >= 6 && b.shock > b.blast * 1.6) {
                 it.remove();
             }
         }
     }
 
-    /** Dig the crater a slice at a time: a squashed bowl, glassy and burning at the rim. */
-    private static void dig(Burst b) {
-        boolean breakBlocks = Config.EXPLOSIONS_BREAK_BLOCKS.get();
-        int r = b.crater;
-        int rim = r + 3;
-        int budget = BLOCKS_PER_TICK;
+    // ------------------------------------------------------------------ stage 2: the crater
+
+    /** Golden-spiral directions, evenly over a sphere. */
+    private static Vector3d[] sphere(int n) {
+        Vector3d[] out = new Vector3d[n];
+        double ga = Math.PI * (3 - Math.sqrt(5));
+        for (int i = 0; i < n; i++) {
+            double y = 1 - 2 * (i + 0.5) / n;
+            double r = Math.sqrt(1 - y * y);
+            double a = ga * i;
+            out[i] = new Vector3d(Math.cos(a) * r, y, Math.sin(a) * r);
+        }
+        return out;
+    }
+
+    private static void castRays(Burst b) {
         BlockPos.Mutable mp = new BlockPos.Mutable();
-        BlockPos center = new BlockPos(b.pos);
-        while (budget > 0) {
-            if (b.cx > rim) {
-                b.dug = true;
-                scorch(b);
-                return;
+        int budget = RAY_STEPS_PER_TICK;
+        while (budget > 0 && b.nextRay < b.dirs.length) {
+            Vector3d d = b.dirs[b.nextRay++];
+            // a surface burst throws its energy up and out: rays into the ground reach less deep
+            double energy = b.crater * (0.85 + 0.3 * b.rand.nextDouble());
+            if (d.y < 0) {
+                energy *= 0.55 + 0.45 * (1 + d.y) * (1 + d.y);
             }
-            int x = b.cx, z = b.cz;
-            double horiz = Math.sqrt(x * x + z * z);
-            if (horiz <= rim) {
-                // a bowl: deepest in the middle, the edge ragged
-                double edge = r + (b.rand.nextDouble() - 0.5) * 2.5;
-                double depth = horiz < edge ? Math.sqrt(Math.max(0, edge * edge - horiz * horiz)) * 0.55 : 0;
-                int top = Math.min(255, center.getY() + r);
-                int bottom = MathHelper.floor(center.getY() - depth);
-                for (int y = top; y >= Math.max(1, bottom - 1); y--) {
-                    mp.set(center.getX() + x, y, center.getZ() + z);
-                    budget--;
-                    BlockState st = b.world.getBlockState(mp);
-                    if (st.isAir(b.world, mp)) {
-                        continue;
-                    }
-                    if (st.getDestroySpeed(b.world, mp) < 0) {
-                        continue;
-                    }
-                    boolean inBowl = y > bottom && horiz < edge;
-                    // above the bowl, the blast flattens what stands within the crater radius
-                    boolean flattened = y > center.getY() && horiz < edge + 2 && b.rand.nextFloat() < 0.9F;
-                    if (breakBlocks && (inBowl || flattened)) {
-                        b.world.setBlock(mp, Blocks.AIR.defaultBlockState(), 2 | 16);
-                    } else if (y == bottom - 1 || y == bottom) {
-                        float roll = b.rand.nextFloat();
-                        if (breakBlocks && horiz < edge) {
-                            b.world.setBlock(mp, roll < 0.25F ? Blocks.MAGMA_BLOCK.defaultBlockState()
-                                    : roll < 0.6F ? Blocks.BLACKSTONE.defaultBlockState() : Blocks.BASALT.defaultBlockState(), 2 | 16);
-                        }
-                    }
+            double x = b.pos.x, y = b.pos.y + 0.5, z = b.pos.z;
+            long last = Long.MIN_VALUE;
+            while (energy > 0 && budget-- > 0) {
+                x += d.x * 0.5;
+                y += d.y * 0.5;
+                z += d.z * 0.5;
+                if (y < 1 || y > 255) {
+                    break;
                 }
-            }
-            b.cz++;
-            if (b.cz > rim) {
-                b.cz = -rim;
-                b.cx++;
+                mp.set(MathHelper.floor(x), MathHelper.floor(y), MathHelper.floor(z));
+                long key = mp.asLong();
+                if (key == last) {
+                    energy -= 0.5;
+                    continue;
+                }
+                last = key;
+                BlockState st = b.world.getBlockState(mp);
+                if (st.isAir(b.world, mp)) {
+                    energy -= 0.5;
+                    continue;
+                }
+                float hard = st.getDestroySpeed(b.world, mp);
+                float res = st.getBlock().getExplosionResistance();
+                if (hard < 0 || res >= 1200) {
+                    // bedrock, obsidian, end portal frames: the ray stops here and leaves a glassy face
+                    b.floor.add(key);
+                    break;
+                }
+                if (!b.world.getFluidState(mp).isEmpty()) {
+                    // boiled away
+                    res = 0.5F;
+                }
+                double cost = 0.5 + Math.min(res, 60) * 0.075;
+                if (energy - cost <= 0) {
+                    b.floor.add(key);
+                    break;
+                }
+                energy -= cost;
+                if (b.doomed.add(key)) {
+                    b.order.add(key);
+                }
             }
         }
     }
 
-    /** Around the crater: burnt ground, trees stripped, fires everywhere the heat reached. */
+    private static void carve(Burst b) {
+        BlockPos.Mutable mp = new BlockPos.Mutable();
+        int n = 0;
+        while (n < BLOCKS_PER_TICK && b.removed < b.order.size()) {
+            mp.set(BlockPos.of(b.order.getLong(b.removed++)));
+            if (!b.world.isEmptyBlock(mp)) {
+                b.world.setBlock(mp, Blocks.AIR.defaultBlockState(), 2 | 16);
+                n++;
+            }
+        }
+        if (b.removed >= b.order.size()) {
+            b.carved = true;
+        }
+    }
+
+    /** The crater floor: fused, glassy, still glowing in places; fires all over the rim. */
     private static void scorch(Burst b) {
-        if (!Config.EXPLOSIONS_BREAK_BLOCKS.get()) {
-            return;
-        }
-        int r = b.crater;
-        int far = (int) (r * 3.2);
         BlockPos.Mutable mp = new BlockPos.Mutable();
-        BlockPos c = new BlockPos(b.pos);
-        for (int i = 0; i < far * far * 3; i++) {
-            double a = b.rand.nextDouble() * Math.PI * 2;
-            double d = r + b.rand.nextDouble() * (far - r);
-            int x = c.getX() + (int) (Math.cos(a) * d), z = c.getZ() + (int) (Math.sin(a) * d);
-            int y = b.world.getHeight(net.minecraft.world.gen.Heightmap.Type.MOTION_BLOCKING, x, z);
-            mp.set(x, y - 1, z);
-            BlockState st = b.world.getBlockState(mp);
-            if (st.getMaterial() == Material.LEAVES || st.getMaterial() == Material.PLANT || st.getMaterial() == Material.REPLACEABLE_PLANT) {
-                b.world.setBlock(mp, Blocks.AIR.defaultBlockState(), 3);
-            } else if (st.is(Blocks.GRASS_BLOCK) || st.is(Blocks.DIRT) || st.is(Blocks.PODZOL)) {
-                b.world.setBlock(mp, d < r * 1.6 ? Blocks.COARSE_DIRT.defaultBlockState() : st, 3);
+        for (int i = 0; i < b.floor.size(); i++) {
+            mp.set(BlockPos.of(b.floor.getLong(i)));
+            if (b.doomed.contains(mp.asLong())) {
+                continue;
             }
-            mp.set(x, y, z);
-            if (b.rand.nextFloat() < (d < r * 1.8 ? 0.5F : 0.15F) && b.world.getBlockState(mp).isAir(b.world, mp)
-                    && b.world.getBlockState(mp.below()).isFaceSturdy(b.world, mp.below(), net.minecraft.util.Direction.UP)) {
-                b.world.setBlock(mp, Blocks.FIRE.defaultBlockState(), 3);
+            BlockState st = b.world.getBlockState(mp);
+            if (st.isAir(b.world, mp) || st.getDestroySpeed(b.world, mp) < 0 || st.getBlock().getExplosionResistance() >= 1200) {
+                continue;
+            }
+            double d = Math.sqrt(mp.distSqr(b.center));
+            float roll = b.rand.nextFloat();
+            float inner = (float) (1 - d / (b.crater * 1.1));
+            BlockState to;
+            if (roll < 0.12F + 0.25F * inner) {
+                to = Blocks.MAGMA_BLOCK.defaultBlockState();
+            } else if (roll < 0.45F) {
+                to = Blocks.BLACKSTONE.defaultBlockState();
+            } else if (roll < 0.7F) {
+                to = Blocks.BASALT.defaultBlockState();
+            } else if (roll < 0.78F + 0.1F * inner) {
+                to = Blocks.OBSIDIAN.defaultBlockState();
+            } else {
+                to = Blocks.COARSE_DIRT.defaultBlockState();
+            }
+            b.world.setBlock(mp, to, 2 | 16);
+            BlockPos up = mp.above();
+            if (b.rand.nextFloat() < 0.08F && b.world.isEmptyBlock(up) && to.isFaceSturdy(b.world, mp, Direction.UP)) {
+                b.world.setBlock(up, Blocks.FIRE.defaultBlockState(), 3);
+            }
+        }
+        b.scorched = true;
+        b.doomed.clear();
+        b.order.clear();
+        b.floor.clear();
+    }
+
+    /**
+     * Beyond the crater, a few passes over the blast area: weak buildings knocked down, the rest gutted, glass gone,
+     * trees stripped, the ground burnt, fires everywhere the heat reached.
+     */
+    private static void outer(Burst b) {
+        b.outerPass++;
+        double r0 = b.crater, r1 = b.crater * 2.6, rGlass = b.blast * 0.7;
+        BlockPos.Mutable mp = new BlockPos.Mutable();
+        int samples = (int) Math.min(40000, rGlass * rGlass * 0.6);
+        for (int i = 0; i < samples; i++) {
+            double a = b.rand.nextDouble() * Math.PI * 2;
+            // uniform over the disc
+            double d = r0 + Math.sqrt(b.rand.nextDouble()) * (rGlass - r0);
+            int x = b.center.getX() + MathHelper.floor(Math.cos(a) * d);
+            int z = b.center.getZ() + MathHelper.floor(Math.sin(a) * d);
+            int top = b.world.getHeight(Heightmap.Type.MOTION_BLOCKING, x, z);
+            boolean heavy = d < r1;
+            // how likely a block here is wrecked
+            double p = heavy ? Math.pow(1 - (d - r0) / (r1 - r0), 1.4) : 0;
+            for (int y = top + 1; y >= top - (heavy ? 18 : 10) && y > 1; y--) {
+                mp.set(x, y, z);
+                BlockState st = b.world.getBlockState(mp);
+                if (st.isAir(b.world, mp)) {
+                    continue;
+                }
+                Material m = st.getMaterial();
+                float hard = st.getDestroySpeed(b.world, mp);
+                if (m == Material.GLASS || m == Material.LEAVES || m == Material.PLANT || m == Material.REPLACEABLE_PLANT
+                        || m == Material.ICE || m == Material.TOP_SNOW || m == Material.WOOL) {
+                    b.world.setBlock(mp, Blocks.AIR.defaultBlockState(), 2 | 16);
+                } else if (heavy && hard >= 0 && hard < 4F && b.rand.nextDouble() < p * (1.2 - hard * 0.2)
+                        && st.getBlock().getExplosionResistance() < 100) {
+                    b.world.setBlock(mp, Blocks.AIR.defaultBlockState(), 2 | 16);
+                } else if (y <= top && (st.is(Blocks.GRASS_BLOCK) || st.is(Blocks.DIRT) || st.is(Blocks.PODZOL) || st.is(Blocks.MYCELIUM))) {
+                    b.world.setBlock(mp, d < r1 * 1.3 ? Blocks.COARSE_DIRT.defaultBlockState() : st, 2 | 16);
+                    break;
+                } else if (y <= top - 1 && m != Material.WOOD && m != Material.NETHER_WOOD) {
+                    break;
+                }
+            }
+            // fires on whatever still stands in the heat
+            if (d < b.blast * 0.45 && b.rand.nextFloat() < (heavy ? 0.12F : 0.04F)) {
+                int y = b.world.getHeight(Heightmap.Type.MOTION_BLOCKING, x, z);
+                mp.set(x, y, z);
+                if (b.world.isEmptyBlock(mp) && b.world.getBlockState(mp.below()).isFaceSturdy(b.world, mp.below(), Direction.UP)) {
+                    b.world.setBlock(mp, Blocks.FIRE.defaultBlockState(), 3);
+                }
             }
         }
     }
 
-    /** Fireball, then the stem and the cap of the mushroom rising and spreading. */
-    private static void cloud(Burst b) {
-        int age = b.age;
-        if (age > 260) {
+    // ------------------------------------------------------------------ stage 3: the shock wave
+
+    private static void shock(Burst b) {
+        double prev = b.shock;
+        b.shock = b.age * SHOCK_SPEED;
+        if (prev > b.blast * 1.5) {
             return;
         }
-        Vector3d p = b.pos;
-        double r = b.crater;
-        for (ServerPlayerEntity pl : b.world.players()) {
-            if (pl.position().distanceTo(p) > 1200) {
+        Entity attacker = Explosions.player(b.world, b.owner);
+        DamageSource src = DamageSource.explosion(attacker instanceof LivingEntity ? (LivingEntity) attacker : null).bypassArmor();
+        float mul = Math.max(Config.FRAGMENT_DAMAGE.get().floatValue(), 0.25F);
+        Vector3d fireball = b.pos.add(0, b.crater * 0.4, 0);
+        AxisAlignedBB box = new AxisAlignedBB(b.pos, b.pos).inflate(Math.min(b.shock, b.blast * 1.5));
+        for (Entity e : b.world.getEntities((Entity) null, box, Entity::isAlive)) {
+            double d = e.position().distanceTo(b.pos);
+            if (d > b.shock || d > b.blast * 1.5 || !b.struck.add(e.getId())) {
                 continue;
             }
-            if (age < 40) {
-                double fr = r * (0.4 + age / 40.0 * 0.6);
-                send(b.world, pl, ParticleTypes.EXPLOSION_EMITTER, p.x, p.y + fr * 0.5, p.z, 4, fr * 0.5, fr * 0.4, fr * 0.5, 0);
-                send(b.world, pl, ParticleTypes.FLAME, p.x, p.y + fr * 0.5, p.z, 120, fr * 0.6, fr * 0.5, fr * 0.6, 0.3);
-                send(b.world, pl, ParticleTypes.LAVA, p.x, p.y + 2, p.z, 40, fr * 0.7, 2, fr * 0.7, 0.5);
-            }
-            // the stem climbs, the cap sits on top and widens
-            double rise = Math.min(1.0, age / 160.0);
-            double capY = p.y + r * 0.6 + rise * r * 3.2;
-            double stemTop = capY - r * 0.4;
-            if (age % 2 == 0) {
-                for (double y = p.y + 2; y < stemTop; y += 6) {
-                    send(b.world, pl, ParticleTypes.CAMPFIRE_SIGNAL_SMOKE, p.x, y, p.z, 3, r * 0.18, 2.5, r * 0.18, 0.02);
+            // overpressure: certain death near the crater, falling off to broken windows at the edge
+            double k = Math.max(0, 1 - d / b.blast);
+            double hit = d < b.crater * 2 ? 1.0 : k * k * 1.6;
+            boolean open = sees(b.world, fireball, e);
+            float cover = d < b.crater * 2 || open ? 1F : 0.45F;
+            float scale = b.nuclear ? 1F : 0.35F;
+            if (e instanceof VehicleEntity) {
+                e.hurt(src, (float) (9000 * hit) * cover * scale);
+            } else if (e instanceof LivingEntity) {
+                if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew(e)) {
+                    continue;
                 }
-                double capR = r * (0.5 + rise * 1.1);
-                send(b.world, pl, ParticleTypes.CAMPFIRE_SIGNAL_SMOKE, p.x, capY, p.z, 30, capR, r * 0.3, capR, 0.03);
-                send(b.world, pl, ParticleTypes.LARGE_SMOKE, p.x, capY - r * 0.2, p.z, 30, capR * 0.9, r * 0.25, capR * 0.9, 0.05);
-                if (age < 120) {
-                    send(b.world, pl, ParticleTypes.FLAME, p.x, capY - r * 0.3, p.z, 25, capR * 0.5, r * 0.2, capR * 0.5, 0.05);
+                e.invulnerableTime = 0;
+                e.hurt(src, (float) (1800 * hit + (d < b.blast * 1.5 ? 4 : 0)) * cover * mul * scale);
+            }
+            if (d < b.blast * 1.5) {
+                // thrown outwards and up by the wind behind the front
+                double push = 3.5 * Math.max(k, 0.08) * cover;
+                if (e instanceof VehicleEntity) {
+                    push *= 0.25;
                 }
-                // dust ring rolling outwards along the ground
-                double ring = Math.min(r * 4, age * 0.9);
-                for (int i = 0; i < 12; i++) {
-                    double a = i * Math.PI / 6 + age * 0.01;
-                    send(b.world, pl, ParticleTypes.CLOUD, p.x + Math.cos(a) * ring, p.y + 1, p.z + Math.sin(a) * ring,
-                            2, 2, 0.6, 2, 0.02);
-                }
-            }
-        }
-        if (age == 15 || age == 45) {
-            b.world.playSound(null, p.x, p.y, p.z, SoundEvents.GENERIC_EXPLODE, SoundCategory.HOSTILE, 25F, 0.3F);
-        }
-    }
-
-    /** Lingering contamination near ground zero. */
-    private static void fallout(Burst b) {
-        double r = b.crater * 2.2;
-        for (LivingEntity e : b.world.getEntitiesOfClass(LivingEntity.class, new AxisAlignedBB(b.pos, b.pos).inflate(r), LivingEntity::isAlive)) {
-            if (e.position().distanceTo(b.pos) > r) {
-                continue;
-            }
-            if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew(e)) {
-                continue;
-            }
-            e.addEffect(new EffectInstance(Effects.WITHER, 60, 0));
-            e.addEffect(new EffectInstance(Effects.HUNGER, 100, 1));
-            if (e instanceof ServerPlayerEntity && b.age % 100 == 0) {
-                ((ServerPlayerEntity) e).displayClientMessage(new TranslationTextComponent("msg.militarytech.radiation"), true);
-            }
-        }
-        for (ServerPlayerEntity pl : b.world.players()) {
-            if (pl.position().distanceTo(b.pos) < r * 1.5) {
-                send(b.world, pl, ParticleTypes.WHITE_ASH, b.pos.x, b.pos.y + 3, b.pos.z, 60, r * 0.6, 3, r * 0.6, 0.01);
+                Vector3d dir = e.position().subtract(b.pos).normalize().add(0, 0.35, 0).normalize();
+                e.setDeltaMovement(e.getDeltaMovement().add(dir.scale(push)));
+                e.hurtMarked = true;
             }
         }
     }
 
-    private static <T extends IParticleData> void send(ServerWorld w, ServerPlayerEntity p, T type, double x, double y, double z,
-                                                       int n, double dx, double dy, double dz, double speed) {
-        w.sendParticles(p, type, true, x, y, z, n, dx, dy, dz, speed);
+    /** Dust kicked up along the front and the base surge left behind it. */
+    private static void dust(Burst b) {
+        if (b.age > 600 || b.age % 3 != 0) {
+            return;
+        }
+        double ring = Math.min(b.shock, b.blast);
+        for (ServerPlayerEntity pl : b.world.players()) {
+            double d = pl.position().distanceTo(b.pos);
+            if (d > b.blast * 2.5) {
+                continue;
+            }
+            if (b.shock < b.blast) {
+                // only the part of the ring near this player, the rest they can't see through the dust anyway
+                double a0 = Math.atan2(pl.getZ() - b.pos.z, pl.getX() - b.pos.x);
+                for (int i = -6; i <= 6; i++) {
+                    double a = a0 + i * 0.09;
+                    double x = b.pos.x + Math.cos(a) * ring, z = b.pos.z + Math.sin(a) * ring;
+                    int y = b.world.getHeight(Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(x), MathHelper.floor(z));
+                    b.world.sendParticles(pl, ParticleTypes.CAMPFIRE_COSY_SMOKE, true, x, y + 1, z, 3, 2, 1, 2, 0.02);
+                }
+            }
+            if (d < b.crater * 4) {
+                b.world.sendParticles(pl, ParticleTypes.LARGE_SMOKE, true, b.pos.x, b.pos.y + 2, b.pos.z, 40,
+                        b.crater * 0.9, 2, b.crater * 0.9, 0.05);
+            }
+        }
     }
 
     private Nuke() {

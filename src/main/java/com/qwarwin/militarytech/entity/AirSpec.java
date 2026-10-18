@@ -20,6 +20,11 @@ public final class AirSpec {
     public double camDistance = 20, camHeight = 4;
     public Vector3d exhaust = new Vector3d(0, 1.5, -6);
     public double exhaustSpread = 0.0;
+    /** stores ride inside the fuselage (bomb bays): not drawn, the bay doors open to release */
+    public boolean internalBay;
+    /** the HUD combiner glass: centre in aircraft coordinates (null: just ahead of the cockpit eye) and half size */
+    public Vector3d hudGlass;
+    public double hudHalfWidth = 0.16, hudHalfHeight = 0.14;
 
     public static final class Store {
         public final int pylon;

@@ -1,0 +1,24 @@
+{
+ "controls": [
+  {
+   "model": "t72b3_lever",
+   "pivot": [
+    -0.25,
+    0.6,
+    2.195
+   ],
+   "kind": "lever_l",
+   "tilt": 0
+  },
+  {
+   "model": "t72b3_lever",
+   "pivot": [
+    0.25,
+    0.6,
+    2.195
+   ],
+   "kind": "lever_r",
+   "tilt": 0
+  }
+ ]
+}

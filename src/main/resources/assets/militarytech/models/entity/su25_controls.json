@@ -1,0 +1,24 @@
+{
+ "controls": [
+  {
+   "model": "su25_throttle",
+   "pivot": [
+    0.06,
+    2.17,
+    2.63
+   ],
+   "kind": "throttle",
+   "tilt": 0
+  },
+  {
+   "model": "su25_stick",
+   "pivot": [
+    0,
+    2.49,
+    2.77
+   ],
+   "kind": "stick",
+   "tilt": 0
+  }
+ ]
+}

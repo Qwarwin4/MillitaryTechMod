@@ -181,6 +181,28 @@ def build():
     cyl16(nk, 0, 0, -1.1, 0.42, 1.2, "z", "m_nuke")
     nose(nk, 0.42, 0.1, 1.1, "m_nuke", 0, 4)
     cyl16(nk, 0, 0, -1.25, 0.32, 0.15, "z", "m_dark")
+    # heavy bombs: FAB-3000 M-54 (1 m across, 5 m long) and FAB-9000 M-54 (1.2 m, 7.6 m)
+    for name, r, length in (("fab3000", 0.5, 5.0), ("fab9000", 0.6, 7.6)):
+        p = part(b, "munition/" + name, 4 if name == "fab3000" else 6)
+        half = length / 2
+        yc = body(p, r, -half * 0.5, half * 0.55, "m_bomb")
+        nose(p, r, half * 0.55, half * 0.45, "m_olive", yc, 3)
+        cyl16(p, 0, yc, -half, r * 0.6, half * 0.5, "z", "m_olive")
+        fins(p, r * 0.6, -half, -half * 0.62, r * 0.55, yc, "m_dark", 0.03, x_shape=True)
+        # the ring stabiliser round the fins
+        cyl16(p, 0, yc, -half, r * 1.12, 0.05, "z", "m_dark")
+        for z in (-0.6, 0.6):
+            p.B(-0.06, -0.08, z - 0.12, 0.06, 0.0, z + 0.12, "m_steel")
+    # Kh-101 / Kh-102: long low-observable body, flat sides, pop-out wings and tail, engine pod under the tail
+    for name, mat in (("kh101", "m_grey_band"), ("kh102", "m_nuke")):
+        p = part(b, "munition/" + name, 4)
+        yc = body(p, 0.37, -3.3, 2.6, mat)
+        nose(p, 0.37, 2.6, 1.1, "m_grey", yc, 3)
+        p.B(-0.42, yc - 0.12, -3.0, 0.42, yc + 0.12, 2.4, "m_grey")
+        p.B(-1.9, yc + 0.08, -0.5, 1.9, yc + 0.13, 0.4, "m_grey")
+        p.B(-0.03, yc, -3.7, 0.03, yc + 0.8, -3.0, "m_grey")
+        p.B(-0.6, yc - 0.03, -3.7, 0.6, yc + 0.03, -3.2, "m_grey")
+        p.B(-0.18, yc - 0.62, -3.4, 0.18, yc - 0.3, -2.0, {"all": "m_dark", "north": "black"})
     wh = part(b, "munition/warhead", 1)
     cyl16(wh, 0, 0, -0.6, 0.22, 0.7, "z", "glow_hot")
     nose(wh, 0.22, 0.1, 0.5, "glow_white", 0, 3)

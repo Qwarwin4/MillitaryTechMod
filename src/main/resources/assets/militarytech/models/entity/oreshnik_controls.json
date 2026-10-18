@@ -1,0 +1,14 @@
+{
+ "controls": [
+  {
+   "model": "oreshnik_steering",
+   "pivot": [
+    1.223,
+    2.009,
+    9.177
+   ],
+   "kind": "steering",
+   "tilt": -22.5
+  }
+ ]
+}

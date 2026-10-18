@@ -1,0 +1,25 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "WWW",
+  "FAR"
+ ],
+ "key": {
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "A": {
+   "item": "militarytech:airframe"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  }
+ },
+ "result": {
+  "item": "militarytech:missile_kh101",
+  "count": 1
+ }
+}

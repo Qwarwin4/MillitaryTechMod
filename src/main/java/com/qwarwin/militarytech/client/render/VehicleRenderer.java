@@ -2,6 +2,7 @@ package com.qwarwin.militarytech.client.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.qwarwin.militarytech.client.BoxModel;
+import com.qwarwin.militarytech.client.CabControls;
 import com.qwarwin.militarytech.client.MeshWheels;
 import com.qwarwin.militarytech.client.VehicleCamera;
 import com.qwarwin.militarytech.entity.AirSpec;
@@ -62,6 +63,9 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
         if (e instanceof AircraftEntity) {
             BoxModel.get(s.id + "_cockpit").render(ms, buf, lit(light));
+        }
+        if (inside || doorOpen || s.category == VehicleSpec.Category.TRUCK || e instanceof AircraftEntity) {
+            controls(e, ms, buf, lit(light), partial, hullYaw);
         }
         // generated additions to a real model (the Oreshnik's rear housing)
         BoxModel.get(s.id + "_extra").render(ms, buf, light);
@@ -209,12 +213,65 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
     }
 
+    /** Wheels, levers and sticks inside, moved by what the driver or pilot is doing. */
+    private static void controls(VehicleEntity e, MatrixStack ms, IRenderTypeBuffer buf, int light, float partial, float hullYaw) {
+        List<CabControls.Control> list = CabControls.of(e.spec.id);
+        if (list.isEmpty()) {
+            return;
+        }
+        float steer = 0, turn = 0, pitchIn = 0, rollIn = 0, thr = 0;
+        if (e instanceof TruckEntity) {
+            TruckEntity t = (TruckEntity) e;
+            steer = MathHelper.lerp(partial, t.steerO, t.steer);
+        }
+        if (e instanceof AircraftEntity) {
+            AircraftEntity a = (AircraftEntity) e;
+            pitchIn = MathHelper.clamp((e.xRot - e.xRotO) / Math.max(0.5F, a.air().pitchRate), -1, 1);
+            rollIn = MathHelper.clamp((e.getRoll() - e.rollO) / Math.max(0.5F, a.air().yawRate * 1.5F), -1, 1);
+            thr = a.getThrottle();
+        } else {
+            turn = MathHelper.clamp(MathHelper.wrapDegrees(e.yRot - e.yRotO) / Math.max(0.5F, (float) e.spec.turnRate), -1, 1);
+        }
+        for (CabControls.Control c : list) {
+            ms.pushPose();
+            ms.translate(c.x, c.y, c.z);
+            switch (c.kind) {
+                case STEERING:
+                    ms.mulPose(Vector3f.XP.rotationDegrees(c.tilt));
+                    ms.mulPose(Vector3f.ZP.rotationDegrees(-steer * 270F));
+                    break;
+                case LEVER_L:
+                    // pull the left lever to turn left
+                    ms.mulPose(Vector3f.XP.rotationDegrees(-Math.max(0, -turn) * 28F));
+                    break;
+                case LEVER_R:
+                    ms.mulPose(Vector3f.XP.rotationDegrees(-Math.max(0, turn) * 28F));
+                    break;
+                case STICK:
+                    ms.mulPose(Vector3f.XP.rotationDegrees(-pitchIn * 14F));
+                    ms.mulPose(Vector3f.ZP.rotationDegrees(-rollIn * 14F));
+                    break;
+                case THROTTLE:
+                    ms.mulPose(Vector3f.XP.rotationDegrees(25F - thr * 50F));
+                    break;
+                default:
+                    break;
+            }
+            BoxModel.get(c.model).render(ms, buf, light);
+            ms.popPose();
+        }
+    }
+
     private static void aircraftParts(AircraftEntity a, MatrixStack ms, IRenderTypeBuffer buf, int light) {
         VehicleSpec s = a.spec;
         if (a.isGearDown() && s.gunModel != null) {
             BoxModel.get(s.gunModel).render(ms, buf, light);
         }
         AirSpec air = a.air();
+        if (air.internalBay) {
+            // in the bomb bays, out of sight
+            return;
+        }
         AirSpec.Loadout l = a.getLoadout();
         for (int i = 0; i < air.pylons.length; i++) {
             AirSpec.Store st = l.at(i);

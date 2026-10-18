@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "III",
+  "GGG"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_nugget"
+  },
+  "G": {
+   "item": "minecraft:gunpowder"
+  }
+ },
+ "result": {
+  "item": "militarytech:belt_762",
+  "count": 2
+ }
+}

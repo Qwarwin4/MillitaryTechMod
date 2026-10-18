@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "WWW",
+  "RFR",
+  "RXR"
+ ],
+ "key": {
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "X": {
+   "item": "minecraft:netherite_ingot"
+  }
+ },
+ "result": {
+  "item": "militarytech:missile_oreshnik",
+  "count": 1
+ }
+}

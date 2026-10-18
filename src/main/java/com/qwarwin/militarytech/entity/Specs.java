@@ -72,6 +72,8 @@ public final class Specs {
 
     public static final VehicleSpec SU34 = new VehicleSpec("su34", VehicleSpec.Category.AIRCRAFT);
 
+    public static final VehicleSpec TU160 = new VehicleSpec("tu160", VehicleSpec.Category.AIRCRAFT);
+
     public static final VehicleSpec MIG23 = new VehicleSpec("mig23", VehicleSpec.Category.AIRCRAFT);
 
     /** Replace the hit boxes (the real models came with their own proportions). */
@@ -452,9 +454,51 @@ public final class Specs {
         b.air = a;
         b.weapon("gsh23").ammo(GSH_30, 200).auto(1).spread(0.5F)
                 .mount(WeaponSpec.Mount.HULL, v(0, 1.016, 1.161)).sound("aircraft_gun", 6F);
+
+        // Tu-160 "White Swan": 54 m long, four crew, everything in two internal bays on rotary launchers
+        b = TU160;
+        b.health = 420F;
+        b.armor = Armor.AIR;
+        b.width = 9F;
+        b.height = 7F;
+        b.box(-1.9, 1.4, -27, 1.9, 6.2, 27).box(-17.5, 3.2, -9, 17.5, 4.4, 2).box(-6.5, 2.0, -18, 6.5, 4.0, -8)
+                .box(-0.4, 4.0, -27, 0.4, 13.0, -20);
+        b.seats = new Vector3d[]{v(0.62, 4.3, 20.6), v(-0.62, 4.3, 20.6), v(0.62, 4.3, 19.2), v(-0.62, 4.3, 19.2)};
+        b.riderScale = 0.9F;
+        b.separateGunner = false;
+        b.hasTurret = false;
+        b.tracked = false;
+        b.enclosed = true;
+        b.insideSeats = 4;
+        b.engineSound = "jet_engine";
+        b.wheelModel = null;
+        b.turretModel = null;
+        b.gunModel = "tu160_gear";
+        a = new AirSpec();
+        a.maxSpeed = 4.6;
+        a.stallSpeed = 1.5;
+        a.takeoffSpeed = 1.9;
+        a.pitchRate = 1.5F;
+        a.yawRate = 1.1F;
+        a.cockpit = v(0.62, 5.25, 20.9);
+        a.camDistance = 78;
+        a.camHeight = 10;
+        a.exhaust = v(2.4, 2.9, -20.5);
+        a.exhaustSpread = 2.4;
+        // two bays, six stations each on the rotary launchers
+        a.pylons = new Vector3d[]{v(0.5, 2.6, 10.5), v(-0.5, 2.6, 10.5), v(0.5, 2.6, 8.5), v(-0.5, 2.6, 8.5),
+                v(0.5, 2.6, 6.5), v(-0.5, 2.6, 6.5), v(0.5, 2.6, -1.5), v(-0.5, 2.6, -1.5), v(0.5, 2.6, -3.5),
+                v(-0.5, 2.6, -3.5), v(0.5, 2.6, -5.5), v(-0.5, 2.6, -5.5)};
+        a.internalBay = true;
+        a.loadouts.add(AirSpec.loadout("tu_cruise").put(KH101, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).build());
+        a.loadouts.add(AirSpec.loadout("tu_nuclear").put(KH102, 1, 0, 1, 2, 3, 4, 5).put(KH101, 1, 6, 7, 8, 9, 10, 11).build());
+        a.loadouts.add(AirSpec.loadout("tu_fab9000").put(FAB9000, 1, 2, 8).put(FAB3000, 1, 0, 6).build());
+        a.loadouts.add(AirSpec.loadout("tu_fab3000").put(FAB3000, 1, 0, 1, 2, 3, 6, 7, 8, 9).build());
+        a.loadouts.add(AirSpec.loadout("tu_carpet").put(FAB500, 4, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).build());
+        b.air = a;
     }
 
-    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, ZAK, ZRK};
+    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, ZAK, ZRK};
 
     private Specs() {
     }

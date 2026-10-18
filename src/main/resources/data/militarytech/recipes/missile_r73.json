@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "W",
+  "F",
+  "R"
+ ],
+ "key": {
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "F": {
+   "item": "minecraft:observer"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  }
+ },
+ "result": {
+  "item": "militarytech:missile_r73",
+  "count": 1
+ }
+}

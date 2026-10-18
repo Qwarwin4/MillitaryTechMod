@@ -103,9 +103,8 @@ public class TargetScreen extends Screen {
         renderBackground(ms);
         int cx = width / 2, cy = height / 2;
         drawCenteredString(ms, font, title, cx, cy - 70, 0xFFFFFF);
-        String sub = vehicle instanceof OreshnikEntity
-                ? new TranslationTextComponent("screen.militarytech.oreshnik_note").getString()
-                : new TranslationTextComponent("screen.militarytech.grad_note").getString();
+        String sub = new TranslationTextComponent(vehicle instanceof OreshnikEntity ? "screen.militarytech.oreshnik_note"
+                : vehicle.spec.isAircraft() ? "screen.militarytech.cruise_note" : "screen.militarytech.grad_note").getString();
         drawCenteredString(ms, font, sub, cx, cy - 56, 0xA0A0A0);
         drawString(ms, font, "X", cx - 95, cy - 41, 0xC0C0C0);
         drawString(ms, font, "Z", cx + 5, cy - 41, 0xC0C0C0);

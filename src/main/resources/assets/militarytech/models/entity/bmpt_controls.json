@@ -1,0 +1,24 @@
+{
+ "controls": [
+  {
+   "model": "bmpt_lever",
+   "pivot": [
+    -0.25,
+    0.62,
+    2.195
+   ],
+   "kind": "lever_l",
+   "tilt": 0
+  },
+  {
+   "model": "bmpt_lever",
+   "pivot": [
+    0.25,
+    0.62,
+    2.195
+   ],
+   "kind": "lever_r",
+   "tilt": 0
+  }
+ ]
+}

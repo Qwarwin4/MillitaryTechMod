@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "W",
+  "R",
+  "I"
+ ],
+ "key": {
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  }
+ },
+ "result": {
+  "item": "militarytech:rocket_grad",
+  "count": 2
+ }
+}

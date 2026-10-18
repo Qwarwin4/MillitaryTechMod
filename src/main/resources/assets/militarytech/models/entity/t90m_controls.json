@@ -1,0 +1,24 @@
+{
+ "controls": [
+  {
+   "model": "t90m_lever",
+   "pivot": [
+    -0.25,
+    0.45,
+    2.045
+   ],
+   "kind": "lever_l",
+   "tilt": 0
+  },
+  {
+   "model": "t90m_lever",
+   "pivot": [
+    0.25,
+    0.45,
+    2.045
+   ],
+   "kind": "lever_r",
+   "tilt": 0
+  }
+ ]
+}

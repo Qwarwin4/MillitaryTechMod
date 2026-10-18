@@ -1,0 +1,14 @@
+{
+ "controls": [
+  {
+   "model": "grad_steering",
+   "pivot": [
+    0.5,
+    1.73,
+    2.9
+   ],
+   "kind": "steering",
+   "tilt": -22.5
+  }
+ ]
+}

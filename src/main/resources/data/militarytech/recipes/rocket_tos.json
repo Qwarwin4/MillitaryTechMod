@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "W",
+  "R",
+  "B"
+ ],
+ "key": {
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "B": {
+   "item": "minecraft:blaze_powder"
+  }
+ },
+ "result": {
+  "item": "militarytech:rocket_tos",
+  "count": 2
+ }
+}

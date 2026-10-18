@@ -14,7 +14,10 @@ from PIL import Image, ImageFilter  # noqa: E402
 
 import gen_vehicles as gv  # noqa: E402
 from preview import Scene, T, R  # noqa: E402
-from uvbake import Bake, material, mat_nozzle, save_json  # noqa: E402
+from uvbake import Bake, material, mat_nozzle, mat_metal, mat_flat, save_json  # noqa: E402
+
+material("brass", mat_metal("#b08a3e", brushed=False))
+material("olive_paint", mat_flat("#55603a"))
 
 ICON = 64
 SUPER = 4
@@ -39,8 +42,17 @@ VEHICLES = {
                 pitch=-30, yaw=200),
     "zrk": dict(wheels=[], hull="zrk_base", turret="zrk_turret", gun="zrk_launcher", pivot=(0, 1.2, 0), tr=(0, 0.65, 0),
                 pitch=-30, yaw=200),
-    "su25": dict(air=True), "su34": dict(air=True), "mig23": dict(air=True),
+    "su25": dict(air=True), "su34": dict(air=True), "mig23": dict(air=True), "tu160": dict(air=True),
 }
+
+
+# ammunition items drawn from the munition's own model
+AMMO = {"shell_125_he": "shell_125", "atgm_refleks": "refleks", "shell_73": "shell_73", "atgm_malyutka": "malyutka",
+        "atgm_ataka": "ataka", "rocket_grad": "grad_rocket", "rocket_tos": "tos_rocket", "rockets_s8": "b8_pod",
+        "missile_sam": "sam", "missile_r73": "r73", "missile_r40": "r40", "missile_kh29": "kh29", "missile_kh59": "kh59",
+        "missile_kh101": "kh101", "missile_kh102": "kh102", "bomb_fab250": "fab250", "bomb_fab500": "fab500",
+        "bomb_fab1500": "fab1500", "bomb_fab3000": "fab3000", "bomb_fab9000": "fab9000",
+        "missile_oreshnik": "oreshnik_missile"}
 
 
 def ref(name):
@@ -169,6 +181,20 @@ def part_models():
         k = 1 - (i + 1) / 4
         p.cyl(0, 0.3, 0.05 + i * 0.17, 0.3 * k, 0.17, "z", "armor_dark")
     p.cyl(0, 0.3, -0.62, 0.22, 0.12, "z", "gunmetal")
+    # ammunition belts: cartridges side by side on their links
+    for name, r, ln, mat in (("belt_762", 0.05, 0.55, "brass"), ("belt_127", 0.07, 0.75, "brass"), ("belt_30", 0.11, 1.0, "brass")):
+        p = P(name)
+        n = 5
+        for i in range(n):
+            x = (i - (n - 1) / 2) * r * 2.6
+            p.cyl(x, r, -ln / 2, r, ln * 0.7, "z", mat)
+            p.cyl(x, r, -ln / 2 + ln * 0.7, r * 0.6, ln * 0.3, "z", "gunmetal" if name != "belt_30" else "olive_paint")
+            p.B(x - r * 1.2, r * 0.4, -ln * 0.2, x + r * 1.2, r * 1.6, -ln * 0.1, "gunmetal")
+    p = P("shell_125_apfsds")
+    p.cyl(0, 0.13, -0.7, 0.13, 0.8, "z", "brass")
+    p.cyl(0, 0.13, 0.1, 0.045, 0.75, "z", "gunmetal")
+    for zz in (0.12, 0.3):
+        p.cyl(0, 0.13, zz, 0.12, 0.08, "z", "olive_paint")
     p = P("airframe")
     p.B(-0.15, 0.1, -0.7, 0.15, 0.4, 0.7, "steel")
     p.B(-0.75, 0.22, -0.25, 0.75, 0.28, 0.25, ("steel", [("star", 0.25, 0.5, 0.12), ("star", 0.75, 0.5, 0.12)]))
@@ -205,6 +231,10 @@ def has_mesh(name):
 
 def main():
     for name in VEHICLES:
+        if not has_mesh(name) and VEHICLES[name].get("air") and not os.path.exists(
+                os.path.join(gv.ASSETS, "models", "entity", name + "_hull.json")):
+            print("  no model yet:", name)
+            continue
         if has_mesh(name):
             mesh_icon(name)
         else:
@@ -216,11 +246,16 @@ def main():
         sc = Scene(res)
         sc.part(ref("icon_" + name))
         long = name in ("gun_barrel", "autocannon", "gas_turbine", "jet_engine", "rocket_motor", "warhead", "airframe",
-                        "nuclear_warhead")
+                        "nuclear_warhead", "shell_125_apfsds")
         render_icon(sc, name, 225 if not long else 245, 30)
         item_model(name)
+    for name, model in AMMO.items():
+        sc = Scene(gv.RES)
+        sc.part(ref("munition/" + model))
+        render_icon(sc, name, 240, 28)
+        item_model(name)
     shutil.rmtree(TMP, ignore_errors=True)
-    print("  icons:", len(VEHICLES) + len(parts))
+    print("  icons:", len(VEHICLES) + len(parts) + len(AMMO))
 
 
 if __name__ == "__main__":

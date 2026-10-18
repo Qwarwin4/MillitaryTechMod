@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "W",
+  "S",
+  "R"
+ ],
+ "key": {
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "S": {
+   "item": "minecraft:string"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  }
+ },
+ "result": {
+  "item": "militarytech:atgm_malyutka",
+  "count": 2
+ }
+}

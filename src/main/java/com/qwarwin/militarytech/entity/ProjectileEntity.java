@@ -444,6 +444,17 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             dir = new Vector3d(0, -1, 0);
         }
         float p = munition.power;
+        if (munition == Munition.KH102) {
+            // a 250 kt warhead on a cruise missile: smaller than the Oreshnik's, still a city gone
+            Nuke.detonate((ServerWorld) level, pos, owner, 0.8);
+            return;
+        }
+        if (munition == Munition.FAB3000 || munition == Munition.FAB9000) {
+            boolean big = munition == Munition.FAB9000;
+            double k = Config.BOMB_POWER.get();
+            Nuke.heavyBomb((ServerWorld) level, pos, owner, (big ? 17 : 11) * k, (big ? 70 : 45) * k);
+            return;
+        }
         switch (munition.kind) {
             case BULLET:
                 if (direct != null) {
@@ -567,7 +578,8 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             default:
                 level.addParticle(ParticleTypes.FLAME, back.x, back.y, back.z, 0, 0, 0);
                 level.addParticle(ParticleTypes.CLOUD, back.x, back.y, back.z, 0, 0.01, 0);
-                if (munition == Munition.GRAD || munition == Munition.TOS_220 || munition == Munition.KH59) {
+                if (munition == Munition.GRAD || munition == Munition.TOS_220 || munition == Munition.KH59
+                        || munition == Munition.KH101 || munition == Munition.KH102) {
                     level.addParticle(ParticleTypes.LARGE_SMOKE, back.x, back.y, back.z, 0, 0.02, 0);
                 }
                 break;

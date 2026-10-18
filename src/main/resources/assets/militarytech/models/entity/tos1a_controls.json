@@ -1,0 +1,24 @@
+{
+ "controls": [
+  {
+   "model": "tos1a_lever",
+   "pivot": [
+    -0.25,
+    0.475,
+    2.435
+   ],
+   "kind": "lever_l",
+   "tilt": 0
+  },
+  {
+   "model": "tos1a_lever",
+   "pivot": [
+    0.25,
+    0.475,
+    2.435
+   ],
+   "kind": "lever_r",
+   "tilt": 0
+  }
+ ]
+}

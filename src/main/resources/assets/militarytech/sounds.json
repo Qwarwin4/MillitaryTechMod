@@ -228,5 +228,15 @@
     "stream": false
    }
   ]
+ },
+ "geiger": {
+  "category": "neutral",
+  "subtitle": "subtitles.militarytech.geiger",
+  "sounds": [
+   {
+    "name": "militarytech:geiger",
+    "stream": false
+   }
+  ]
  }
 }

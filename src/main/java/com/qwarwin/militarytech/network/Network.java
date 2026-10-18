@@ -27,6 +27,8 @@ public final class Network {
                 TargetPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(id++, SeatPacket.class, SeatPacket::encode, SeatPacket::decode,
                 SeatPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, NukeFxPacket.class, NukeFxPacket::encode, NukeFxPacket::decode,
+                NukeFxPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private Network() {

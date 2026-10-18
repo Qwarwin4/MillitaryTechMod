@@ -3,6 +3,7 @@ package com.qwarwin.militarytech.entity;
 import com.qwarwin.militarytech.Config;
 import com.qwarwin.militarytech.client.ClientHooks;
 import com.qwarwin.militarytech.item.AmmoCrateItem;
+import com.qwarwin.militarytech.item.MunitionItem;
 import com.qwarwin.militarytech.network.VehicleInputPacket;
 import com.qwarwin.militarytech.registry.ModItems;
 import com.qwarwin.militarytech.registry.ModSounds;
@@ -76,7 +77,7 @@ public abstract class VehicleEntity extends Entity {
         }
     }
 
-    public static final int FLAG_GEAR_UP = 1, FLAG_ERECT = 2, FLAG_BRAKE = 4, FLAG_ENGINE = 8, FLAG_ACTIVE = 16;
+    public static final int FLAG_GEAR_UP = 1, FLAG_ERECT = 2, FLAG_BRAKE = 4, FLAG_ENGINE = 8, FLAG_ACTIVE = 16, FLAG_EMP = 32;
     protected static final float DEG = (float) (Math.PI / 180.0);
 
     public final VehicleSpec spec;
@@ -340,6 +341,18 @@ public abstract class VehicleEntity extends Entity {
     }
 
     // ------------------------------------------------------------------ doors
+
+    private int empTicks;
+
+    /** A nuclear burst's electromagnetic pulse: engine and electronics dead for a while. */
+    public void emp(int ticks) {
+        empTicks = Math.max(empTicks, ticks);
+        setFlag(FLAG_EMP, true);
+    }
+
+    public boolean isEmpDead() {
+        return hasFlag(FLAG_EMP);
+    }
 
     public boolean isDoorOpen(int d) {
         return (entityData.get(DOORS) & (1 << d)) != 0;
@@ -819,6 +832,9 @@ public abstract class VehicleEntity extends Entity {
         if (getGunner() == null) {
             trigger1 = trigger2 = false;
         }
+        if (empTicks > 0 && --empTicks == 0) {
+            setFlag(FLAG_EMP, false);
+        }
         serverWeapons();
         if (getY() < -64) {
             destroy(DamageSource.OUT_OF_WORLD);
@@ -1147,7 +1163,7 @@ public abstract class VehicleEntity extends Entity {
     /** Ammo crates don't carry nuclear warheads: those are loaded one by one, by hand. */
     public void fillAmmo(boolean nuclear) {
         for (int i = 0; i < spec.ammoSlots(); i++) {
-            Munition m = spec.munitionAt(i);
+            Munition m = munitionIn(i);
             if (!nuclear && m != null && m.isNuclear()) {
                 continue;
             }
@@ -1155,9 +1171,35 @@ public abstract class VehicleEntity extends Entity {
         }
     }
 
+    /** What an ammo counter holds (an aircraft's depend on its loadout). */
+    @Nullable
+    public Munition munitionIn(int slot) {
+        return spec.munitionAt(slot);
+    }
+
+    /** What the ammo crate refills when ammunition is realistic: belts and small shells. */
+    private static boolean crateCarries(@Nullable Munition m) {
+        if (m == null || m.isNuclear()) {
+            return false;
+        }
+        return !Config.REALISTIC_AMMO.get() || m.kind == Munition.Kind.BULLET || m.kind == Munition.Kind.SHELL;
+    }
+
+    /** Fill what the crate carries; true if anything went in. */
+    public boolean fillFromCrate() {
+        boolean any = false;
+        for (int i = 0; i < spec.ammoSlots(); i++) {
+            if (crateCarries(munitionIn(i)) && getAmmo(i) < capacity(i)) {
+                setAmmo(i, capacity(i));
+                any = true;
+            }
+        }
+        return any;
+    }
+
     public boolean isFullyArmed() {
         for (int i = 0; i < spec.ammoSlots(); i++) {
-            Munition m = spec.munitionAt(i);
+            Munition m = munitionIn(i);
             if (m != null && m.isNuclear()) {
                 continue;
             }
@@ -1166,6 +1208,62 @@ public abstract class VehicleEntity extends Entity {
             }
         }
         return true;
+    }
+
+    /**
+     * Load rounds from a stack in the player's hand into whichever counters take them, the emptiest first. One item,
+     * or as many as fit when sneaking.
+     */
+    public void loadItem(PlayerEntity player, ItemStack stack, MunitionItem item) {
+        boolean all = player.isShiftKeyDown();
+        int used = 0, loaded = 0;
+        boolean fits = false;
+        while (!stack.isEmpty()) {
+            int slot = -1, free = 0;
+            for (int i = 0; i < spec.ammoSlots(); i++) {
+                Munition m = munitionIn(i);
+                if (m == null || !item.feeds(m)) {
+                    continue;
+                }
+                fits = true;
+                int f = capacity(i) - getAmmo(i);
+                if (f > free) {
+                    free = f;
+                    slot = i;
+                }
+            }
+            if (slot < 0) {
+                break;
+            }
+            int put = Math.min(item.rounds, free);
+            setAmmo(slot, getAmmo(slot) + put);
+            loaded += put;
+            used++;
+            if (!player.abilities.instabuild) {
+                stack.shrink(1);
+            }
+            if (!all) {
+                break;
+            }
+        }
+        if (used == 0) {
+            player.displayClientMessage(new TranslationTextComponent(fits ? "msg.militarytech.ammo_full"
+                    : spec.air != null ? "msg.militarytech.no_pylon_for" : "msg.militarytech.wrong_ammo",
+                    new TranslationTextComponent(item.main().key())), true);
+            return;
+        }
+        int total = 0, cap = 0;
+        for (int i = 0; i < spec.ammoSlots(); i++) {
+            Munition m = munitionIn(i);
+            if (m != null && item.feeds(m)) {
+                total += getAmmo(i);
+                cap += capacity(i);
+            }
+        }
+        level.playSound(null, getX(), getY(), getZ(), ModSounds.get("reload"), SoundCategory.NEUTRAL, 1.2F,
+                item.main().kind == Munition.Kind.BOMB ? 0.6F : 0.95F);
+        player.displayClientMessage(new TranslationTextComponent("msg.militarytech.loaded",
+                new TranslationTextComponent(item.main().key()), loaded, total, cap), true);
     }
 
     protected abstract Item item();
@@ -1179,16 +1277,27 @@ public abstract class VehicleEntity extends Entity {
         if (level.isClientSide) {
             return ActionResultType.SUCCESS;
         }
+        if (stack.getItem() instanceof MunitionItem) {
+            loadItem(player, stack, (MunitionItem) stack.getItem());
+            return ActionResultType.CONSUME;
+        }
         if (stack.getItem() instanceof AmmoCrateItem) {
-            if (isFullyArmed()) {
-                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.ammo_full"), true);
+            if (player.abilities.instabuild) {
+                // creative: everything, nuclear weapons included
+                fillAmmo(true);
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.rearmed"), true);
+                return ActionResultType.CONSUME;
+            }
+            if (!fillFromCrate()) {
+                player.displayClientMessage(new TranslationTextComponent(Config.REALISTIC_AMMO.get()
+                        ? "msg.militarytech.crate_small_only" : "msg.militarytech.ammo_full"), true);
             } else {
-                fillAmmo(false);
                 if (!player.abilities.instabuild) {
                     stack.shrink(1);
                 }
                 level.playSound(null, getX(), getY(), getZ(), ModSounds.get("reload"), SoundCategory.NEUTRAL, 1.5F, 0.9F);
-                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.rearmed"), true);
+                player.displayClientMessage(new TranslationTextComponent(Config.REALISTIC_AMMO.get()
+                        ? "msg.militarytech.rearmed_small" : "msg.militarytech.rearmed"), true);
             }
             return ActionResultType.CONSUME;
         }
@@ -1305,16 +1414,21 @@ public abstract class VehicleEntity extends Entity {
         if (cause == null) {
             return;
         }
-        int rounds = 0;
+        // the ammunition aboard cooks off: more explosive, bigger bang
+        double charge = 0;
         for (int i = 0; i < spec.ammoSlots(); i++) {
-            rounds += getAmmo(i) > 0 ? 1 : 0;
+            Munition m = munitionIn(i);
+            if (m != null && !m.isNuclear()) {
+                charge += getAmmo(i) * (m.kind == Munition.Kind.BULLET ? 0.002 : Math.max(0.05, m.power * 0.15));
+            }
         }
+        float rounds = (float) Math.min(13, Math.sqrt(charge) * 1.6);
         Entity killer = cause.getEntity();
         for (Entity e : crew) {
             e.hurt(DamageSource.explosion(killer instanceof LivingEntity ? (LivingEntity) killer : null), 12F);
         }
         // fuel and ammunition going up
-        Explosions.he(level, killer, c, null, 3.5F + rounds * 0.8F, 0F, 6.0, 12F);
+        Explosions.he(level, killer, c, null, 3.5F + rounds, 0F, 6.0 + rounds * 0.5, 12F);
         ServerWorld sw = (ServerWorld) level;
         sw.sendParticles(ParticleTypes.LAVA, c.x, c.y, c.z, 30, 1.5, 1.0, 1.5, 0.2);
         sw.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, c.x, c.y + 1, c.z, 40, 1.5, 1.0, 1.5, 0.05);
@@ -1367,7 +1481,7 @@ public abstract class VehicleEntity extends Entity {
             setAmmo(i, ammo[i]);
         }
         entityData.set(SELECT, tag.getInt("Select"));
-        entityData.set(FLAGS, tag.getInt("Flags") & ~FLAG_ENGINE);
+        entityData.set(FLAGS, tag.getInt("Flags") & ~(FLAG_ENGINE | FLAG_EMP));
         setAimRaw(tag.getFloat("TurretYaw"), tag.getFloat("GunPitch"));
         owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
         if (tag.contains("TargetX")) {

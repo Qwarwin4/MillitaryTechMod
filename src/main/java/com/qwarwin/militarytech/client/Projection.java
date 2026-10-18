@@ -15,6 +15,9 @@ public final class Projection {
     public static double fov = 70.0;
 
     @Nullable
+    /** camera roll this frame, degrees (aircraft in the cockpit view) */
+    public static float roll;
+
     public static int[] toScreen(Vector3d world, int w, int h) {
         ActiveRenderInfo cam = Minecraft.getInstance().gameRenderer.getMainCamera();
         Vector3d d = world.subtract(cam.getPosition());
@@ -27,9 +30,17 @@ public final class Projection {
         }
         double tanV = Math.tan(Math.toRadians(fov / 2.0));
         double tanH = tanV * w / (double) h;
-        double x = w / 2.0 - d.dot(left) / z / tanH * (w / 2.0);
-        double y = h / 2.0 - d.dot(up) / z / tanV * (h / 2.0);
-        return new int[]{(int) Math.round(x), (int) Math.round(y)};
+        double sx = -d.dot(left) / z / tanH * (w / 2.0);
+        double sy = d.dot(up) / z / tanV * (h / 2.0);
+        if (roll != 0) {
+            // the camera is rolled with the aircraft: so is everything on screen
+            double r = Math.toRadians(roll);
+            double rx = sx * Math.cos(r) - sy * Math.sin(r);
+            double ry = sx * Math.sin(r) + sy * Math.cos(r);
+            sx = rx;
+            sy = ry;
+        }
+        return new int[]{(int) Math.round(w / 2.0 + sx), (int) Math.round(h / 2.0 - sy)};
     }
 
     private Projection() {

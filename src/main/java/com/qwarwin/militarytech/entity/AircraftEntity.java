@@ -1,6 +1,7 @@
 package com.qwarwin.militarytech.entity;
 
 import com.qwarwin.militarytech.Config;
+import com.qwarwin.militarytech.item.MunitionItem;
 import com.qwarwin.militarytech.registry.ModItems;
 import com.qwarwin.militarytech.registry.ModSounds;
 import net.minecraft.entity.Entity;
@@ -10,6 +11,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -117,6 +119,16 @@ public class AircraftEntity extends VehicleEntity {
     }
 
     @Override
+    @Nullable
+    public Munition munitionIn(int slot) {
+        if (slot == 0) {
+            return spec.weapons.isEmpty() ? null : spec.weapons.get(0).ammo[0];
+        }
+        AirSpec.Store s = getLoadout().at(slot - 1);
+        return s == null ? null : s.munition;
+    }
+
+    @Override
     protected void cycle(ServerPlayerEntity player) {
         List<Munition> g = groups();
         if (g.isEmpty()) {
@@ -137,10 +149,27 @@ public class AircraftEntity extends VehicleEntity {
         int n = air().loadouts.size();
         int next = (getLoadoutIndex() + 1) % n;
         int gun = getAmmo(0);
+        boolean free = player.abilities.instabuild || !Config.NEED_AMMO_CRATES.get();
+        if (!free && Config.REALISTIC_AMMO.get()) {
+            // the stores come off the pylons and go back to whoever swaps the loadout
+            for (int i = 0; i < air().pylons.length; i++) {
+                Munition m = munitionIn(1 + i);
+                MunitionItem item = m == null ? null : MunitionItem.of(m);
+                int left = getAmmo(1 + i);
+                if (item != null && left > 0) {
+                    int count = Math.max(1, left / item.rounds);
+                    net.minecraft.item.ItemStack st = new net.minecraft.item.ItemStack(item, count);
+                    if (!player.inventory.add(st)) {
+                        player.drop(st, false);
+                    }
+                }
+            }
+        }
         setSelectBits(8, next);
         setSelectBits(16, 0);
         for (int i = 0; i < air().pylons.length; i++) {
-            setAmmo(1 + i, player.abilities.instabuild || !Config.NEED_AMMO_CRATES.get() ? capacity(1 + i) : 0);
+            Munition m = munitionIn(1 + i);
+            setAmmo(1 + i, free && (m == null || !m.isNuclear() || player.abilities.instabuild) ? capacity(1 + i) : 0);
         }
         setAmmo(0, gun);
         player.displayClientMessage(new TranslationTextComponent("msg.militarytech.loadout",
@@ -216,11 +245,15 @@ public class AircraftEntity extends VehicleEntity {
                 pe.setTargetEntity(t);
             }
         } else if (m.guidance == Munition.Guidance.CRUISE || m.guidance == Munition.Guidance.LASER) {
-            if (aimPoint != null) {
+            BlockPos typed = getTarget();
+            if (m.guidance == Munition.Guidance.CRUISE && typed != null) {
+                // coordinates entered in flight (Tu-160): fly there whatever the sight shows
+                pe.setTargetPos(Vector3d.atCenterOf(typed));
+            } else if (aimPoint != null) {
                 pe.setTargetPos(aimPoint);
             }
             Entity t = lockId >= 0 ? level.getEntity(lockId) : null;
-            if (t != null && t != this && t.isAlive() && m.guidance == Munition.Guidance.CRUISE) {
+            if (t != null && t != this && t.isAlive() && m.guidance == Munition.Guidance.CRUISE && typed == null) {
                 pe.setTargetEntity(t);
             }
         }

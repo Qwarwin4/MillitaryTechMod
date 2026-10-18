@@ -87,6 +87,20 @@ def panel(p, x1, y1, z1, x2, y2, z2, face, cols=3, rows=2, r=0.035):
     p.B(x1, y1, z1, x2, y2, z2, {"all": "int_box", face: ("int_box", gauges(cols, rows, r))})
 
 
+def save_controls(vid, items):
+    """what moves inside: the renderer turns each model about its pivot (hull coordinates) with the controls"""
+    gv.save_json({"controls": [dict(model=m, pivot=[round(v, 4) for v in pv], kind=k, tilt=t) for m, pv, k, t in items]},
+                 os.path.join(gv.ASSETS, "models", "entity", vid + "_controls.json"))
+
+
+def lever_part(b, name, length=0.32):
+    """a steering lever, pivot at its foot"""
+    lv = b.part(name)
+    lv.B(-0.015, 0, -0.015, 0.015, length, 0.015, "int_steel")
+    lv.B(-0.03, length - 0.02, -0.035, 0.03, length + 0.05, 0.035, "int_box")
+    return lv
+
+
 def seat(p, x, y, z, w=0.42, mat="int_seat", back=0.5, facing=1):
     """cushion with its top at y and a backrest behind it (facing +z, or -z with facing=-1)"""
     p.B(x - w / 2, y - 0.08, z - 0.2, x + w / 2, y, z + 0.2, mat)
@@ -194,9 +208,8 @@ def tank(vid, c):
     # driver: seat, steering levers, pedals, instrument panel, periscopes and hatch
     dz = zf - 0.3
     seat(h, 0, f + 0.3, dz - 0.15, back=0.45)
-    for x in (-0.25, 0.25):
-        h.B(x - 0.015, f + 0.1, dz + 0.28, x + 0.015, f + 0.42, dz + 0.31, "int_steel")
-        h.B(x - 0.03, f + 0.4, dz + 0.26, x + 0.03, f + 0.47, dz + 0.33, "int_box")
+    lever_part(b, vid + "_lever")
+    controls = [(vid + "_lever", (-0.25, f + 0.1, dz + 0.295), "lever_l", 0), (vid + "_lever", (0.25, f + 0.1, dz + 0.295), "lever_r", 0)]
     h.B(-0.18, f, zf - 0.12, 0.18, f + 0.06, zf - 0.02, "int_steel")
     panel(h, 0.35, top - 0.42, zf - 0.12, 0.75, top - 0.12, zf, "north", 3, 2)
     for x in (-0.28, 0.0, 0.28):
@@ -254,6 +267,7 @@ def tank(vid, c):
                 g.B(x - 0.02, -0.25, -L - 0.4, x + 0.02, 0.25, -0.2, "int_box")
             g.B(-0.32, 0.23, -L - 0.4, 0.32, 0.27, -0.2, "int_box")
             g.B(-0.15, -0.3, -L - 0.25, 0.15, -0.2, -L + 0.1, "int_olive")
+    save_controls(vid, controls)
     gv.finish(b, {p.name: 4 for p in b.parts})
 
 
@@ -296,8 +310,8 @@ def bmp1():
     # driver (front left) and the commander behind him
     seat(h, 0.5, f + 0.3, 1.8, w=0.38)
     seat(h, 0.5, f + 0.3, 1.1, w=0.38)
-    for x in (0.4, 0.6):
-        h.B(x - 0.02, f + 0.15, 2.05, x + 0.02, f + 0.55, 2.1, "int_steel")
+    lever_part(b, "bmp1_lever", 0.36)
+    save_controls("bmp1", [("bmp1_lever", (0.4, f + 0.15, 2.075), "lever_l", 0), ("bmp1_lever", (0.6, f + 0.15, 2.075), "lever_r", 0)])
     panel(h, 0.15, top - 0.42, zf - 0.1, 0.45, top - 0.12, zf, "north", 2, 2)
     for x in (0.38, 0.62):
         h.B(x - 0.08, top - 0.12, zf - 0.08, x + 0.08, top - 0.02, zf, {"all": "int_box", "north": "int_scope"})
@@ -344,12 +358,18 @@ def cab(vid, eye, width, floor, depth=0.75):
     # dashboard across the cab, gauges in front of the driver
     h.B(xl, ey - 0.62, ez + depth - 0.12, xr, ey - 0.38, ez + depth, {"all": "int_olive", "north": ("int_olive", [])})
     panel(h, ex - 0.2, ey - 0.58, ez + depth - 0.14, ex + 0.2, ey - 0.4, ez + depth - 0.12, "north", 2, 1, 0.08)
-    # steering wheel on its column
-    h.B(ex - 0.02, ey - 0.65, ez + 0.3, ex + 0.02, ey - 0.45, ez + depth - 0.1, "int_box")
-    for dx, dy in ((-0.15, 0), (0.15, 0), (0, 0.15), (0, -0.15)):
-        h.B(ex + dx - (0.02 if dx else 0.15), ey - 0.42 + dy - (0.02 if dy else 0.15) * 0, ez + 0.28,
-            ex + dx + (0.02 if dx else 0.15), ey - 0.42 + dy + (0.02 if dy else 0.15) * 0 + 0.03, ez + 0.32, "int_box",
-            rot=((ex, ey - 0.42, ez + 0.3), "x", -22.5))
+    # steering wheel on its column: its own model, turned by the renderer about the column
+    sw = b.part(vid + "_steering")
+    sw.B(-0.02, -0.02, 0.0, 0.02, 0.02, 0.38, "int_box")
+    for rot in (None, ((0, 0, 0), "z", 45)):
+        sw.B(-0.19, -0.02, -0.02, 0.19, 0.02, 0.02, "int_box", rot=rot)
+        sw.B(-0.02, -0.19, -0.02, 0.02, 0.19, 0.02, "int_box", rot=rot)
+    for rot in (None, ((0, 0, 0), "z", 22.5), ((0, 0, 0), "z", 45), ((0, 0, 0), "z", -22.5)):
+        sw.B(-0.075, 0.17, -0.025, 0.075, 0.2, 0.025, "int_seat", rot=rot)
+        sw.B(-0.075, -0.2, -0.025, 0.075, -0.17, 0.025, "int_seat", rot=rot)
+        sw.B(0.17, -0.075, -0.025, 0.2, 0.075, 0.025, "int_seat", rot=rot)
+        sw.B(-0.2, -0.075, -0.025, -0.17, 0.075, 0.025, "int_seat", rot=rot)
+    save_controls(vid, [(vid + "_steering", (ex, ey - 0.42, ez + 0.3), "steering", -22.5)])
     for x in (ex, -ex if abs(ex) > 0.2 else ex - 0.6):
         seat(h, x, floor + 0.45, ez - 0.25, w=0.45, back=0.6)
     h.B(-0.03, floor, ez + 0.1, 0.03, floor + 0.45, ez + 0.15, "int_steel")
@@ -387,6 +407,8 @@ def cockpit(vid, eyes, half_width=0.4):
     b = Bake("cockpit_" + vid, gv.MODID, gv.GREEN, density=64)
     c = b.part(vid + "_cockpit")
     P = hull_triangles(vid)
+    moving = []
+    stick_len = 0.5
     for ex, ey, ez in eyes:
         w, depth, head = fit_to_hull(P, (ex, ey, ez), half_width, 0.95, 0.22)
         # tub walls and floor
@@ -404,10 +426,10 @@ def cockpit(vid, eyes, half_width=0.4):
         # side consoles
         c.B(ex - w, ey - 0.68, ez - 0.35, ex - w + 0.16, ey - 0.6, ez + 0.4, {"all": "cockpit_dark", "up": ("cockpit_dark", gauges(1, 4, 0.035))})
         c.B(ex + w - 0.16, ey - 0.68, ez - 0.35, ex + w, ey - 0.6, ez + 0.4, {"all": "cockpit_dark", "up": ("cockpit_dark", gauges(1, 4, 0.035))})
-        # throttle on the left, the stick between the knees
-        c.B(ex + w - 0.12, ey - 0.6, ez + 0.05, ex + w - 0.06, ey - 0.42, ez + 0.12, "int_box")
-        c.B(ex - 0.02, ey - depth, ez + 0.2, ex + 0.02, ey - 0.5, ez + 0.24, "int_steel")
-        c.B(ex - 0.035, ey - 0.52, ez + 0.19, ex + 0.035, ey - 0.42, ez + 0.26, "int_box")
+        # throttle on the left, the stick between the knees: both move with the controls
+        moving.append((vid + "_throttle", (ex + w - 0.09, ey - 0.62, ez + 0.08), "throttle", 0))
+        moving.append((vid + "_stick", (ex, ey - depth, ez + 0.22), "stick", 0))
+        stick_len = depth - 0.42
         # ejection seat: tall back, headbox, yellow-black handle
         c.B(ex - 0.22, ey - 0.85, ez - 0.32, ex + 0.22, ey - 0.75, ez + 0.12, "int_seat")
         c.B(ex - 0.22, ey - 0.85, ez - 0.45, ex + 0.22, ey + 0.05, ez - 0.32, "int_seat")
@@ -417,6 +439,14 @@ def cockpit(vid, eyes, half_width=0.4):
         for x in (ex - w + 0.02, ex + w - 0.02):
             c.B(x - 0.02, ey - 0.2, ez + 0.66, x + 0.02, ey + head, ez + 0.7, "cockpit_dark")
         c.B(ex - w + 0.02, ey + head - 0.03, ez + 0.6, ex + w - 0.02, ey + head, ez + 0.7, "cockpit_dark")
+    st = b.part(vid + "_stick")
+    st.B(-0.02, 0, -0.02, 0.02, stick_len - 0.08, 0.02, "int_steel")
+    st.B(-0.035, stick_len - 0.1, -0.03, 0.035, stick_len, 0.04, "int_box")
+    st.B(-0.06, 0, -0.06, 0.06, 0.03, 0.06, "cockpit_dark")
+    th = b.part(vid + "_throttle")
+    th.B(-0.012, 0, -0.012, 0.012, 0.18, 0.012, "int_steel")
+    th.B(-0.03, 0.16, -0.035, 0.03, 0.22, 0.035, "int_box")
+    save_controls(vid, moving)
     gv.finish(b, {p.name: 8 for p in b.parts})
 
 

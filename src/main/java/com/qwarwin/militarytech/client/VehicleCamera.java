@@ -186,9 +186,12 @@ public final class VehicleCamera {
     @SubscribeEvent
     public static void onCameraSetup(EntityViewRenderEvent.CameraSetup event) {
         VehicleEntity v = VehicleControl.current();
+        Projection.roll = 0;
         if (mode == SIGHT && v instanceof AircraftEntity) {
             float pt = (float) event.getRenderPartialTicks();
-            event.setRoll(MathHelper.lerp(pt, v.rollO, v.getRoll()));
+            float roll = MathHelper.lerp(pt, v.rollO, v.getRoll());
+            event.setRoll(roll);
+            Projection.roll = roll;
         }
     }
 

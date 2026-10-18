@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "ITI",
+  "FFF",
+  "ITI"
+ ],
+ "key": {
+  "F": {
+   "item": "militarytech:bomb_fab3000"
+  },
+  "T": {
+   "item": "minecraft:tnt"
+  },
+  "I": {
+   "item": "minecraft:iron_block"
+  }
+ },
+ "result": {
+  "item": "militarytech:bomb_fab9000",
+  "count": 1
+ }
+}

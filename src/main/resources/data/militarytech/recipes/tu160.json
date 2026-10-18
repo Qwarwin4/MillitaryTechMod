@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "AFA",
+  "JAJ",
+  "JXJ"
+ ],
+ "key": {
+  "A": {
+   "item": "militarytech:airframe"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "J": {
+   "item": "militarytech:jet_engine"
+  },
+  "X": {
+   "item": "minecraft:netherite_ingot"
+  }
+ },
+ "result": {
+  "item": "militarytech:tu160",
+  "count": 1
+ }
+}

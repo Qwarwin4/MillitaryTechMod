@@ -31,7 +31,8 @@ public final class ClientHooks {
 
     /** The local player drives this vehicle: one tick of its simulation with the current controls. */
     public static void driveLocal(VehicleEntity v) {
-        v.simulate(VehicleControl.controlsFor(v));
+        // after an EMP the controls do nothing: it rolls to a stop, or glides down
+        v.simulate(v.isEmpDead() ? null : VehicleControl.controlsFor(v));
     }
 
     private ClientHooks() {

@@ -33,7 +33,13 @@ public enum Munition {
     ORESHNIK(Kind.BALLISTIC, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 0F, "oreshnik_missile", Tracer.NONE),
     WARHEAD(Kind.WARHEAD, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 5.0F, "warhead", Tracer.NONE),
     ORESHNIK_NUKE(Kind.BALLISTIC, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 0F, "oreshnik_missile", Tracer.NONE),
-    NUKE(Kind.WARHEAD, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 0F, "nuke", Tracer.NONE);
+    NUKE(Kind.WARHEAD, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 0F, "nuke", Tracer.NONE),
+    // heavy bombs: crater and blast done like a small nuclear burst, without the heat and the fallout
+    FAB3000(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.997, 900, 0.0F, 30.0F, "fab3000", Tracer.NONE),
+    FAB9000(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.997, 900, 0.0F, 45.0F, "fab9000", Tracer.NONE),
+    // Tu-160's cruise missiles: to the coordinates entered in flight, or to where the sight points
+    KH101(Kind.HEAT, Guidance.CRUISE, 4.4, 0.0, 1.0, 3000, 700.0F, 16.0F, "kh101", Tracer.NONE),
+    KH102(Kind.HEAT, Guidance.CRUISE, 4.4, 0.0, 1.0, 3000, 0.0F, 0.0F, "kh102", Tracer.NONE);
 
     public enum Kind {
         BULLET, SHELL, DART, HE, HEAT, THERMOBARIC, BOMB, AIR, BALLISTIC, WARHEAD
@@ -87,7 +93,7 @@ public enum Munition {
 
     /** Only loaded by hand with a nuclear warhead item, never from an ammo crate. */
     public boolean isNuclear() {
-        return this == ORESHNIK_NUKE || this == NUKE;
+        return this == ORESHNIK_NUKE || this == NUKE || this == KH102;
     }
 
     public boolean isRocket() {
@@ -128,6 +134,8 @@ public enum Munition {
             case KH29:
                 return 4F;
             case KH59:
+            case KH101:
+            case KH102:
                 return 3F;
             case MALYUTKA:
                 return 3.5F;

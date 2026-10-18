@@ -33,6 +33,7 @@ public final class ClientSetup {
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.SU25.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.SU34.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.MIG23.get(), VehicleRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(ModEntities.TU160.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.PROJECTILE.get(), ProjectileRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.CAMERA.get(), NothingRenderer::new);
         KeyBinds.register();
@@ -47,6 +48,7 @@ public final class ClientSetup {
     private static void onReload(IResourceManager rm) {
         BoxModel.clearCache();
         MeshWheels.clearCache();
+        CabControls.clearCache();
     }
 
     private ClientSetup() {
