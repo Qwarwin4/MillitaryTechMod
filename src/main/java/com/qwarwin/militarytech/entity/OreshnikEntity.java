@@ -83,6 +83,7 @@ public class OreshnikEntity extends TruckEntity {
                 player.displayClientMessage(new TranslationTextComponent("msg.militarytech.nuke_loaded_already"), true);
             } else {
                 setAmmo(slot, 1);
+                selectAmmo(1);
                 if (!player.abilities.instabuild) {
                     stack.shrink(1);
                 }
@@ -122,6 +123,8 @@ public class OreshnikEntity extends TruckEntity {
         boolean nuke = getSelectedFor(w) == 1;
         boolean ok = super.fire(w, shooter);
         if (ok && nuke) {
+            // the next missile from an ammo crate is a conventional one again
+            selectAmmo(0);
             // everyone gets to know
             for (ServerPlayerEntity p : ((ServerWorld) level).getServer().getPlayerList().getPlayers()) {
                 p.displayClientMessage(new TranslationTextComponent("msg.militarytech.nuke_launch", shooter.getDisplayName(),

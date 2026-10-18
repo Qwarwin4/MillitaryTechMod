@@ -13,6 +13,7 @@ coloured point cloud and gives every texel of the new atlas the colour of the ne
 faces the same way. That copes with many materials, tiled textures and vertex colours alike.
 """
 import gzip
+import os
 import io
 import json
 import math
@@ -28,7 +29,7 @@ from scipy.spatial import cKDTree
 
 _CT = {5120: np.int8, 5121: np.uint8, 5122: np.int16, 5123: np.uint16, 5125: np.uint32, 5126: np.float32}
 _NC = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
-MAX_TEX = 1024
+MAX_TEX = 2048
 
 
 def _quat(q):
@@ -413,7 +414,41 @@ def _corner_normals(V, F, crease=40.0):
     return out
 
 
-def bake(parts, size=1024, samples=3_000_000, pad=3, padding_px=4):
+def _triplanar(name, P, N, tile):
+    """a CC0 detail map (tools/detail) projected along the three axes, blended by the normal"""
+    import uvbake
+    a = uvbake.detail_map(name)
+    if a is None:
+        return np.full(len(P), 0.5)
+    H, W = a.shape[:2]
+    w = np.abs(N) ** 4
+    w /= np.maximum(w.sum(1, keepdims=True), 1e-9)
+    out = np.zeros(len(P))
+    for ax, (u, v) in enumerate(((2, 1), (0, 2), (0, 1))):
+        x = ((P[:, u] / tile + 0.37 * ax) % 1.0) * W
+        y = ((-P[:, v] / tile + 0.61 * ax) % 1.0) * H
+        out += w[:, ax] * a[y.astype(int) % H, x.astype(int) % W]
+    return out
+
+
+def weather(rgb, P, N):
+    """the mod's look on flat-coloured models: blotchy paint, rain streaks, scratches, dust and mud low down"""
+    blotch = _triplanar("grime_blotch", P, N, 3.0)
+    streak = _triplanar("grime_streaks", P, N, 2.0)
+    scratch = _triplanar("scratches", P, N, 1.5)
+    vert = np.clip(1 - np.abs(N[:, 1]) * 1.6, 0, 1)
+    rgb = rgb * (0.84 + 0.28 * blotch)[:, None]
+    rgb = rgb * (1 - 0.22 * (1 - streak) * vert)[:, None]
+    rgb = rgb + (np.clip(scratch - 0.6, 0, 1) * 0.35)[:, None] * (np.array([0.62, 0.62, 0.6]) - rgb)
+    low = np.clip(1 - P[:, 1] / 1.1, 0, 1) ** 1.5
+    dust = np.array([0.55, 0.5, 0.4])
+    rgb = rgb + (low * 0.45 * (0.6 + 0.4 * blotch))[:, None] * (dust - rgb)
+    up = np.clip(N[:, 1], 0, 1)
+    rgb = rgb + (up * 0.12 * blotch)[:, None] * (dust - rgb)
+    return np.clip(rgb, 0, 1)
+
+
+def bake(parts, size=1024, samples=3_000_000, pad=3, padding_px=4, weathered=False):
     """parts: {name: (V, F, scene)}. Returns {name: (P (n,3,3), UV (n,3,2), N (n,3,3))} and the RGBA image."""
     import xatlas
     names = list(parts)
@@ -504,6 +539,8 @@ def bake(parts, size=1024, samples=3_000_000, pad=3, padding_px=4):
     w[none, 0] = 1.0
     w /= w.sum(1, keepdims=True)
     c = np.einsum("nk,nkd->nd", w, cols[idx])
+    if weathered:
+        c[:, :3] = weather(c[:, :3].astype(np.float64), TP, TN)
     a = c[:, 3]
     checker = ((TX + TY) % 2 == 0).astype(np.float32)
     c[:, 3] = np.where(a < 0.25, 0.0, np.where(a > 0.75, 1.0, checker))
@@ -537,6 +574,130 @@ def bake(parts, size=1024, samples=3_000_000, pad=3, padding_px=4):
 
 
 # ---------------------------------------------------------------------------
+# keeping the original textures: decimate each material with its uvs, export the material's own image
+
+def decimate_textured(sc, target):
+    """one material's triangles -> (V, F, wedge uv (n,3,2)), decimated with uvs kept; falls back to the original.
+    Goes through an OBJ with a material, the only way MeshLab marks the faces as textured."""
+    import tempfile
+    import pymeshlab
+    P = sc.P.reshape(-1, 3)
+    if len(sc) <= target:
+        return P, np.arange(len(P)).reshape(-1, 3), sc.UV.copy()
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            Image.new("RGB", (4, 4)).save(os.path.join(d, "t.png"))
+            with open(os.path.join(d, "m.mtl"), "w") as f:
+                f.write("newmtl m\nmap_Kd t.png\n")
+            # vertices welded by position, uvs per corner
+            key = np.round(P / 1e-5).astype(np.int64)
+            uniq, inv = np.unique(key, axis=0, return_inverse=True)
+            inv = inv.reshape(-1)
+            Vw = np.zeros((len(uniq), 3))
+            Vw[inv] = P
+            uv = sc.UV.reshape(-1, 2)
+            lines = ["mtllib m.mtl", "usemtl m"]
+            lines += ["v %.6f %.6f %.6f" % tuple(x) for x in Vw]
+            # OBJ's v runs upwards, glTF's downwards
+            lines += ["vt %.6f %.6f" % (u, 1 - v) for u, v in uv]
+            tri = inv.reshape(-1, 3)
+            for i, t in enumerate(tri):
+                k = i * 3
+                lines.append("f %d/%d %d/%d %d/%d" % (t[0] + 1, k + 1, t[1] + 1, k + 2, t[2] + 1, k + 3))
+            with open(os.path.join(d, "m.obj"), "w") as f:
+                f.write("\n".join(lines))
+            ms = pymeshlab.MeshSet()
+            ms.load_new_mesh(os.path.join(d, "m.obj"))
+            ms.meshing_remove_null_faces()
+            ms.meshing_decimation_quadric_edge_collapse_with_texture(targetfacenum=int(target), qualitythr=0.3,
+                                                                     extratcoordw=1.0, preserveboundary=True,
+                                                                     boundaryweight=1.5, optimalplacement=True,
+                                                                     preservenormal=True, planarquadric=True)
+            m = ms.current_mesh()
+            V = m.vertex_matrix().astype(np.float64)
+            F = m.face_matrix().astype(np.int64)
+            UV = m.wedge_tex_coord_matrix().astype(np.float64).reshape(-1, 3, 2)
+            UV[..., 1] = 1 - UV[..., 1]
+        if len(F) == 0 or len(UV) != len(F):
+            raise ValueError("lost the uvs")
+        return V, F, UV
+    except Exception as e:  # noqa: BLE001
+        print("    (kept undecimated:", str(e).splitlines()[0], ")")
+        return P, np.arange(len(P)).reshape(-1, 3), sc.UV.copy()
+
+
+def material_image(mat, max_size=1024, glass_checker=True):
+    """the material as a texture: base colour image times its factor (linear maths), alpha by the material mode"""
+    if mat.image is None:
+        return None
+    img = mat.image.astype(np.float64)
+    rgb = _lin_to_srgb(np.clip(_srgb_to_lin(img[..., :3]) * mat.color[:3], 0, 1))
+    a = img[..., 3] * mat.color[3]
+    if mat.alpha_mode == "OPAQUE":
+        a = np.ones_like(a)
+    elif mat.alpha_mode == "MASK":
+        a = (a >= mat.cutoff).astype(np.float64)
+    else:
+        tint = np.array([0.16, 0.2, 0.24])
+        rgb = rgb * a[..., None] + tint * (1 - a[..., None])
+        yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+        a = ((xx + yy) % 2 == 0).astype(np.float64) if glass_checker else np.ones_like(a)
+    out = Image.fromarray((np.dstack([rgb, a]).clip(0, 1) * 255).astype(np.uint8), "RGBA")
+    if max(out.size) > max_size:
+        k = max_size / max(out.size)
+        out = out.resize((max(1, int(out.width * k)), max(1, int(out.height * k))), Image.LANCZOS if mat.alpha_mode != "BLEND" else Image.NEAREST)
+    return out
+
+
+def solid_colour(mat, sc_vertex_colours=None):
+    """rgba 0..255 of an image-less material (factor and average vertex colour, linear maths)"""
+    c = mat.color[:3].copy()
+    if sc_vertex_colours is not None and len(sc_vertex_colours):
+        c = c * sc_vertex_colours.reshape(-1, 4)[:, :3].mean(0)
+    rgb = _lin_to_srgb(np.clip(c, 0, 1))
+    return tuple(int(x * 255) for x in rgb), mat.alpha_mode
+
+
+def write_mesh_sections(path, sections):
+    """version 2: several textures in one file. sections: list of (texture ref, P (n,3,3), UV (n,3,2), N (n,3,3))"""
+    buf = io.BytesIO()
+    buf.write(b"MTMS")
+    buf.write(struct.pack(">i", 2))
+    buf.write(struct.pack(">i", len(sections)))
+    for tex, P, UV, N in sections:
+        t = tex.encode("utf-8")
+        buf.write(struct.pack(">H", len(t)))
+        buf.write(t)
+        buf.write(struct.pack(">i", len(P)))
+        buf.write(np.concatenate([P, UV, N], -1).astype(">f4").tobytes())
+    with gzip.open(path, "wb", compresslevel=9) as f:
+        f.write(buf.getvalue())
+
+
+def read_mesh_sections(path):
+    with gzip.open(path, "rb") as f:
+        b = f.read()
+    assert b[:4] == b"MTMS"
+    ver = struct.unpack(">i", b[4:8])[0]
+    if ver == 1:
+        tex, P, UV, N = read_mesh(path)
+        return [(tex, P, UV, N)]
+    n = struct.unpack(">i", b[8:12])[0]
+    o = 12
+    out = []
+    for _ in range(n):
+        ln = struct.unpack(">H", b[o:o + 2])[0]
+        tex = b[o + 2:o + 2 + ln].decode()
+        o += 2 + ln
+        cnt = struct.unpack(">i", b[o:o + 4])[0]
+        o += 4
+        d = np.frombuffer(b, dtype=">f4", offset=o, count=cnt * 24).astype(np.float64).reshape(cnt, 3, 8)
+        o += cnt * 24 * 4
+        out.append((tex, d[..., :3], d[..., 3:5], d[..., 5:8]))
+    return out
+
+
+# ---------------------------------------------------------------------------
 # output
 
 def write_mesh(path, texture, P, UV, N, origin=(0, 0, 0)):
@@ -565,6 +726,25 @@ def read_mesh(path):
     cnt = struct.unpack(">i", b[o:o + 4])[0]
     d = np.frombuffer(b, dtype=">f4", offset=o + 4, count=cnt * 24).astype(np.float64).reshape(cnt, 3, 8)
     return tex, d[..., :3], d[..., 3:5], d[..., 5:8]
+
+
+def ray_distance(P, origin, direction, max_dist=50.0):
+    """distance along a ray to the nearest triangle of P (n,3,3), or max_dist (Moller-Trumbore, all at once)"""
+    o = np.asarray(origin, dtype=np.float64)
+    d = np.asarray(direction, dtype=np.float64)
+    d = d / np.linalg.norm(d)
+    v0, e1, e2 = P[:, 0], P[:, 1] - P[:, 0], P[:, 2] - P[:, 0]
+    h = np.cross(d, e2)
+    a = np.einsum("ij,ij->i", e1, h)
+    ok = np.abs(a) > 1e-12
+    f = np.where(ok, 1.0 / np.where(ok, a, 1), 0)
+    sv = o - v0
+    u = f * np.einsum("ij,ij->i", sv, h)
+    q = np.cross(sv, e1)
+    v = f * (q @ d)
+    t = f * np.einsum("ij,ij->i", e2, q)
+    hit = ok & (u >= 0) & (v >= 0) & (u + v <= 1) & (t > 1e-6)
+    return float(t[hit].min()) if hit.any() else max_dist
 
 
 # ---------------------------------------------------------------------------
@@ -642,7 +822,7 @@ def render(items, size=(900, 600), yaw=35, pitch=20, bg=(206, 214, 222), fit=Non
                 u = l0[m][vis] * UV[i, 0, 0] + l1[m][vis] * UV[i, 1, 0] + l2[m][vis] * UV[i, 2, 0]
                 v = l0[m][vis] * UV[i, 0, 1] + l1[m][vis] * UV[i, 1, 1] + l2[m][vis] * UV[i, 2, 1]
                 th, tw = timg.shape[:2]
-                px = timg[np.clip((v * th).astype(int), 0, th - 1), np.clip((u * tw).astype(int), 0, tw - 1)]
+                px = timg[((v % 1.0) * th).astype(int) % th, ((u % 1.0) * tw).astype(int) % tw]
                 keep = px[:, 3] > 0.1
                 yy, xx, zz, px = yy[keep], xx[keep], zz[keep], px[keep]
                 cc = px[:, :3]

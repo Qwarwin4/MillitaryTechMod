@@ -115,7 +115,7 @@ TANKS = {
                  roof=0.75, carousel=True, breech=0.95),
     "bmpt": dict(floor=0.52, ceil=1.38, front=2.2, rear=-1.7, hw=1.15, pivot=(0, 1.8, -0.4), tr=(0, 0.62, 0.0), ring=0.95,
                  roof=0.35, carousel=False, breech=0, hull_gunners=True),
-    "tos1a": dict(floor=0.33, ceil=1.1, front=2.15, rear=0.55, hw=1.15, pivot=None, tr=None, ring=0, roof=0, carousel=False,
+    "tos1a": dict(floor=0.375, ceil=1.25, front=2.44, rear=0.63, hw=1.31, pivot=None, tr=None, ring=0, roof=0, carousel=False,
                   breech=0, console=True),
 }
 
@@ -296,22 +296,45 @@ def cab(vid, eye, width, floor, depth=0.75):
         seat(h, x, floor + 0.45, ez - 0.25, w=0.45, back=0.6)
     h.B(-0.03, floor, ez + 0.1, 0.03, floor + 0.45, ez + 0.15, "int_steel")
     h.B(-0.05, floor + 0.45, ez + 0.1, 0.05, floor + 0.52, ez + 0.17, "int_box")
-    gv.finish(b, {p.name: 4 for p in b.parts})
+    gv.finish(b, {p.name: 16 for p in b.parts})
 
 
 # ---------------------------------------------------------------------------
 # aircraft cockpits: everything around the pilot's eye
 
+def hull_triangles(vid):
+    import numpy as np
+    import meshkit as mk
+    path = os.path.join(gv.ASSETS, "models", "entity", vid + "_hull.mesh")
+    if not os.path.exists(path):
+        return None
+    secs = mk.read_mesh_sections(path)
+    return np.concatenate([P for _, P, _, _ in secs if len(P)]) if secs else None
+
+
+def fit_to_hull(P, eye, w, depth, head):
+    """shrink the cockpit to what fits inside the fuselage around this eye"""
+    import meshkit as mk
+    if P is None:
+        return w, depth, head
+    side = min(mk.ray_distance(P, eye, (1, 0, 0)), mk.ray_distance(P, eye, (-1, 0, 0)))
+    down = mk.ray_distance(P, eye, (0, -1, 0))
+    up = mk.ray_distance(P, eye, (0, 1, 0))
+    return min(w, max(0.15, side - 0.05)), min(depth, max(0.3, down - 0.04)), min(head, max(0.05, up - 0.04))
+
+
 def cockpit(vid, eyes, half_width=0.4):
-    """eyes: list of (x, y, z) per seat; a panel, a seat, a stick, side consoles and the canopy bow for each"""
+    """eyes: list of (x, y, z) per seat; a panel, a seat, a stick, side consoles and the canopy bow for each,
+    each made to fit inside the real model's fuselage"""
     b = Bake("cockpit_" + vid, gv.MODID, gv.GREEN, density=64)
     c = b.part(vid + "_cockpit")
+    P = hull_triangles(vid)
     for ex, ey, ez in eyes:
-        w = half_width
+        w, depth, head = fit_to_hull(P, (ex, ey, ez), half_width, 0.95, 0.22)
         # tub walls and floor
-        c.B(ex - w - 0.03, ey - 0.95, ez - 0.55, ex - w, ey - 0.3, ez + 0.7, "cockpit")
-        c.B(ex + w, ey - 0.95, ez - 0.55, ex + w + 0.03, ey - 0.3, ez + 0.7, "cockpit")
-        c.B(ex - w, ey - 0.98, ez - 0.55, ex + w, ey - 0.95, ez + 0.7, "cockpit_dark")
+        c.B(ex - w - 0.03, ey - depth, ez - 0.55, ex - w, ey - 0.3, ez + 0.7, "cockpit")
+        c.B(ex + w, ey - depth, ez - 0.55, ex + w + 0.03, ey - 0.3, ez + 0.7, "cockpit")
+        c.B(ex - w, ey - depth - 0.03, ez - 0.55, ex + w, ey - depth, ez + 0.7, "cockpit_dark")
         # main panel under the glare shield
         c.B(ex - w, ey - 0.62, ez + 0.6, ex + w, ey - 0.2, ez + 0.66, {"all": "cockpit_dark", "north": ("cockpit_dark", gauges(4, 3, 0.05))})
         c.B(ex - w - 0.02, ey - 0.22, ez + 0.42, ex + w + 0.02, ey - 0.17, ez + 0.66, "cockpit_dark")
@@ -325,7 +348,7 @@ def cockpit(vid, eyes, half_width=0.4):
         c.B(ex + w - 0.16, ey - 0.68, ez - 0.35, ex + w, ey - 0.6, ez + 0.4, {"all": "cockpit_dark", "up": ("cockpit_dark", gauges(1, 4, 0.035))})
         # throttle on the left, the stick between the knees
         c.B(ex + w - 0.12, ey - 0.6, ez + 0.05, ex + w - 0.06, ey - 0.42, ez + 0.12, "int_box")
-        c.B(ex - 0.02, ey - 0.95, ez + 0.2, ex + 0.02, ey - 0.5, ez + 0.24, "int_steel")
+        c.B(ex - 0.02, ey - depth, ez + 0.2, ex + 0.02, ey - 0.5, ez + 0.24, "int_steel")
         c.B(ex - 0.035, ey - 0.52, ez + 0.19, ex + 0.035, ey - 0.42, ez + 0.26, "int_box")
         # ejection seat: tall back, headbox, yellow-black handle
         c.B(ex - 0.22, ey - 0.85, ez - 0.32, ex + 0.22, ey - 0.75, ez + 0.12, "int_seat")
@@ -334,9 +357,9 @@ def cockpit(vid, eyes, half_width=0.4):
         c.B(ex - 0.06, ey - 0.78, ez + 0.1, ex + 0.06, ey - 0.73, ez + 0.14, ("int_box", [("stripe", 0.0, 0.5, (210, 180, 30))]))
         # canopy bow: two posts and the arch over the windscreen
         for x in (ex - w + 0.02, ex + w - 0.02):
-            c.B(x - 0.02, ey - 0.2, ez + 0.66, x + 0.02, ey + 0.22, ez + 0.7, "cockpit_dark")
-        c.B(ex - w + 0.02, ey + 0.2, ez + 0.6, ex + w - 0.02, ey + 0.24, ez + 0.7, "cockpit_dark")
-    gv.finish(b, {p.name: 4 for p in b.parts})
+            c.B(x - 0.02, ey - 0.2, ez + 0.66, x + 0.02, ey + head, ez + 0.7, "cockpit_dark")
+        c.B(ex - w + 0.02, ey + head - 0.03, ez + 0.6, ex + w - 0.02, ey + head, ez + 0.7, "cockpit_dark")
+    gv.finish(b, {p.name: 8 for p in b.parts})
 
 
 def main():
@@ -344,10 +367,10 @@ def main():
         tank(vid, c)
     bmp1()
     cab("grad", (0.5, 2.15, 2.6), 2.1, 1.35)
-    cab("oreshnik", (0.73, 1.45, 5.3), 0.65, 0.42, depth=0.3)
-    cockpit("su25", [(0, 2.0, 2.5)], 0.38)
-    cockpit("su34", [(0.35, 1.9, 3.7), (-0.35, 1.9, 3.7)], 0.33)
-    cockpit("mig23", [(0, 1.7, 2.4), (0, 1.78, 1.4)], 0.34)
+    cab("oreshnik", (1.223, 2.429, 8.877), 1.09, 0.70, depth=0.5)
+    cockpit("su25", [(0, 2.638, 3.298)], 0.45)
+    cockpit("su34", [(0.56, 3.04, 5.92), (-0.56, 3.04, 5.92)], 0.45)
+    cockpit("mig23", [(0, 2.467, 3.482), (0, 2.583, 2.032)], 0.42)
 
 
 if __name__ == "__main__":

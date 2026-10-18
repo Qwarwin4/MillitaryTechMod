@@ -47,8 +47,8 @@ public final class Config {
         ORESHNIK_POWER = b.comment("Blast of each of the 42 submunitions").defineInRange("warheadPower", 8.0, 0.0, 20.0);
         b.pop();
         b.push("nuke");
-        NUKE_CRATER = b.comment("Crater radius of the nuclear Oreshnik, blocks").defineInRange("craterRadius", 26, 5, 60);
-        NUKE_BLAST = b.comment("Radius of the blast that hurts and throws things, blocks").defineInRange("blastRadius", 110, 20, 300);
+        NUKE_CRATER = b.comment("Crater radius of the nuclear Oreshnik, blocks").defineInRange("crater", 42, 5, 80);
+        NUKE_BLAST = b.comment("Radius of the blast that kills, burns and throws things, blocks").defineInRange("blast", 200, 20, 500);
         NUKE_FALLOUT = b.comment("Seconds the fallout keeps hurting near ground zero").defineInRange("falloutSeconds", 120, 0, 1200);
         b.pop();
         SPEC = b.build();

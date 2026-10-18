@@ -2,6 +2,7 @@ package com.qwarwin.militarytech.client.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.qwarwin.militarytech.client.BoxModel;
+import com.qwarwin.militarytech.client.MeshWheels;
 import com.qwarwin.militarytech.client.VehicleCamera;
 import com.qwarwin.militarytech.entity.AirSpec;
 import com.qwarwin.militarytech.entity.AircraftEntity;
@@ -21,6 +22,8 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.List;
 
 /** Draws any vehicle from its spec: hull, road wheels, turret and gun, or the aircraft with its stores. */
 @OnlyIn(Dist.CLIENT)
@@ -64,6 +67,29 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
 
         float wheel = MathHelper.lerp(partial, e.trackAngleO, e.trackAngle);
+        if (s.wheelModel == null && !(e instanceof AircraftEntity)) {
+            // real-model wheels: each spins about its own axle, smaller ones faster; truck front wheels steer
+            float steer = 0F;
+            if (e instanceof TruckEntity) {
+                TruckEntity t = (TruckEntity) e;
+                steer = MathHelper.lerp(partial, t.steerO, t.steer) * 25F;
+            }
+            List<MeshWheels.Wheel> ws = MeshWheels.of(s.id);
+            float front = -Float.MAX_VALUE;
+            for (MeshWheels.Wheel w : ws) {
+                front = Math.max(front, w.z);
+            }
+            for (MeshWheels.Wheel w : ws) {
+                ms.pushPose();
+                ms.translate(w.x, w.y, w.z);
+                if (steer != 0F && w.z > front - 0.3F) {
+                    ms.mulPose(Vector3f.YP.rotationDegrees(steer));
+                }
+                ms.mulPose(Vector3f.XP.rotationDegrees(wheel * (float) s.wheelRadius / Math.max(0.05F, w.r)));
+                BoxModel.get(w.model).render(ms, buf, light);
+                ms.popPose();
+            }
+        }
         if (s.wheelModel != null) {
             float steer = 0F;
             if (e instanceof TruckEntity) {
@@ -94,8 +120,10 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         } else if (e instanceof OreshnikEntity) {
             OreshnikEntity o = (OreshnikEntity) e;
             ms.pushPose();
-            ms.translate(s.pivot.x, s.pivot.y, s.pivot.z);
-            ms.mulPose(Vector3f.XP.rotationDegrees(-90F * o.erectProgress(partial)));
+            // the canister swings up about its hinge and is let down until its base stands on the ground
+            float up = o.erectProgress(partial);
+            ms.translate(s.pivot.x, s.pivot.y - (s.pivot.y - 0.15) * up, s.pivot.z);
+            ms.mulPose(Vector3f.XP.rotationDegrees(-90F * up));
             BoxModel.get(s.gunModel).render(ms, buf, light);
             if (o.getAmmo(0) > 0) {
                 BoxModel.get("oreshnik_cap").render(ms, buf, light);

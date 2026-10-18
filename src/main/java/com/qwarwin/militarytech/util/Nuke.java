@@ -110,14 +110,16 @@ public final class Nuke {
             double k = 1.0 - d / blast;
             boolean open = world.clip(new RayTraceContext(fireball, e.getEyePosition(1F), RayTraceContext.BlockMode.COLLIDER,
                     RayTraceContext.FluidMode.NONE, e)).getType() == RayTraceResult.Type.MISS;
-            float cover = d < crater * 1.3 || open ? 1F : 0.45F;
+            // the inner third is certain death whatever the cover; further out it falls off, walls still help
+            float cover = d < blast * 0.35 || open ? 1F : 0.5F;
+            double hit = d < blast * 0.35 ? 1.0 : k * k * 1.6;
             if (e instanceof VehicleEntity) {
-                e.hurt(src, (float) (2500 * k * k) * cover);
+                e.hurt(src, (float) (8000 * hit) * cover);
             } else if (e instanceof LivingEntity) {
                 e.invulnerableTime = 0;
-                e.hurt(src, (float) (400 * k * k + 4) * cover * Math.max(mul, 0.25F));
-                if (open && d < blast * 0.75) {
-                    e.setSecondsOnFire(10 + (int) (10 * k));
+                e.hurt(src, (float) (1500 * hit + 6) * cover * Math.max(mul, 0.25F));
+                if (open && d < blast * 0.85) {
+                    e.setSecondsOnFire(15 + (int) (15 * k));
                 }
             }
             if (!(e instanceof VehicleEntity) || d < crater * 1.5) {
@@ -211,7 +213,7 @@ public final class Nuke {
             return;
         }
         int r = b.crater;
-        int far = (int) (r * 2.6);
+        int far = (int) (r * 3.2);
         BlockPos.Mutable mp = new BlockPos.Mutable();
         BlockPos c = new BlockPos(b.pos);
         for (int i = 0; i < far * far * 3; i++) {

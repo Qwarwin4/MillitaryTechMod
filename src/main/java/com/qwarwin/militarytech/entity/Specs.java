@@ -225,10 +225,10 @@ public final class Specs {
         b = ORESHNIK;
         b.health = 160F;
         b.armor = Armor.SOFT;
-        b.width = 3.2F;
-        b.height = 3.6F;
-        b.box(-1.25, 0, -6.7, 1.25, 2.7, 6.7);
-        b.seats = new Vector3d[]{v(0.73, 0.8, 5.0), v(-0.73, 0.8, 5.0)};
+        b.width = 5.36F;
+        b.height = 6.03F;
+        b.box(-2.094, 0, -11.223, 2.094, 4.523, 11.223);
+        b.seats = new Vector3d[]{v(1.223, 1.34, 8.375), v(-1.223, 1.34, 8.375)};
         b.interior = true;
         b.separateGunner = false;
         b.tracked = false;
@@ -239,38 +239,38 @@ public final class Specs {
         b.wheelModel = null;
         b.turretModel = null;
         b.wheelZ = new double[]{4.4, 3.0, 1.0, -0.3, -1.6, -2.9, -4.2, -5.5};
-        b.wheelX = 1.15;
-        b.wheelY = 0.62;
-        b.wheelRadius = 0.62;
-        b.pivot = v(0, 1.23, -6.68);
-        b.driverEye = v(0.73, 1.45, 5.3);
-        b.camDistance = 16;
-        b.camHeight = 5;
+        b.wheelX = 1.93;
+        b.wheelY = 1.04;
+        b.wheelRadius = 1.04;
+        b.pivot = v(0, 2.06, -11.189);
+        b.driverEye = v(1.223, 2.429, 8.877);
+        b.camDistance = 26.8;
+        b.camHeight = 8.38;
         b.engineSound = "truck_engine";
         b.weapon("oreshnik").ammo(new Munition[]{Munition.ORESHNIK, Munition.ORESHNIK_NUKE}, new int[]{1, 1}).interval(100).spread(0F)
-                .mount(WeaponSpec.Mount.HULL, v(0, 14.7, -6.7)).sound("oreshnik_launch", 30F);
+                .mount(WeaponSpec.Mount.HULL, v(0, 22.6, -11.2)).sound("oreshnik_launch", 30F);
 
         // ---- TOS-1A "Solntsepyok": T-72 chassis, 24 thermobaric rockets
         b = TOS1A;
         b.health = 300F;
         b.armor = Armor.HEAVY;
-        b.width = 3.6F;
-        b.height = 2.6F;
-        b.box(-1.7, 0, -3.7, 1.7, 1.4, 3.05).box(-1.2, 1.4, -2.75, 1.1, 2.95, 1.6);
-        b.seats = new Vector3d[]{v(0, 0.35, 1.9), v(0.45, 0.35, 1.2), v(-0.45, 0.35, 1.2)};
+        b.width = 4.09F;
+        b.height = 2.96F;
+        b.box(-1.933, 0, -4.206, 1.933, 1.592, 3.467).box(-1.364, 1.592, -3.126, 1.251, 3.354, 1.819);
+        b.seats = new Vector3d[]{v(0, 0.398, 2.16), v(0.512, 0.398, 1.364), v(-0.512, 0.398, 1.364)};
         b.interior = true;
         b.wheelZ = T72_WHEELS;
         b.wheelModel = null;
-        b.pivot = v(0, 1.31, -1.06);
-        b.trunnion = v(-0.06, 0.19, -1.34);
-        b.sight = v(1.0, 1.0, 0.2);
-        b.driverEye = v(0, 1.9, 2.2);
+        b.pivot = v(0, 1.489, -1.205);
+        b.trunnion = v(-0.068, 0.216, -1.523);
+        b.sight = v(1.137, 1.137, 0.227);
+        b.driverEye = v(0, 2.16, 2.501);
         b.minPitch = -55F;
         b.maxPitch = 0F;
         b.yawLimit = 100F;
         b.traverse = 2F;
         b.maxSpeed = 0.42;
-        b.camDistance = 11;
+        b.camDistance = 12.51;
         // the TOS-1 pack: three rows of eight and six on top, thirty tubes
         Vector3d[] tos = new Vector3d[30];
         for (int i = 0; i < 30; i++) {
@@ -282,7 +282,7 @@ public final class Specs {
             if (row == 3) {
                 c += 1;
             }
-            tos[i] = v(-0.95 + c * 0.263, 0.53 + row * 0.255, 4.0);
+            tos[i] = v(-1.08 + c * 0.299, 0.603 + row * 0.29, 4.547);
         }
         b.weapon("tos").ammo(Munition.TOS_220, 30).interval(8).spread(1.2F).ripple()
                 .mount(WeaponSpec.Mount.GUN, tos)
@@ -327,10 +327,10 @@ public final class Specs {
         b = SU25;
         b.health = 190F;
         b.armor = Armor.AIR;
-        b.width = 3.6F;
-        b.height = 2.8F;
-        b.box(-0.85, 0.6, -5.9, 0.85, 2.3, 5.3).box(-5.15, 1.0, -2.0, 5.15, 1.7, 0.2);
-        b.seats = new Vector3d[]{v(0, 1.45, 2.5)};
+        b.width = 4.75F;
+        b.height = 3.69F;
+        b.box(-1.121, 0.791, -7.783, 1.121, 3.034, 6.991).box(-6.793, 1.319, -2.638, 6.793, 2.242, 0.264);
+        b.seats = new Vector3d[]{v(0, 1.913, 3.298)};
         b.separateGunner = false;
         b.hasTurret = false;
         b.tracked = false;
@@ -345,27 +345,27 @@ public final class Specs {
         a.takeoffSpeed = 1.35;
         a.pitchRate = 3.4F;
         a.yawRate = 2.8F;
-        a.cockpit = v(0, 2.0, 2.5);
-        a.camDistance = 20;
-        a.exhaust = v(0.85, 1.25, -3.0);
-        a.exhaustSpread = 0.85;
-        a.pylons = new Vector3d[]{v(1.7, 1.35, -0.85), v(2.4, 1.15, -0.9), v(3.1, 1.08, -0.95), v(3.8, 1.02, -1.0), v(4.4, 1.0, -1.05),
-                v(-1.7, 1.35, -0.85), v(-2.4, 1.15, -0.9), v(-3.1, 1.08, -0.95), v(-3.8, 1.02, -1.0), v(-4.4, 1.0, -1.05)};
+        a.cockpit = v(0, 2.638, 3.298);
+        a.camDistance = 26.38;
+        a.exhaust = v(1.121, 1.649, -3.957);
+        a.exhaustSpread = 1.12;
+        a.pylons = new Vector3d[]{v(2.242, 1.781, -1.121), v(3.166, 1.517, -1.187), v(4.089, 1.425, -1.253), v(5.013, 1.345, -1.319), v(5.804, 1.319, -1.385),
+                v(-2.242, 1.781, -1.121), v(-3.166, 1.517, -1.187), v(-4.089, 1.425, -1.253), v(-5.013, 1.345, -1.319), v(-5.804, 1.319, -1.385)};
         a.loadouts.add(AirSpec.loadout("cas").put(R73, 1, 4, 9).put(S8KO, 20, 2, 7, 3, 8).put(FAB250, 1, 0, 5, 1, 6).build());
         a.loadouts.add(AirSpec.loadout("rockets").put(R73, 1, 4, 9).put(S8KO, 21, 0, 5, 1, 6, 2, 7, 3, 8).build());
         a.loadouts.add(AirSpec.loadout("bombs").put(R73, 1, 4, 9).put(FAB500, 1, 0, 5, 1, 6, 2, 7, 3, 8).build());
         a.loadouts.add(AirSpec.loadout("antitank").put(R73, 1, 4, 9).put(KH29, 1, 0, 5, 1, 6).put(S8KO, 20, 2, 7, 3, 8).build());
         b.air = a;
         b.weapon("gsh30").ammo(GSH_30, 250).auto(1).spread(0.5F)
-                .mount(WeaponSpec.Mount.HULL, v(0.3, 0.95, 3.6)).sound("aircraft_gun", 6F);
+                .mount(WeaponSpec.Mount.HULL, v(0.396, 1.253, 4.749)).sound("aircraft_gun", 6F);
 
         b = SU34;
         b.health = 170F;
         b.armor = Armor.AIR;
-        b.width = 3.8F;
-        b.height = 3.0F;
-        b.box(-1.3, 0.6, -6.85, 1.3, 2.4, 6.95).box(-4.3, 1.2, -3.8, 4.3, 1.7, 0.5);
-        b.seats = new Vector3d[]{v(0.35, 1.3, 3.7), v(-0.35, 1.3, 3.7)};
+        b.width = 6.08F;
+        b.height = 4.8F;
+        b.box(-2.08, 0.96, -10.96, 2.08, 3.84, 11.12).box(-6.88, 1.92, -6.08, 6.88, 2.72, 0.8);
+        b.seats = new Vector3d[]{v(0.56, 2.08, 5.92), v(-0.56, 2.08, 5.92)};
         b.separateGunner = false;
         b.hasTurret = false;
         b.tracked = false;
@@ -380,13 +380,13 @@ public final class Specs {
         a.takeoffSpeed = 1.55;
         a.pitchRate = 2.8F;
         a.yawRate = 2.4F;
-        a.cockpit = v(0.35, 1.9, 3.7);
-        a.camDistance = 23;
-        a.exhaust = v(0.65, 1.2, -6.3);
-        a.exhaustSpread = 0.65;
-        a.pylons = new Vector3d[]{v(1.7, 1.4, -1.3), v(2.4, 1.45, -2.5), v(3.1, 1.45, -2.9), v(3.7, 1.45, -3.2),
-                v(-1.7, 1.4, -1.3), v(-2.4, 1.45, -2.5), v(-3.1, 1.45, -2.9), v(-3.7, 1.45, -3.2),
-                v(0.7, 1.3, 1.2), v(-0.7, 1.3, 1.2), v(0.7, 0.8, -2.4), v(-0.7, 0.8, -2.4)};
+        a.cockpit = v(0.56, 3.04, 5.92);
+        a.camDistance = 36.8;
+        a.exhaust = v(1.04, 1.92, -10.08);
+        a.exhaustSpread = 1.04;
+        a.pylons = new Vector3d[]{v(2.72, 2.24, -2.08), v(3.84, 2.32, -4.0), v(4.96, 2.32, -4.64), v(5.92, 2.32, -5.12),
+                v(-2.72, 2.24, -2.08), v(-3.84, 2.32, -4.0), v(-4.96, 2.32, -4.64), v(-5.92, 2.32, -5.12),
+                v(1.12, 2.08, 1.92), v(-1.12, 2.08, 1.92), v(1.12, 1.28, -3.84), v(-1.12, 1.28, -3.84)};
         a.loadouts.add(AirSpec.loadout("strike").put(R73, 1, 3, 7).put(KH59, 1, 0, 4).put(KH29, 1, 1, 5, 2, 6)
                 .put(FAB500, 1, 8, 9).build());
         a.loadouts.add(AirSpec.loadout("heavy").put(R73, 1, 3, 7).put(FAB500, 1, 1, 5, 2, 6).put(FAB1500, 1, 0, 4)
@@ -394,17 +394,17 @@ public final class Specs {
         a.loadouts.add(AirSpec.loadout("rockets168").put(S8KO, 21, 0, 4, 1, 5, 2, 6, 3, 7, 8, 9, 10, 11).build());
         b.air = a;
         b.weapon("gsh301").ammo(GSH_30, 180).auto(1).spread(0.4F)
-                .mount(WeaponSpec.Mount.HULL, v(-1.0, 1.45, 1.5)).sound("aircraft_gun", 6F);
+                .mount(WeaponSpec.Mount.HULL, v(-1.6, 2.32, 2.4)).sound("aircraft_gun", 6F);
 
         // MiG-23UB: swing-wing, two seats in tandem, GSh-23 under the belly
         b = MIG23;
         b.gunModel = "mig23_gear";
         b.health = 130F;
         b.armor = Armor.AIR;
-        b.width = 3.6F;
-        b.height = 2.8F;
-        b.box(-1.0, 0.3, -5.5, 1.0, 2.0, 5.4).box(-2.45, 0.9, -4.0, 2.45, 1.6, -0.5);
-        b.seats = new Vector3d[]{v(0, 1.2, 2.4), v(0, 1.25, 1.4)};
+        b.width = 5.22F;
+        b.height = 4.06F;
+        b.box(-1.451, 0.435, -7.982, 1.451, 2.902, 7.837).box(-3.555, 1.306, -5.805, 3.555, 2.322, -0.726);
+        b.seats = new Vector3d[]{v(0, 1.741, 3.483), v(0, 1.814, 2.032)};
         b.separateGunner = false;
         b.hasTurret = false;
         b.tracked = false;
@@ -418,18 +418,18 @@ public final class Specs {
         a.takeoffSpeed = 1.75;
         a.pitchRate = 2.8F;
         a.yawRate = 2.3F;
-        a.cockpit = v(0, 1.7, 2.4);
-        a.camDistance = 20;
-        a.exhaust = v(0, 1.15, -5.5);
-        a.exhaustSpread = 0;
-        a.pylons = new Vector3d[]{v(1.35, 1.0, -1.2), v(0.75, 0.95, 0.3), v(-1.35, 1.0, -1.2), v(-0.75, 0.95, 0.3)};
+        a.cockpit = v(0, 2.467, 3.483);
+        a.camDistance = 29.02;
+        a.exhaust = v(0, 1.669, -7.982);
+        a.exhaustSpread = 0.0;
+        a.pylons = new Vector3d[]{v(1.959, 1.451, -1.741), v(1.088, 1.379, 0.435), v(-1.959, 1.451, -1.741), v(-1.088, 1.379, 0.435)};
         a.loadouts.add(AirSpec.loadout("intercept").put(R40, 1, 0, 2).put(R73, 1, 1, 3).build());
         a.loadouts.add(AirSpec.loadout("dogfight").put(R73, 1, 0, 1, 2, 3).build());
         a.loadouts.add(AirSpec.loadout("mig_bombs").put(FAB500, 1, 0, 1, 2, 3).build());
         a.loadouts.add(AirSpec.loadout("mig_rockets").put(S8KO, 20, 0, 1, 2, 3).build());
         b.air = a;
         b.weapon("gsh23").ammo(GSH_30, 200).auto(1).spread(0.5F)
-                .mount(WeaponSpec.Mount.HULL, v(0, 0.7, 0.8)).sound("aircraft_gun", 6F);
+                .mount(WeaponSpec.Mount.HULL, v(0, 1.016, 1.161)).sound("aircraft_gun", 6F);
     }
 
     public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, ZAK, ZRK};

@@ -46,6 +46,7 @@ public final class ClientSetup {
 
     private static void onReload(IResourceManager rm) {
         BoxModel.clearCache();
+        MeshWheels.clearCache();
     }
 
     private ClientSetup() {

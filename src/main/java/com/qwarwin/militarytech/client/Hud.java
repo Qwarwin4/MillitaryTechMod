@@ -274,8 +274,9 @@ public final class Hud {
         boolean ready = o.isErected() && t != null && o.getAmmo(sel) > 0;
         text(ms, mc, o.getAmmo(sel) > 0 ? (ready ? I18n.get("hud.militarytech.ready_launch") : I18n.get("hud.militarytech.not_ready"))
                 : I18n.get("hud.militarytech.empty"), x, y + 33, ready ? RED : 0xFF909090);
-        text(ms, mc, I18n.get(sel == 1 ? "hud.militarytech.warhead_nuke" : "hud.militarytech.warhead_conventional"), x, y + 44,
-                sel == 1 ? 0xFFFFD040 : 0xFFB0B0B0);
+        // which warhead is picked, and how many of each are on board
+        text(ms, mc, I18n.get(sel == 1 ? "hud.militarytech.warhead_nuke" : "hud.militarytech.warhead_conventional")
+                + "  [" + o.getAmmo(0) + " / " + o.getAmmo(1) + "]", x, y + 44, sel == 1 ? 0xFFFFD040 : 0xFFB0B0B0);
         text(ms, mc, I18n.get("hud.militarytech.oreshnik_hint"), x, y + 55, 0xFF909090);
     }
 

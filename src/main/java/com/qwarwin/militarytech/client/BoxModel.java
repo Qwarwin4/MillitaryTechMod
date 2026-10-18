@@ -46,17 +46,19 @@ public final class BoxModel {
     private final ResourceLocation texture;
     /** per quad: 4 x (x, y, z, u, v), then the normal */
     private final float[][] quads;
-    /** triangle meshes (models/entity/NAME.mesh): per corner x, y, z, u, v, nx, ny, nz */
-    private final float[] tris;
+    /** triangle meshes (models/entity/NAME.mesh), one array per texture: per corner x, y, z, u, v, nx, ny, nz */
+    private final ResourceLocation[] meshTextures;
+    private final float[][] meshTris;
 
     private BoxModel(ResourceLocation texture, float[][] quads) {
-        this(texture, quads, new float[0]);
+        this(texture, quads, new ResourceLocation[0], new float[0][]);
     }
 
-    private BoxModel(ResourceLocation texture, float[][] quads, float[] tris) {
+    private BoxModel(ResourceLocation texture, float[][] quads, ResourceLocation[] meshTextures, float[][] meshTris) {
         this.texture = texture;
         this.quads = quads;
-        this.tris = tris;
+        this.meshTextures = meshTextures;
+        this.meshTris = meshTris;
     }
 
     public static void clearCache() {
@@ -78,21 +80,27 @@ public final class BoxModel {
     }
 
     public void render(MatrixStack ms, IRenderTypeBuffer buf, int light, int overlay, float r, float g, float b, float a) {
-        if (quads.length == 0 && tris.length == 0) {
+        if (quads.length == 0 && meshTris.length == 0) {
             return;
         }
-        IVertexBuilder vb = buf.getBuffer(RenderType.entityCutoutNoCull(texture));
         Matrix4f pose = ms.last().pose();
         Matrix3f normal = ms.last().normal();
         // the entity render types draw quads: each triangle goes out as a quad with its last corner doubled
-        float[] t = tris;
-        for (int o = 0; o < t.length; o += 24) {
-            for (int i = 0; i < 4; i++) {
-                int c = o + Math.min(i, 2) * 8;
-                vb.vertex(pose, t[c], t[c + 1], t[c + 2]).color(r, g, b, a).uv(t[c + 3], t[c + 4])
-                        .overlayCoords(overlay).uv2(light).normal(normal, t[c + 5], t[c + 6], t[c + 7]).endVertex();
+        for (int s = 0; s < meshTris.length; s++) {
+            IVertexBuilder vb = buf.getBuffer(RenderType.entityCutoutNoCull(meshTextures[s]));
+            float[] t = meshTris[s];
+            for (int o = 0; o < t.length; o += 24) {
+                for (int i = 0; i < 4; i++) {
+                    int c = o + Math.min(i, 2) * 8;
+                    vb.vertex(pose, t[c], t[c + 1], t[c + 2]).color(r, g, b, a).uv(t[c + 3], t[c + 4])
+                            .overlayCoords(overlay).uv2(light).normal(normal, t[c + 5], t[c + 6], t[c + 7]).endVertex();
+                }
             }
         }
+        if (quads.length == 0) {
+            return;
+        }
+        IVertexBuilder vb = buf.getBuffer(RenderType.entityCutoutNoCull(texture));
         for (float[] q : quads) {
             for (int i = 0; i < 4; i++) {
                 int o = i * 5;
@@ -129,22 +137,31 @@ public final class BoxModel {
         }
     }
 
-    /** gzip: "MTMS", int version, UTF texture, int triangles, then 3 x 8 floats per triangle (tools/meshkit.py) */
+    /**
+     * gzip: "MTMS", int version; version 1: UTF texture, int triangles, 3 x 8 floats per triangle; version 2: int
+     * sections, then that per section (tools/meshkit.py).
+     */
     private static BoxModel readMesh(DataInputStream in) throws IOException {
         byte[] magic = new byte[4];
         in.readFully(magic);
         if (magic[0] != 'M' || magic[1] != 'T' || magic[2] != 'M' || magic[3] != 'S') {
             throw new IOException("not a mesh");
         }
-        in.readInt();
-        ResourceLocation t = new ResourceLocation(in.readUTF());
-        ResourceLocation texture = new ResourceLocation(t.getNamespace(), "textures/" + t.getPath() + ".png");
-        int n = in.readInt();
-        float[] tris = new float[n * 24];
-        for (int i = 0; i < tris.length; i++) {
-            tris[i] = in.readFloat();
+        int version = in.readInt();
+        int sections = version >= 2 ? in.readInt() : 1;
+        ResourceLocation[] tex = new ResourceLocation[sections];
+        float[][] tris = new float[sections][];
+        for (int s = 0; s < sections; s++) {
+            ResourceLocation t = new ResourceLocation(in.readUTF());
+            tex[s] = new ResourceLocation(t.getNamespace(), "textures/" + t.getPath() + ".png");
+            int n = in.readInt();
+            float[] f = new float[n * 24];
+            for (int i = 0; i < f.length; i++) {
+                f[i] = in.readFloat();
+            }
+            tris[s] = f;
         }
-        return new BoxModel(texture, new float[0][], tris);
+        return new BoxModel(MilitaryTech.id("textures/entity/munitions.png"), new float[0][], tex, tris);
     }
 
     private static float[] floats(JsonArray a) {
