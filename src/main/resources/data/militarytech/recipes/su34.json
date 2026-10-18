@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "AFA",
+  "ACA",
+  "J J"
+ ],
+ "key": {
+  "A": {
+   "item": "militarytech:airframe"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "C": {
+   "item": "militarytech:autocannon"
+  },
+  "J": {
+   "item": "militarytech:jet_engine"
+  }
+ },
+ "result": {
+  "item": "militarytech:su34",
+  "count": 1
+ }
+}

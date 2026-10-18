@@ -1,0 +1,83 @@
+{
+ "scale": 1,
+ "origin": [
+  8,
+  0,
+  8
+ ],
+ "ambientocclusion": false,
+ "textures": {
+  "t": "militarytech:entity/grad",
+  "particle": "militarytech:entity/grad"
+ },
+ "elements": [
+  {
+   "from": [
+    7.12,
+    -0.88,
+    8.0
+   ],
+   "to": [
+    8.88,
+    0.88,
+    9.12
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      5.4688,
+      7.8906,
+      5.5469,
+      7.9688
+     ],
+     "texture": "#t"
+    },
+    "south": {
+     "uv": [
+      5.6094,
+      7.8906,
+      5.6875,
+      7.9688
+     ],
+     "texture": "#t"
+    },
+    "east": {
+     "uv": [
+      5.75,
+      7.8906,
+      5.7969,
+      7.9688
+     ],
+     "texture": "#t"
+    },
+    "west": {
+     "uv": [
+      5.8594,
+      7.8906,
+      5.9062,
+      7.9688
+     ],
+     "texture": "#t"
+    },
+    "up": {
+     "uv": [
+      6.7812,
+      7.8906,
+      6.8594,
+      7.9375
+     ],
+     "texture": "#t"
+    },
+    "down": {
+     "uv": [
+      6.9219,
+      7.8906,
+      7.0,
+      7.9375
+     ],
+     "texture": "#t"
+    }
+   }
+  }
+ ]
+}

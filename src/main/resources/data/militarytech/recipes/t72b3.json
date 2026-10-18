@@ -1,0 +1,32 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "EBE",
+  "PDP",
+  "TFT"
+ ],
+ "key": {
+  "E": {
+   "item": "militarytech:era_block"
+  },
+  "B": {
+   "item": "militarytech:gun_barrel"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "T": {
+   "item": "militarytech:track_links"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  }
+ },
+ "result": {
+  "item": "militarytech:t72b3",
+  "count": 1
+ }
+}

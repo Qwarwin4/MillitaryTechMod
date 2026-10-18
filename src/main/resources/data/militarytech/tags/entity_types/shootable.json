@@ -1,0 +1,25 @@
+{
+ "replace": false,
+ "values": [
+  {
+   "id": "fpvdrones:launch_truck",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:air_defense_gun",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:kornet",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:radio_beacon",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:terminator",
+   "required": false
+  }
+ ]
+}

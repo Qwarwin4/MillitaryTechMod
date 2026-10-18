@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "RBR",
+  "PDP",
+  "TTT"
+ ],
+ "key": {
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "B": {
+   "item": "militarytech:gun_barrel"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "T": {
+   "item": "militarytech:track_links"
+  }
+ },
+ "result": {
+  "item": "militarytech:bmp1",
+  "count": 1
+ }
+}

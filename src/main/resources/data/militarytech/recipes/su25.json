@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "PCP",
+  "AFA",
+  "J J"
+ ],
+ "key": {
+  "P": {
+   "item": "militarytech:armor_plate"
+  },
+  "C": {
+   "item": "militarytech:autocannon"
+  },
+  "A": {
+   "item": "militarytech:airframe"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "J": {
+   "item": "militarytech:jet_engine"
+  }
+ },
+ "result": {
+  "item": "militarytech:su25",
+  "count": 1
+ }
+}

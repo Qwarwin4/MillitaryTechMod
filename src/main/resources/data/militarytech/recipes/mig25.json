@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "AFA",
+  "JAJ",
+  "J J"
+ ],
+ "key": {
+  "A": {
+   "item": "militarytech:airframe"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "J": {
+   "item": "militarytech:jet_engine"
+  }
+ },
+ "result": {
+  "item": "militarytech:mig25",
+  "count": 1
+ }
+}

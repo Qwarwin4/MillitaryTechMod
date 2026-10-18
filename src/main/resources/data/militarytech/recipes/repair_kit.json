@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "III",
+  "IAI"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "A": {
+   "item": "minecraft:anvil"
+  }
+ },
+ "result": {
+  "item": "militarytech:repair_kit",
+  "count": 2
+ }
+}

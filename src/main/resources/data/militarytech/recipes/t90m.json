@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "EBE",
+  "EDE",
+  "TFT"
+ ],
+ "key": {
+  "E": {
+   "item": "militarytech:era_block"
+  },
+  "B": {
+   "item": "militarytech:gun_barrel"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "T": {
+   "item": "militarytech:track_links"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  }
+ },
+ "result": {
+  "item": "militarytech:t90m",
+  "count": 1
+ }
+}

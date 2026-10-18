@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "WGW",
+  "WTW",
+  "WIW"
+ ],
+ "key": {
+  "W": {
+   "tag": "minecraft:planks"
+  },
+  "G": {
+   "item": "minecraft:gunpowder"
+  },
+  "T": {
+   "item": "minecraft:tnt"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  }
+ },
+ "result": {
+  "item": "militarytech:ammo_crate",
+  "count": 2
+ }
+}

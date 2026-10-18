@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "RRR",
+  "FDF",
+  "WWW"
+ ],
+ "key": {
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "W": {
+   "item": "militarytech:truck_wheel"
+  }
+ },
+ "result": {
+  "item": "militarytech:grad",
+  "count": 1
+ }
+}

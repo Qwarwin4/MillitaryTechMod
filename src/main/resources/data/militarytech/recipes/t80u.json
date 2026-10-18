@@ -1,0 +1,32 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "EBE",
+  "PGP",
+  "TFT"
+ ],
+ "key": {
+  "E": {
+   "item": "militarytech:era_block"
+  },
+  "B": {
+   "item": "militarytech:gun_barrel"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  },
+  "G": {
+   "item": "militarytech:gas_turbine"
+  },
+  "T": {
+   "item": "militarytech:track_links"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  }
+ },
+ "result": {
+  "item": "militarytech:t80u",
+  "count": 1
+ }
+}

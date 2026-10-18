@@ -1,0 +1,14 @@
+.gradle/
+build/
+run/
+out/
+.idea/
+*.iml
+*.ipr
+*.iws
+eclipse/
+.classpath
+.project
+.settings/
+__pycache__/
+tools/_build/

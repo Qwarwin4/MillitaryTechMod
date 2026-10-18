@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "CIC",
+  "CIC"
+ ],
+ "key": {
+  "C": {
+   "item": "minecraft:chain"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  }
+ },
+ "result": {
+  "item": "militarytech:track_links",
+  "count": 4
+ }
+}

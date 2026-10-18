@@ -1,0 +1,32 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "WAW",
+  "EDE",
+  "TFT"
+ ],
+ "key": {
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "A": {
+   "item": "militarytech:autocannon"
+  },
+  "E": {
+   "item": "militarytech:era_block"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "T": {
+   "item": "militarytech:track_links"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  }
+ },
+ "result": {
+  "item": "militarytech:bmpt",
+  "count": 1
+ }
+}

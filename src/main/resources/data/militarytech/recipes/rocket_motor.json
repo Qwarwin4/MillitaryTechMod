@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "I",
+  "G",
+  "B"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "G": {
+   "item": "minecraft:gunpowder"
+  },
+  "B": {
+   "item": "minecraft:blaze_powder"
+  }
+ },
+ "result": {
+  "item": "militarytech:rocket_motor",
+  "count": 2
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "XRX",
+  "FDF",
+  "WWW"
+ ],
+ "key": {
+  "X": {
+   "item": "minecraft:netherite_ingot"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "W": {
+   "item": "militarytech:truck_wheel"
+  }
+ },
+ "result": {
+  "item": "militarytech:oreshnik",
+  "count": 1
+ }
+}

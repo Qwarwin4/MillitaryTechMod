@@ -1,0 +1,21 @@
+{
+ "replace": false,
+ "values": [
+  {
+   "id": "fpvdrones:fpv_drone",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:mavic3",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:strike_drone",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:missile",
+   "required": false
+  }
+ ]
+}

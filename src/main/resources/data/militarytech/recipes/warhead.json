@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "I",
+  "T",
+  "I"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "T": {
+   "item": "minecraft:tnt"
+  }
+ },
+ "result": {
+  "item": "militarytech:warhead",
+  "count": 2
+ }
+}

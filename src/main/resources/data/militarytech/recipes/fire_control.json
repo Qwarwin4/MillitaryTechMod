@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "GGG",
+  "ROR",
+  "GCG"
+ ],
+ "key": {
+  "G": {
+   "item": "minecraft:gold_ingot"
+  },
+  "R": {
+   "item": "minecraft:redstone"
+  },
+  "O": {
+   "item": "minecraft:observer"
+  },
+  "C": {
+   "item": "minecraft:comparator"
+  }
+ },
+ "result": {
+  "item": "militarytech:fire_control",
+  "count": 1
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "III",
+  "IOI",
+  "III"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "O": {
+   "item": "minecraft:obsidian"
+  }
+ },
+ "result": {
+  "item": "militarytech:armor_plate",
+  "count": 2
+ }
+}

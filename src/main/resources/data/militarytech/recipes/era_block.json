@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IGI",
+  "GPG",
+  "IGI"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "G": {
+   "item": "minecraft:gunpowder"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  }
+ },
+ "result": {
+  "item": "militarytech:era_block",
+  "count": 4
+ }
+}

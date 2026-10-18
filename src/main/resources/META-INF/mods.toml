@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+license="MIT"
+
+[[mods]]
+modId="militarytech"
+version="${file.jarVersion}"
+displayName="Military Tech"
+authors="Qwarwin4"
+description='''
+Танки Т-72Б3, Т-80, Т-90М, БМП-1, БМПТ «Терминатор», РСЗО «Град», комплекс «Орешник»,
+Су-25, Су-34 и МиГ-25 с ФАБами, НАРами и ракетами.
+'''
+
+[[dependencies.militarytech]]
+    modId="forge"
+    mandatory=true
+    versionRange="[36,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.militarytech]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.5,1.17)"
+    ordering="NONE"
+    side="BOTH"
