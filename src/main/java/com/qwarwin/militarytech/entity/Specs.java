@@ -34,6 +34,8 @@ public final class Specs {
         s.trunnion = v(0, 0.42, 0.85);
         s.sight = v(0.55, 1.2, 0.45);
         s.driverEye = v(0, 1.9, 2.2);
+        // driver's prism blocks, commander's cupola beside the gunner's sight
+        s.view(0, v(0, 1.9, 2.2), false).view(2, v(-0.55, 1.2, 0.2), true);
         s.weapon("cannon_125")
                 .ammo(new Munition[]{APFSDS, HE_125, REFLEKS}, new int[]{22, 18, 4})
                 .interval(110).spread(0.1F)
@@ -132,6 +134,8 @@ public final class Specs {
         b.trunnion = v(0, 0.62, 0.0);
         b.sight = v(0.48, 1.15, 0.45);
         b.driverEye = v(0, 1.9, 2.2);
+        b.view(0, v(0, 1.9, 2.2), false).view(2, v(-0.48, 1.15, 0.45), true)
+                .view(3, v(0.7, 1.95, 2.05), false).view(4, v(-0.7, 1.95, 2.05), false);
         b.minPitch = -45F;
         b.maxPitch = 5F;
         b.traverse = 4F;
@@ -166,6 +170,18 @@ public final class Specs {
         b.trunnion = v(0, 0.2, 0.7);
         b.sight = v(0.35, 0.75, 0.0);
         b.driverEye = v(0.6, 1.7, 1.8);
+        // driver's and commander's periscopes; the troops look out of their firing ports, the back pair through the doors
+        b.view(0, v(0.6, 1.7, 1.8), false).view(2, v(0.5, 1.75, 1.2), false);
+        for (int i = 3; i <= 8; i++) {
+            Vector3d st = b.seats[i];
+            b.view(i, v(Math.signum(st.x) * 1.56, 1.05, st.z), false);
+        }
+        b.view(9, v(0.45, 1.0, -3.36), false).view(10, v(-0.45, 1.0, -3.36), false);
+        // the two back doors, hinged on the outer edges; the troops get in through them
+        b.doors.add(new VehicleSpec.Door("bmp1_door0", v(0.95, 0.95, -3.14), 'y', -105F,
+                new net.minecraft.util.math.AxisAlignedBB(-0.25, 0.16, -3.6, 1.2, 1.73, -2.74), 3, 5, 7, 9));
+        b.doors.add(new VehicleSpec.Door("bmp1_door1", v(-0.95, 0.95, -3.14), 'y', 105F,
+                new net.minecraft.util.math.AxisAlignedBB(-1.2, 0.16, -3.6, 0.25, 1.73, -2.74), 4, 6, 8, 10));
         b.minPitch = -30F;
         b.maxPitch = 4F;
         b.traverse = 3.5F;
@@ -208,6 +224,7 @@ public final class Specs {
         b.traverse = 2F;
         b.sight = v(0.9, 1.0, 0.6);
         b.driverEye = v(0.5, 2.15, 2.6);
+        b.view(1, v(-0.5, 2.15, 2.6), false).view(2, v(0, 2.15, 2.6), false);
         b.camDistance = 11;
         b.engineSound = "truck_engine";
         Vector3d[] tubes = new Vector3d[40];
@@ -244,6 +261,7 @@ public final class Specs {
         b.wheelRadius = 1.04;
         b.pivot = v(0, 2.06, -11.189);
         b.driverEye = v(1.223, 2.429, 8.877);
+        b.view(1, v(-1.223, 2.429, 8.877), false);
         b.camDistance = 26.8;
         b.camHeight = 8.38;
         b.engineSound = "truck_engine";
@@ -265,6 +283,7 @@ public final class Specs {
         b.trunnion = v(-0.068, 0.216, -1.523);
         b.sight = v(1.137, 1.137, 0.227);
         b.driverEye = v(0, 2.16, 2.501);
+        b.view(2, v(-0.512, 2.05, 1.55), false);
         b.minPitch = -55F;
         b.maxPitch = 0F;
         b.yawLimit = 100F;

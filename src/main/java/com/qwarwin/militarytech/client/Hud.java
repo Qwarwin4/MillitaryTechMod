@@ -85,6 +85,8 @@ public final class Hud {
         } else {
             if (VehicleCamera.isSight() && gunner && v.spec.hasTurret) {
                 sightOverlay(ms, mc, v, w, h);
+            } else if (VehicleCamera.isSight() && v.seatView(mc.player, pt) != null) {
+                periscope(ms, mc, v, w, h);
             }
             if (gunner) {
                 groundAim(ms, mc, v, w, h, pt);
@@ -123,6 +125,23 @@ public final class Hud {
             text(ms, mc, r, cx + 8, cy + 6, GREEN_DIM);
         }
         turretIndicator(ms, v, w - 34, h - 60, pt);
+    }
+
+    /** Looking out through a prism block or a firing port: a dark frame with a wide slot. */
+    private static void periscope(MatrixStack ms, Minecraft mc, VehicleEntity v, int w, int h) {
+        int sw = w * 3 / 4, sh = h * 2 / 5;
+        int x0 = (w - sw) / 2, y0 = (h - sh) / 2 - h / 12, x1 = x0 + sw, y1 = y0 + sh;
+        AbstractGui.fill(ms, 0, 0, w, y0, 0xE8080808);
+        AbstractGui.fill(ms, 0, y1, w, h, 0xE8080808);
+        AbstractGui.fill(ms, 0, y0, x0, y1, 0xE8080808);
+        AbstractGui.fill(ms, x1, y0, w, y1, 0xE8080808);
+        // the glass block: a slight green tint and a bevel
+        AbstractGui.fill(ms, x0, y0, x1, y1, 0x1830FF60);
+        AbstractGui.fill(ms, x0, y0, x1, y0 + 2, 0xFF2A2A2A);
+        AbstractGui.fill(ms, x0, y1 - 2, x1, y1, 0xFF2A2A2A);
+        AbstractGui.fill(ms, x0, y0, x0 + 2, y1, 0xFF2A2A2A);
+        AbstractGui.fill(ms, x1 - 2, y0, x1, y1, 0xFF2A2A2A);
+        text(ms, mc, I18n.get(v.seatKey(v.seatOf(mc.player))), x0 + 4, y1 + 4, GREEN_DIM);
     }
 
     private static void sightOverlay(MatrixStack ms, Minecraft mc, VehicleEntity v, int w, int h) {

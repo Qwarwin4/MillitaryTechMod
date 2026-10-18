@@ -19,7 +19,8 @@ public final class KeyBinds {
     public static final KeyBinding ACTION = new KeyBinding("key.militarytech.action", GLFW.GLFW_KEY_G, CAT);
     public static final KeyBinding LOADOUT = new KeyBinding("key.militarytech.loadout", GLFW.GLFW_KEY_K, CAT);
     public static final KeyBinding FREE_LOOK = new KeyBinding("key.militarytech.free_look", GLFW.GLFW_KEY_LEFT_ALT, CAT);
-    private static final KeyBinding[] ALL = {CAMERA, CYCLE, ACTION, LOADOUT, FREE_LOOK};
+    public static final KeyBinding SEAT = new KeyBinding("key.militarytech.seat", GLFW.GLFW_KEY_V, CAT);
+    private static final KeyBinding[] ALL = {CAMERA, CYCLE, ACTION, LOADOUT, FREE_LOOK, SEAT};
 
     /*
      * When two mods bind the same key, Forge hands the press to only one of the bindings (FPV Drones and Simple

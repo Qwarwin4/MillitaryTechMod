@@ -55,6 +55,61 @@ public final class VehicleSpec {
     public boolean interior;
     /** riders drawn smaller so they fit under a canopy built for real people (aircraft) */
     public float riderScale = 1F;
+    /** what each crew member looks through in sight view (null: the gunner's sight / the driver's eye) */
+    public Vector3d[] seatViews;
+    /** seat views that sit on the turret and turn with it */
+    public boolean[] seatViewOnTurret;
+
+    /** A door that opens: the mesh MODEL turns ANGLE degrees about AXIS through HINGE; clicking AREA works it. */
+    public static final class Door {
+        public final String model;
+        public final Vector3d hinge;
+        public final char axis;
+        public final float angle;
+        public final AxisAlignedBB area;
+        /** seats reached only through this door */
+        public final int[] seats;
+
+        public Door(String model, Vector3d hinge, char axis, float angle, AxisAlignedBB area, int... seats) {
+            this.model = model;
+            this.hinge = hinge;
+            this.axis = axis;
+            this.angle = angle;
+            this.area = area;
+            this.seats = seats;
+        }
+    }
+
+    public final List<Door> doors = new ArrayList<>();
+
+    /** Sight view for one seat: a periscope, a cupola, a firing port, a cab window. */
+    public VehicleSpec view(int seat, Vector3d eye, boolean onTurret) {
+        if (seatViews == null || seatViews.length < seats.length) {
+            Vector3d[] nv = new Vector3d[seats.length];
+            boolean[] nt = new boolean[seats.length];
+            if (seatViews != null) {
+                System.arraycopy(seatViews, 0, nv, 0, seatViews.length);
+                System.arraycopy(seatViewOnTurret, 0, nt, 0, seatViewOnTurret.length);
+            }
+            seatViews = nv;
+            seatViewOnTurret = nt;
+        }
+        seatViews[seat] = eye;
+        seatViewOnTurret[seat] = onTurret;
+        return this;
+    }
+
+    /** Is this seat behind one of the doors? (-1 if not) */
+    public int doorOf(int seat) {
+        for (int d = 0; d < doors.size(); d++) {
+            for (int s : doors.get(d).seats) {
+                if (s == seat) {
+                    return d;
+                }
+            }
+        }
+        return -1;
+    }
 
     // models (under models/entity/), wheel stations
     public String hullModel, wheelModel, turretModel, gunModel;

@@ -9,6 +9,7 @@ import com.qwarwin.militarytech.entity.OreshnikEntity;
 import com.qwarwin.militarytech.entity.ProjectileEntity;
 import com.qwarwin.militarytech.entity.VehicleEntity;
 import com.qwarwin.militarytech.network.Network;
+import com.qwarwin.militarytech.network.SeatPacket;
 import com.qwarwin.militarytech.network.VehicleInputPacket;
 import com.qwarwin.militarytech.registry.ModSounds;
 import com.qwarwin.militarytech.util.Targeting;
@@ -136,6 +137,12 @@ public final class VehicleControl {
         if (v != last) {
             onVehicleChanged(mc, last, v);
             last = v;
+        }
+        if (event.phase == TickEvent.Phase.START && mc.player.getVehicle() instanceof VehicleEntity) {
+            // riders on the armour can move inside too, so this one works without vehicle controls
+            for (int n = KeyBinds.presses(KeyBinds.SEAT); n > 0; n--) {
+                Network.CHANNEL.sendToServer(new SeatPacket());
+            }
         }
         if (v == null) {
             KeyBinds.clearRaw();

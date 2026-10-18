@@ -62,6 +62,10 @@ public abstract class VehicleEntity extends Entity {
     private static final DataParameter<Integer> SELECT = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.INT);
     private static final DataParameter<Integer> FLAGS = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.INT);
     private static final DataParameter<Optional<BlockPos>> TARGET = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.OPTIONAL_BLOCK_POS);
+    /** which seat each passenger (by entity id) sits in */
+    private static final DataParameter<CompoundNBT> SEATS = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.COMPOUND_TAG);
+    /** one bit per door: open */
+    private static final DataParameter<Integer> DOORS = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.INT);
     public static final int MAX_AMMO_SLOTS = 13;
     @SuppressWarnings("unchecked")
     private static final DataParameter<Integer>[] AMMO = new DataParameter[MAX_AMMO_SLOTS];
@@ -122,6 +126,8 @@ public abstract class VehicleEntity extends Entity {
         entityData.define(SELECT, 0);
         entityData.define(FLAGS, 0);
         entityData.define(TARGET, Optional.empty());
+        entityData.define(SEATS, new CompoundNBT());
+        entityData.define(DOORS, 0);
         for (DataParameter<Integer> p : AMMO) {
             entityData.define(p, 0);
         }
@@ -284,19 +290,241 @@ public abstract class VehicleEntity extends Entity {
 
     // ------------------------------------------------------------------ crew
 
+    /** The seat a passenger sits in (players pick theirs by where they click the vehicle). */
+    public int seatOf(@Nullable Entity e) {
+        if (e == null) {
+            return -1;
+        }
+        CompoundNBT t = entityData.get(SEATS);
+        String k = Integer.toString(e.getId());
+        return t.contains(k) ? t.getInt(k) : getPassengers().indexOf(e);
+    }
+
+    @Nullable
+    public Entity inSeat(int seat) {
+        for (Entity p : getPassengers()) {
+            if (seatOf(p) == seat) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    public boolean isSeatFree(int seat) {
+        return seat >= 0 && seat < spec.seats.length && inSeat(seat) == null;
+    }
+
+    private void putSeat(Entity e, int seat) {
+        CompoundNBT t = entityData.get(SEATS).copy();
+        if (seat < 0) {
+            t.remove(Integer.toString(e.getId()));
+        } else {
+            t.putInt(Integer.toString(e.getId()), seat);
+        }
+        entityData.set(SEATS, t);
+    }
+
     @Nullable
     public Entity getDriver() {
-        List<Entity> p = getPassengers();
-        return p.isEmpty() ? null : p.get(0);
+        return inSeat(0);
     }
 
     @Nullable
     public Entity getGunner() {
-        List<Entity> p = getPassengers();
-        if (p.isEmpty()) {
-            return null;
+        if (!spec.separateGunner) {
+            return inSeat(0);
         }
-        return spec.separateGunner && p.size() > 1 ? p.get(1) : p.get(0);
+        Entity g = inSeat(1);
+        // alone in the vehicle, the driver works the gun too
+        return g != null ? g : inSeat(0);
+    }
+
+    // ------------------------------------------------------------------ doors
+
+    public boolean isDoorOpen(int d) {
+        return (entityData.get(DOORS) & (1 << d)) != 0;
+    }
+
+    public void setDoor(int d, boolean open) {
+        int v = entityData.get(DOORS);
+        entityData.set(DOORS, open ? v | (1 << d) : v & ~(1 << d));
+        level.playSound(null, getX(), getY(), getZ(), open ? SoundEvents.IRON_DOOR_OPEN : SoundEvents.IRON_DOOR_CLOSE,
+                SoundCategory.NEUTRAL, 1F, 0.8F);
+    }
+
+    /** 0 shut .. 1 open, smoothed on the client */
+    public float doorOpen(int d, float partial) {
+        if (doorAnim == null || d >= doorAnim.length) {
+            return 0F;
+        }
+        return doorAnimO[d] + (doorAnim[d] - doorAnimO[d]) * partial;
+    }
+
+    private float[] doorAnim, doorAnimO;
+
+    private void tickDoors() {
+        int n = spec.doors.size();
+        if (n == 0) {
+            return;
+        }
+        if (doorAnim == null) {
+            doorAnim = new float[n];
+            doorAnimO = new float[n];
+        }
+        for (int d = 0; d < n; d++) {
+            doorAnimO[d] = doorAnim[d];
+            float want = isDoorOpen(d) ? 1F : 0F;
+            doorAnim[d] += MathHelper.clamp(want - doorAnim[d], -0.08F, 0.08F);
+        }
+    }
+
+    /** A seat a player can get into from here: free, and if it's behind a door, the door is open. */
+    private boolean reachable(int seat) {
+        if (!isSeatFree(seat)) {
+            return false;
+        }
+        int d = spec.doorOf(seat);
+        return d < 0 || isDoorOpen(d);
+    }
+
+    /** The free seat nearest to a point on the vehicle (vehicle coordinates), among the allowed ones. */
+    private int nearestSeat(Vector3d local, @Nullable int[] among) {
+        int best = -1;
+        double bd = Double.MAX_VALUE;
+        for (int s = 0; s < spec.seats.length; s++) {
+            if (among != null) {
+                boolean in = false;
+                for (int a : among) {
+                    in |= a == s;
+                }
+                if (!in) {
+                    continue;
+                }
+            }
+            if (!reachable(s)) {
+                continue;
+            }
+            double d = spec.seats[s].distanceToSqr(local);
+            if (d < bd) {
+                bd = d;
+                best = s;
+            }
+        }
+        return best;
+    }
+
+    private int pendingSeat = -1;
+
+    private void enter(PlayerEntity player, int seat) {
+        if (owner == null) {
+            owner = player.getUUID();
+        }
+        pendingSeat = seat;
+        player.startRiding(this);
+    }
+
+    /** Right click: the spot clicked picks the seat; clicking a door opens it, or gets you in through it. */
+    @Override
+    public ActionResultType interactAt(PlayerEntity player, Vector3d vec, Hand hand) {
+        if (hand != Hand.MAIN_HAND || player.getVehicle() == this) {
+            return ActionResultType.PASS;
+        }
+        ItemStack stack = player.getItemInHand(hand);
+        if (!stack.isEmpty() || player.isShiftKeyDown() && getPassengers().isEmpty() && spec.doors.isEmpty()) {
+            // ammo, repair kits, picking the vehicle up: interact() does those
+            return ActionResultType.PASS;
+        }
+        // the entity's box is a square around the middle; where the player really looks on the hull picks the spot
+        Vector3d eye = player.getEyePosition(1F);
+        Vector3d hit = com.qwarwin.militarytech.util.Targeting.clip(this, eye, eye.add(player.getViewVector(1F).scale(6)), 0.15);
+        Vector3d local = toLocal(hit != null ? hit : position().add(vec));
+        for (int d = 0; d < spec.doors.size(); d++) {
+            VehicleSpec.Door door = spec.doors.get(d);
+            if (!door.area.contains(local)) {
+                continue;
+            }
+            if (level.isClientSide) {
+                return ActionResultType.SUCCESS;
+            }
+            if (!isDoorOpen(d) || player.isShiftKeyDown()) {
+                setDoor(d, !isDoorOpen(d));
+                return ActionResultType.CONSUME;
+            }
+            int s = nearestSeat(local, door.seats);
+            if (s >= 0 && !player.isPassenger()) {
+                enter(player, s);
+            } else {
+                setDoor(d, false);
+            }
+            return ActionResultType.CONSUME;
+        }
+        if (player.isShiftKeyDown() && getPassengers().isEmpty()) {
+            return ActionResultType.PASS;
+        }
+        int s = nearestSeat(local, null);
+        if (s < 0 || player.isPassenger()) {
+            return ActionResultType.PASS;
+        }
+        if (level.isClientSide) {
+            return ActionResultType.SUCCESS;
+        }
+        enter(player, s);
+        return ActionResultType.CONSUME;
+    }
+
+    /** V: move to the next free seat (inside the vehicle you can climb anywhere). */
+    public void nextSeat(ServerPlayerEntity player) {
+        int cur = seatOf(player);
+        for (int k = 1; k < spec.seats.length; k++) {
+            int s = (cur + k) % spec.seats.length;
+            if (isSeatFree(s)) {
+                putSeat(player, s);
+                player.displayClientMessage(new TranslationTextComponent(seatKey(s)), true);
+                return;
+            }
+        }
+    }
+
+    /** "driver", "gunner", "commander", "troops", "on the armour" */
+    public String seatKey(int s) {
+        if (s == 0) {
+            return "seat.militarytech.driver";
+        }
+        if (s == 1 && spec.separateGunner) {
+            return "seat.militarytech.gunner";
+        }
+        if (s >= spec.insideSeats) {
+            return "seat.militarytech.outside";
+        }
+        return s == 2 && spec.separateGunner && spec.category == VehicleSpec.Category.TANK ? "seat.militarytech.commander"
+                : "seat.militarytech.passenger";
+    }
+
+    @Override
+    protected void addPassenger(Entity passenger) {
+        super.addPassenger(passenger);
+        if (!level.isClientSide) {
+            int s = pendingSeat >= 0 && isSeatFree(pendingSeat) ? pendingSeat : -1;
+            if (s < 0) {
+                for (int i = 0; i < spec.seats.length && s < 0; i++) {
+                    if (reachable(i)) {
+                        s = i;
+                    }
+                }
+            }
+            if (s < 0) {
+                for (int i = 0; i < spec.seats.length && s < 0; i++) {
+                    if (isSeatFree(i)) {
+                        s = i;
+                    }
+                }
+            }
+            pendingSeat = -1;
+            putSeat(passenger, Math.max(0, s));
+            if (passenger instanceof PlayerEntity) {
+                ((PlayerEntity) passenger).displayClientMessage(new TranslationTextComponent(seatKey(Math.max(0, s))), true);
+            }
+        }
     }
 
     public boolean isDriver(@Nullable Entity e) {
@@ -319,8 +547,7 @@ public abstract class VehicleEntity extends Entity {
 
     /** A passenger sitting outside on the hull (troops riding on the armour). */
     public boolean isOutside(@Nullable Entity e) {
-        int i = e == null ? -1 : getPassengers().indexOf(e);
-        return i >= spec.insideSeats;
+        return e != null && seatOf(e) >= spec.insideSeats;
     }
 
     @Nullable
@@ -340,7 +567,12 @@ public abstract class VehicleEntity extends Entity {
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        return getPassengers().size() < spec.seats.length;
+        for (int s = 0; s < spec.seats.length; s++) {
+            if (isSeatFree(s)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -348,8 +580,8 @@ public abstract class VehicleEntity extends Entity {
         if (!hasPassenger(passenger)) {
             return;
         }
-        int i = getPassengers().indexOf(passenger);
-        Vector3d seat = spec.seats[Math.min(i, spec.seats.length - 1)];
+        int i = seatOf(passenger);
+        Vector3d seat = spec.seats[MathHelper.clamp(i, 0, spec.seats.length - 1)];
         Vector3d p = toWorld(seat);
         passenger.setPos(p.x, p.y, p.z);
     }
@@ -369,6 +601,9 @@ public abstract class VehicleEntity extends Entity {
     @Override
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
+        if (!level.isClientSide) {
+            putSeat(passenger, -1);
+        }
         if (getGunner() == null) {
             trigger1 = trigger2 = false;
             rippleLeft = 0;
@@ -408,6 +643,30 @@ public abstract class VehicleEntity extends Entity {
 
     public Vector3d aimVector() {
         return Vector3d.directionFromRotation(getGunPitch(), getTurretYaw());
+    }
+
+    /** This crew member's own sight view (periscope, cupola, firing port), or null to use the defaults. */
+    @Nullable
+    public Vector3d seatView(Entity who, float partial) {
+        int s = seatOf(who);
+        if (spec.seatViews == null || s < 0 || s >= spec.seatViews.length || spec.seatViews[s] == null
+                || spec.hasTurret && isGunner(who)) {
+            return null;
+        }
+        return spec.seatViewOnTurret[s] ? turretToWorld(spec.seatViews[s], getTurretYaw(partial)) : toWorld(spec.seatViews[s]);
+    }
+
+    /** The view of this crew member turns with the turret (gunner, commander). */
+    public boolean viewsFromTurret(Entity who) {
+        if (!spec.hasTurret) {
+            return false;
+        }
+        if (isGunner(who)) {
+            return true;
+        }
+        int s = seatOf(who);
+        return spec.seatViews != null && s >= 0 && s < spec.seatViews.length && spec.seatViews[s] != null
+                && spec.seatViewOnTurret[s];
     }
 
     /** Where the gunner's eye sits in sight view. */
@@ -532,6 +791,7 @@ public abstract class VehicleEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        tickDoors();
         trackAngleO = trackAngle;
         if (level.isClientSide) {
             if (!soundStarted) {
@@ -948,12 +1208,13 @@ public abstract class VehicleEntity extends Entity {
             pickUp(player);
             return ActionResultType.CONSUME;
         }
-        if (canAddPassenger(player) && !player.isPassenger()) {
-            if (owner == null) {
-                owner = player.getUUID();
-            }
-            player.startRiding(this);
+        int seat = nearestSeat(toLocal(player.position()), null);
+        if (seat >= 0 && !player.isPassenger()) {
+            enter(player, seat);
             return ActionResultType.CONSUME;
+        }
+        if (!spec.doors.isEmpty() && canAddPassenger(player)) {
+            player.displayClientMessage(new TranslationTextComponent("msg.militarytech.door_shut"), true);
         }
         return ActionResultType.PASS;
     }

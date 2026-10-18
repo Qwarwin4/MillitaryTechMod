@@ -85,7 +85,12 @@ VEHICLES = {
                                and abs(i["center"][0]) < 1.25))],
         pivot=(0, 1.8, -0.4), trunnion=(0, 0.62, 0.0), empty=["wheel"]),
     "bmp1": dict(
-        src="bmp1", ry=0, k=1.0, dy=0.99, dz=-0.43, tris=45000, by="node",
+        src="bmp1", doors=[
+            dict(name="door0", test=lambda i: i["tris"] == 1774 and i["center"][0] > 0, hinge=(0.95, 0.95, -3.14), axis="y",
+                 angle=-105, seats=[3, 5, 7, 9]),
+            dict(name="door1", test=lambda i: i["tris"] == 1774 and i["center"][0] < 0, hinge=(-0.95, 0.95, -3.14), axis="y",
+                 angle=105, seats=[4, 6, 8, 10])],
+        ry=0, k=1.0, dy=0.99, dz=-0.43, tris=45000, by="node",
         rules=[("gun", lambda i: i["tris"] == 5386),
                ("turret", lambda i: i["tris"] == 15089)],
         pivot=(0, 1.53, -0.63), trunnion=(0, 0.2, 0.7), empty=["wheel"]),
@@ -269,6 +274,30 @@ def build(vid, v):
             parts[f"w{i}"] = sc
             wheel_list.append({"model": f"{vid}_w{i}", "center": [round(float(x), 4) for x in ctr], "r": round(float(r), 4)})
     centers = {w["model"][len(vid) + 1:]: np.array(w["center"]) for w in wheel_list}
+    # doors and hatches that open: cut out of the hull, origin on the hinge
+    door_list = []
+    for d in v.get("doors", []):
+        hull = parts["hull"]
+        comp = hull.components()
+        take = np.zeros(len(hull.P), dtype=bool)
+        for c in np.unique(comp):
+            m = comp == c
+            p = hull.P[m].reshape(-1, 3)
+            info = {"name": hull.node_names[hull.node[m][0]], "mat": hull.materials[hull.mat[m][0]].name,
+                    "center": (p.min(0) + p.max(0)) / 2, "min": p.min(0), "max": p.max(0), "tris": int(m.sum())}
+            if d["test"](info):
+                take |= m
+        if not take.any():
+            print("  door", d["name"], "not found")
+            continue
+        parts[d["name"]] = hull.subset(take)
+        parts["hull"] = hull.subset(~take)
+        p = parts[d["name"]].P.reshape(-1, 3)
+        lo, hi = p.min(0) - 0.25, p.max(0) + 0.25
+        centers[d["name"]] = np.array(d["hinge"], dtype=float)
+        door_list.append({"model": f"{vid}_{d['name']}", "hinge": list(d["hinge"]), "axis": d.get("axis", "y"),
+                          "angle": d.get("angle", 90), "area": [round(float(x), 3) for x in list(lo) + list(hi)],
+                          "seats": d.get("seats", [])})
 
     def local(p, P):
         if p in centers:
@@ -388,6 +417,7 @@ def build(vid, v):
         if f.startswith(vid + "_w") and f.endswith(".mesh") and f[len(vid) + 2:-5].isdigit() and f[:-5] not in [w["model"] for w in wheel_list]:
             os.remove(os.path.join(mdir, f))
     save_json_file({"wheels": wheel_list}, os.path.join(mdir, f"{vid}_wheels.json"))
+    save_json_file({"doors": door_list}, os.path.join(mdir, f"{vid}_doors.json"))
     print(f"  wheels: {len(wheel_list)}")
     size = sum(os.path.getsize(os.path.join(tex_dir, f)) for f in os.listdir(tex_dir)) // 1024
     print(f"  textures: {len(os.listdir(tex_dir))} files, {size} KB")
@@ -395,7 +425,7 @@ def build(vid, v):
     preview(vid, v)
 
 
-def assemble(vid, v=None, yaw=20, pitch=-8):
+def assemble(vid, v=None, yaw=20, pitch=-8, doors_open=0.0):
     """the finished parts put together the way the renderer does (turret turned, gun raised), for previews/icons"""
     from PIL import Image
     v = v or VEHICLES[vid]
@@ -405,10 +435,17 @@ def assemble(vid, v=None, yaw=20, pitch=-8):
     items = []
     images = {}
     wheels = {}
+    import json
     wj = os.path.join(mdir, vid + "_wheels.json")
     if os.path.exists(wj):
-        import json
         wheels = {w["model"][len(vid) + 1:]: w["center"] for w in json.load(open(wj))["wheels"]}
+    dj = os.path.join(mdir, vid + "_doors.json")
+    door_rot = {}
+    if os.path.exists(dj):
+        for d in json.load(open(dj))["doors"]:
+            wheels[d["model"][len(vid) + 1:]] = d["hinge"]
+            # same sense as Vector3f.<axis>P.rotationDegrees in the renderer
+            door_rot[d["model"][len(vid) + 1:]] = mk.rot(d["axis"], d["angle"] * doors_open)[:3, :3]
     for f in sorted(os.listdir(mdir)):
         if not (f.startswith(vid + "_") and f.endswith(".mesh")) or "_interior" in f:
             continue
@@ -416,6 +453,9 @@ def assemble(vid, v=None, yaw=20, pitch=-8):
         for tex, P, UV, N in mk.read_mesh_sections(os.path.join(mdir, f)):
             if len(P) == 0:
                 continue
+            if part in door_rot:
+                P = P @ door_rot[part].T
+                N = N @ door_rot[part].T
             if tex not in images:
                 ns, path = tex.split(":")
                 images[tex] = Image.open(os.path.join(ASSETS, "textures", path + ".png"))

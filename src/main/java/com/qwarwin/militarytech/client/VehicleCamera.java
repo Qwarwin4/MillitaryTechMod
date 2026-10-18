@@ -112,6 +112,10 @@ public final class VehicleCamera {
             if (v.spec.hasTurret && v.isGunner(mc.player)) {
                 return v.sightWorld(partial).subtract(v.position()).add(base);
             }
+            Vector3d own = v.seatView(mc.player, partial);
+            if (own != null) {
+                return own.subtract(v.position()).add(base);
+            }
             return v.toWorld(v.spec.driverEye).subtract(v.position()).add(base);
         }
         double dist, height;
@@ -139,7 +143,7 @@ public final class VehicleCamera {
 
     /** Eye of a crew member sitting in their seat; truck crews look out of the cab beside the driver. */
     private static Vector3d insideEye(VehicleEntity v, Entity who) {
-        int i = Math.max(0, v.getPassengers().indexOf(who));
+        int i = Math.max(0, v.seatOf(who));
         Vector3d seat = v.spec.seats[Math.min(i, v.spec.seats.length - 1)];
         if (v.spec.category == VehicleSpec.Category.TRUCK) {
             return new Vector3d(seat.x, v.spec.driverEye.y, v.spec.driverEye.z);
@@ -234,7 +238,7 @@ public final class VehicleCamera {
     /** Hide the bits of our own vehicle the camera sits inside. */
     public static boolean hideTurret(VehicleEntity v) {
         Minecraft mc = Minecraft.getInstance();
-        return mode == SIGHT && v.hasPassenger(mc.player) && v.spec.hasTurret && v.isGunner(mc.player);
+        return mode == SIGHT && v.hasPassenger(mc.player) && v.viewsFromTurret(mc.player);
     }
 
     public static boolean hideWhole(VehicleEntity v) {

@@ -271,10 +271,20 @@ def bmp1():
     slit_wall(h, -hw - t, f, zr, -hw, top, zf, "int_wall", slits)
     slit_wall(h, hw, f, zr, hw + t, top, zf, "int_wall", slits)
     slit_wall(h, -hw, f, zf, hw, top, zf + t, "int_wall", slits)
-    # rear doors with their vision blocks
-    h.B(-hw, f, zr - t, hw, top, zr, {"all": "int_wall_dark", "north": "int_wall_dark", "south": ("int_wall_dark", [
-        ("rect", 0.05, 0.08, 0.48, 0.95, (120, 140, 130)), ("rect", 0.52, 0.08, 0.95, 0.95, (120, 140, 130)),
-        ("rect", 0.2, 0.2, 0.33, 0.3, (30, 50, 60)), ("rect", 0.67, 0.2, 0.8, 0.3, (30, 50, 60))])})
+    # rear doors: the inner skins swing open with the doors (origin on each hinge, see Specs.BMP1)
+    hx, hy, hz = 0.95, 0.95, -3.14
+    for x0, x1 in ((-hw, -hx), (hx, hw)):
+        h.B(x0, f, zr - t, x1, top, zr, "int_wall_dark")
+    skin = {"all": "int_wall_dark", "north": "int_wall_dark", "south": ("int_wall_dark", [
+        ("rect", 0.1, 0.08, 0.9, 0.95, (120, 140, 130)), ("rect", 0.35, 0.55, 0.65, 0.68, (30, 50, 60)),
+        ("rect", 0.4, 0.25, 0.6, 0.35, (60, 64, 60))])}
+    for name, sx in (("bmp1_door0_inner", 1), ("bmp1_door1_inner", -1)):
+        d = b.part(name)
+        x0, x1 = sorted((-sx * hx, 0.0))
+        d.B(x0, f - hy, 0.15, x1, top - hy, 0.15 + t, skin)
+        # the firing port in the door and its handle
+        d.B(-sx * 0.5 - 0.06, 0.05, 0.15 + t, -sx * 0.5 + 0.06, 0.15, 0.24, "int_box")
+        d.B(-sx * 0.85 - 0.02, -0.1, 0.15 + t, -sx * 0.85 + 0.02, 0.1, 0.22, "int_steel")
     h.B(-hw, top, pz + r, hw, top + t, zf, "int_wall")
     h.B(-hw, top, zr, hw, top + t, pz - r, ("int_wall", [("hatch", 0.3, 0.3, 0.12), ("hatch", 0.7, 0.3, 0.12),
                                                          ("hatch", 0.3, 0.75, 0.12), ("hatch", 0.7, 0.75, 0.12)]))

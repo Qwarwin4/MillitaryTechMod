@@ -52,8 +52,12 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         if (shell) {
             BoxModel.get(s.hullModel).render(ms, buf, light, overlay, 1F, 1F, 1F, 1F);
         }
-        if (inside || s.category == VehicleSpec.Category.TRUCK) {
-            // truck cabs have windows, so their insides are always there
+        boolean doorOpen = false;
+        for (int d = 0; d < s.doors.size(); d++) {
+            doorOpen |= e.doorOpen(d, partial) > 0.01F;
+        }
+        if (inside || doorOpen || s.category == VehicleSpec.Category.TRUCK) {
+            // truck cabs have windows, so their insides are always there; an open door shows the troop compartment
             BoxModel.get(s.id + "_interior").render(ms, buf, lit(light));
         }
         if (e instanceof AircraftEntity) {
@@ -61,6 +65,26 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
         // generated additions to a real model (the Oreshnik's rear housing)
         BoxModel.get(s.id + "_extra").render(ms, buf, light);
+        if (shell || inside) {
+            // doors and hatches swing about their hinges, their inner skins with them
+            for (int d = 0; d < s.doors.size(); d++) {
+                VehicleSpec.Door door = s.doors.get(d);
+                float open = e.doorOpen(d, partial);
+                // ease in and out, like a heavy door
+                open = open * open * (3F - 2F * open);
+                ms.pushPose();
+                ms.translate(door.hinge.x, door.hinge.y, door.hinge.z);
+                Vector3f axis = door.axis == 'x' ? Vector3f.XP : door.axis == 'z' ? Vector3f.ZP : Vector3f.YP;
+                ms.mulPose(axis.rotationDegrees(door.angle * open));
+                if (shell) {
+                    BoxModel.get(door.model).render(ms, buf, light);
+                }
+                if (inside || doorOpen) {
+                    BoxModel.get(door.model + "_inner").render(ms, buf, lit(light));
+                }
+                ms.popPose();
+            }
+        }
 
         float wheel = MathHelper.lerp(partial, e.trackAngleO, e.trackAngle);
         if (s.wheelModel == null && !(e instanceof AircraftEntity) && shell) {
