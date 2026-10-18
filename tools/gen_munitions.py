@@ -27,6 +27,7 @@ material("glow_orange2", mat_glow("#ffb347"))
 material("glow_white", mat_glow("#fff6dc"))
 material("glow_hot", mat_glow("#fff2b0"))
 material("m_canister", mat_paint("base"))
+material("m_nuke", mat_missile("#2e3328", band="#d6b11e", band_at=0.55))
 
 PARTS = {}
 
@@ -157,6 +158,10 @@ def build():
     nose(om, 0.82, 3.6, 1.6, "m_dark", 0, 4)
     for z in (-3.0, 0.0, 2.6):
         om.cyl(0, 0, z, 0.84, 0.15, "z", "m_dark")
+    nk = part(b, "munition/nuke", 2)
+    nk.cyl(0, 0, -1.1, 0.42, 1.2, "z", "m_nuke")
+    nose(nk, 0.42, 0.1, 1.1, "m_nuke", 0, 4)
+    nk.cyl(0, 0, -1.25, 0.32, 0.15, "z", "m_dark")
     wh = part(b, "munition/warhead", 1)
     wh.cyl(0, 0, -0.6, 0.22, 0.7, "z", "glow_hot")
     nose(wh, 0.22, 0.1, 0.5, "glow_white", 0, 3)

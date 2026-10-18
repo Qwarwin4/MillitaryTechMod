@@ -10,19 +10,31 @@ import net.minecraftforge.fml.network.NetworkEvent;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
-/** Coordinates typed into the Grad / Oreshnik fire control screen (null clears). */
+/** Fire control screen: coordinates typed in for the Grad / TOS / Oreshnik (null clears), or the Oreshnik's warhead. */
 public class TargetPacket {
     private final int entityId;
     @Nullable
     private final BlockPos target;
+    /** -1: set the target; otherwise pick this ammo option and leave the target alone */
+    private final int select;
 
     public TargetPacket(int entityId, @Nullable BlockPos target) {
+        this(entityId, target, -1);
+    }
+
+    private TargetPacket(int entityId, @Nullable BlockPos target, int select) {
         this.entityId = entityId;
         this.target = target;
+        this.select = select;
+    }
+
+    public static TargetPacket select(int entityId, int option) {
+        return new TargetPacket(entityId, null, option);
     }
 
     public static void encode(TargetPacket m, PacketBuffer buf) {
         buf.writeVarInt(m.entityId);
+        buf.writeByte(m.select);
         buf.writeBoolean(m.target != null);
         if (m.target != null) {
             buf.writeBlockPos(m.target);
@@ -31,7 +43,8 @@ public class TargetPacket {
 
     public static TargetPacket decode(PacketBuffer buf) {
         int id = buf.readVarInt();
-        return new TargetPacket(id, buf.readBoolean() ? buf.readBlockPos() : null);
+        int sel = buf.readByte();
+        return new TargetPacket(id, buf.readBoolean() ? buf.readBlockPos() : null, sel);
     }
 
     public static void handle(TargetPacket m, Supplier<NetworkEvent.Context> ctx) {
@@ -42,7 +55,11 @@ public class TargetPacket {
             }
             Entity e = p.level.getEntity(m.entityId);
             if (e instanceof VehicleEntity && ((VehicleEntity) e).isGunner(p)) {
-                ((VehicleEntity) e).setTarget(m.target);
+                if (m.select >= 0) {
+                    ((VehicleEntity) e).selectAmmo(m.select);
+                } else {
+                    ((VehicleEntity) e).setTarget(m.target);
+                }
             }
         });
         ctx.get().setPacketHandled(true);

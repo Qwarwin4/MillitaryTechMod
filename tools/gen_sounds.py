@@ -97,6 +97,13 @@ def main():
     bang = rng.normal(size=n) * np.exp(-t * 20) * 2
     roar = lowpass(rng.normal(size=n), 40) * np.clip((t - 0.4) * 3, 0, 1) * np.exp(-np.clip(t - 2.0, 0, None) * 0.7)
     write("oreshnik_launch", np.tanh((bang + roar * 4 + 0.6 * np.sin(2 * np.pi * 34 * t) * np.exp(-t * 0.8)) * 1.3))
+    # nuke: the crack, a long deep blast and minutes of rumble squeezed into eight seconds
+    n, t = t_(8.0)
+    crack = rng.normal(size=n) * np.exp(-t * 9) * 1.5
+    blast = lowpass(rng.normal(size=n), 30) * np.exp(-t * 0.9) * 5
+    rumble = lowpass(rng.normal(size=n), 8) * np.clip(t * 2, 0, 1) * np.exp(-t * 0.35) * 9
+    thump = np.sin(2 * np.pi * 22 * t * (1 - t * 0.04)) * np.exp(-t * 0.6) * 1.2
+    write("nuke", np.tanh((crack + blast + rumble + thump) * 1.1))
     # incoming: descending whistle into a roar
     n, t = t_(2.2)
     f = 2400 - 1500 * (t / 2.2)
@@ -150,7 +157,7 @@ def main():
 
     names = ["tank_gun", "grom", "mg", "cannon_30", "aircraft_gun", "atgm_launch", "missile_launch", "rocket_launch",
              "grad_launch", "bomb_release", "oreshnik_launch", "incoming", "reload", "hydraulics", "tank_engine",
-             "turbine", "truck_engine", "jet_engine", "lock_tone", "seeker_tone", "missile_warning", "missile_motor"]
+             "turbine", "truck_engine", "jet_engine", "lock_tone", "seeker_tone", "missile_warning", "missile_motor", "nuke"]
     gv.save_json({n: {"category": "neutral", "subtitle": f"subtitles.{gv.MODID}.{n}",
                       "sounds": [{"name": f"{gv.MODID}:{n}", "stream": False}]} for n in names},
                  os.path.join(gv.ASSETS, "sounds.json"))

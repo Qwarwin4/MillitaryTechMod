@@ -60,7 +60,7 @@ public class VehicleItem extends Item {
         if (stack.getTagElement("Vehicle") != null) {
             v.readItemData(stack.getTagElement("Vehicle"));
         } else if (creative || !Config.NEED_AMMO_CRATES.get()) {
-            v.fillAmmo();
+            v.fillAmmo(creative);
         }
         if (!level.noCollision(v, v.getBoundingBox().deflate(0.05))) {
             if (player != null) {

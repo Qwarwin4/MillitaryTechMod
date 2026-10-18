@@ -28,6 +28,8 @@ public final class VehicleSpec {
     public boolean separateGunner = true;
     /** crew can't be shot or fragged while inside */
     public boolean enclosed = true;
+    /** seats from this index on are outside, riding on the armour: visible, unprotected, free to shoot */
+    public int insideSeats = 99;
 
     // driving (blocks/tick, degrees/tick)
     public double maxSpeed = 0.45, reverseSpeed = 0.2, accel = 0.012, turnRate = 2.4;
@@ -93,6 +95,22 @@ public final class VehicleSpec {
             n += w.ammo.length;
         }
         return n;
+    }
+
+    /** The munition an ammo counter holds (ground vehicles), null for aircraft or out of range. */
+    public Munition munitionAt(int slot) {
+        if (air != null) {
+            return null;
+        }
+        int n = 0;
+        for (WeaponSpec w : weapons) {
+            for (Munition m : w.ammo) {
+                if (n++ == slot) {
+                    return m;
+                }
+            }
+        }
+        return null;
     }
 
     /** First ammo counter of a weapon. */

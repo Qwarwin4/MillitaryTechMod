@@ -257,7 +257,7 @@ public final class Hud {
 
     private static void oreshnik(MatrixStack ms, Minecraft mc, OreshnikEntity o, int w, int h) {
         int x = w - 170, y = 8;
-        AbstractGui.fill(ms, x - 4, y - 4, w - 4, y + 54, PANEL);
+        AbstractGui.fill(ms, x - 4, y - 4, w - 4, y + 65, PANEL);
         text(ms, mc, I18n.get("entity.militarytech.oreshnik"), x, y, WHITE);
         float e = o.erectProgress(1F);
         String st = o.isErected() ? I18n.get("hud.militarytech.erected")
@@ -270,10 +270,13 @@ public final class Hud {
         } else {
             text(ms, mc, I18n.get("hud.militarytech.no_target"), x, y + 22, AMBER);
         }
-        boolean ready = o.isErected() && t != null && o.getAmmo(0) > 0;
-        text(ms, mc, o.getAmmo(0) > 0 ? (ready ? I18n.get("hud.militarytech.ready_launch") : I18n.get("hud.militarytech.not_ready"))
+        int sel = Math.min(o.getSelected(), 1);
+        boolean ready = o.isErected() && t != null && o.getAmmo(sel) > 0;
+        text(ms, mc, o.getAmmo(sel) > 0 ? (ready ? I18n.get("hud.militarytech.ready_launch") : I18n.get("hud.militarytech.not_ready"))
                 : I18n.get("hud.militarytech.empty"), x, y + 33, ready ? RED : 0xFF909090);
-        text(ms, mc, I18n.get("hud.militarytech.oreshnik_hint"), x, y + 44, 0xFF909090);
+        text(ms, mc, I18n.get(sel == 1 ? "hud.militarytech.warhead_nuke" : "hud.militarytech.warhead_conventional"), x, y + 44,
+                sel == 1 ? 0xFFFFD040 : 0xFFB0B0B0);
+        text(ms, mc, I18n.get("hud.militarytech.oreshnik_hint"), x, y + 55, 0xFF909090);
     }
 
     // ------------------------------------------------------------------ aircraft

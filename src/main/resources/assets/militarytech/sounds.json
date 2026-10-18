@@ -218,5 +218,15 @@
     "stream": false
    }
   ]
+ },
+ "nuke": {
+  "category": "neutral",
+  "subtitle": "subtitles.militarytech.nuke",
+  "sounds": [
+   {
+    "name": "militarytech:nuke",
+    "stream": false
+   }
+  ]
  }
 }

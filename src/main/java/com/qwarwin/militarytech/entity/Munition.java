@@ -31,7 +31,9 @@ public enum Munition {
     KH29(Kind.HEAT, Guidance.LASER, 5.0, 0.0, 1.0, 320, 320F, 7.0F, "kh29", Tracer.NONE),
     KH59(Kind.HEAT, Guidance.CRUISE, 4.5, 0.0, 1.0, 900, 320F, 9.0F, "kh59", Tracer.NONE),
     ORESHNIK(Kind.BALLISTIC, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 0F, "oreshnik_missile", Tracer.NONE),
-    WARHEAD(Kind.WARHEAD, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 5.0F, "warhead", Tracer.NONE);
+    WARHEAD(Kind.WARHEAD, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 5.0F, "warhead", Tracer.NONE),
+    ORESHNIK_NUKE(Kind.BALLISTIC, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 0F, "oreshnik_missile", Tracer.NONE),
+    NUKE(Kind.WARHEAD, Guidance.NONE, 0.0, 0.0, 1.0, 400, 0F, 0F, "nuke", Tracer.NONE);
 
     public enum Kind {
         BULLET, SHELL, DART, HE, HEAT, THERMOBARIC, BOMB, AIR, BALLISTIC, WARHEAD
@@ -81,6 +83,11 @@ public enum Munition {
 
     public boolean isGuided() {
         return guidance != Guidance.NONE;
+    }
+
+    /** Only loaded by hand with a nuclear warhead item, never from an ammo crate. */
+    public boolean isNuclear() {
+        return this == ORESHNIK_NUKE || this == NUKE;
     }
 
     public boolean isRocket() {

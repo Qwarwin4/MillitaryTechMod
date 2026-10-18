@@ -20,6 +20,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Box models baked by tools/uvbake.py: Minecraft's JSON element format, but each one with its own texture
@@ -42,10 +46,17 @@ public final class BoxModel {
     private final ResourceLocation texture;
     /** per quad: 4 x (x, y, z, u, v), then the normal */
     private final float[][] quads;
+    /** triangle meshes (models/entity/NAME.mesh): per corner x, y, z, u, v, nx, ny, nz */
+    private final float[] tris;
 
     private BoxModel(ResourceLocation texture, float[][] quads) {
+        this(texture, quads, new float[0]);
+    }
+
+    private BoxModel(ResourceLocation texture, float[][] quads, float[] tris) {
         this.texture = texture;
         this.quads = quads;
+        this.tris = tris;
     }
 
     public static void clearCache() {
@@ -67,12 +78,21 @@ public final class BoxModel {
     }
 
     public void render(MatrixStack ms, IRenderTypeBuffer buf, int light, int overlay, float r, float g, float b, float a) {
-        if (quads.length == 0) {
+        if (quads.length == 0 && tris.length == 0) {
             return;
         }
         IVertexBuilder vb = buf.getBuffer(RenderType.entityCutoutNoCull(texture));
         Matrix4f pose = ms.last().pose();
         Matrix3f normal = ms.last().normal();
+        // the entity render types draw quads: each triangle goes out as a quad with its last corner doubled
+        float[] t = tris;
+        for (int o = 0; o < t.length; o += 24) {
+            for (int i = 0; i < 4; i++) {
+                int c = o + Math.min(i, 2) * 8;
+                vb.vertex(pose, t[c], t[c + 1], t[c + 2]).color(r, g, b, a).uv(t[c + 3], t[c + 4])
+                        .overlayCoords(overlay).uv2(light).normal(normal, t[c + 5], t[c + 6], t[c + 7]).endVertex();
+            }
+        }
         for (float[] q : quads) {
             for (int i = 0; i < 4; i++) {
                 int o = i * 5;
@@ -85,6 +105,15 @@ public final class BoxModel {
     // ------------------------------------------------------------------ loading
 
     private static BoxModel load(String name) {
+        ResourceLocation mesh = MilitaryTech.id("models/entity/" + name + ".mesh");
+        if (Minecraft.getInstance().getResourceManager().hasResource(mesh)) {
+            try (IResource res = Minecraft.getInstance().getResourceManager().getResource(mesh);
+                 DataInputStream in = new DataInputStream(new BufferedInputStream(new GZIPInputStream(res.getInputStream())))) {
+                return readMesh(in);
+            } catch (Exception e) {
+                LOG.warn("Military Tech: can't load mesh {}: {}", mesh, e.toString());
+            }
+        }
         ResourceLocation loc = MilitaryTech.id("models/entity/" + name + ".json");
         try (IResource res = Minecraft.getInstance().getResourceManager().getResource(loc);
              InputStream in = res.getInputStream()) {
@@ -94,6 +123,24 @@ public final class BoxModel {
             LOG.warn("Military Tech: can't load model {}: {}", loc, e.toString());
             return new BoxModel(MilitaryTech.id("textures/entity/missing.png"), new float[0][]);
         }
+    }
+
+    /** gzip: "MTMS", int version, UTF texture, int triangles, then 3 x 8 floats per triangle (tools/meshkit.py) */
+    private static BoxModel readMesh(DataInputStream in) throws IOException {
+        byte[] magic = new byte[4];
+        in.readFully(magic);
+        if (magic[0] != 'M' || magic[1] != 'T' || magic[2] != 'M' || magic[3] != 'S') {
+            throw new IOException("not a mesh");
+        }
+        in.readInt();
+        ResourceLocation t = new ResourceLocation(in.readUTF());
+        ResourceLocation texture = new ResourceLocation(t.getNamespace(), "textures/" + t.getPath() + ".png");
+        int n = in.readInt();
+        float[] tris = new float[n * 24];
+        for (int i = 0; i < tris.length; i++) {
+            tris[i] = in.readFloat();
+        }
+        return new BoxModel(texture, new float[0][], tris);
     }
 
     private static float[] floats(JsonArray a) {

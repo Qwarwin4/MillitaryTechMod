@@ -14,6 +14,9 @@ public final class Config {
     public static final ForgeConfigSpec.DoubleValue AIR_SPEED;
     public static final ForgeConfigSpec.IntValue ORESHNIK_RANGE;
     public static final ForgeConfigSpec.DoubleValue ORESHNIK_POWER;
+    public static final ForgeConfigSpec.IntValue NUKE_CRATER;
+    public static final ForgeConfigSpec.IntValue NUKE_BLAST;
+    public static final ForgeConfigSpec.IntValue NUKE_FALLOUT;
     public static final ForgeConfigSpec.BooleanValue NEED_AMMO_CRATES;
     public static final ForgeConfigSpec.BooleanValue LOAD_CHUNKS;
 
@@ -41,7 +44,12 @@ public final class Config {
         b.pop();
         b.push("oreshnik");
         ORESHNIK_RANGE = b.comment("Maximum range in blocks").defineInRange("range", 3000, 100, 30000);
-        ORESHNIK_POWER = b.comment("Blast of each of the 36 submunitions").defineInRange("submunitionPower", 5.0, 0.0, 12.0);
+        ORESHNIK_POWER = b.comment("Blast of each of the 42 submunitions").defineInRange("warheadPower", 8.0, 0.0, 20.0);
+        b.pop();
+        b.push("nuke");
+        NUKE_CRATER = b.comment("Crater radius of the nuclear Oreshnik, blocks").defineInRange("craterRadius", 26, 5, 60);
+        NUKE_BLAST = b.comment("Radius of the blast that hurts and throws things, blocks").defineInRange("blastRadius", 110, 20, 300);
+        NUKE_FALLOUT = b.comment("Seconds the fallout keeps hurting near ground zero").defineInRange("falloutSeconds", 120, 0, 1200);
         b.pop();
         SPEC = b.build();
     }

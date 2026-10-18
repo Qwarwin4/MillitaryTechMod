@@ -69,7 +69,8 @@ public final class VehicleControl {
             return null;
         }
         Entity v = mc.player.getVehicle();
-        return v instanceof VehicleEntity ? (VehicleEntity) v : null;
+        // riders on the armour are just passengers: their own camera, hands and weapons
+        return v instanceof VehicleEntity && !((VehicleEntity) v).isOutside(mc.player) ? (VehicleEntity) v : null;
     }
 
     public static boolean lockedOn() {

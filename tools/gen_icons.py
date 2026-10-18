@@ -163,6 +163,12 @@ def part_models():
     for i in range(3):
         k = 1 - (i + 1) / 4
         p.cyl(0, 0.25, 0.05 + i * 0.15, 0.24 * k, 0.15, "z", "rust")
+    p = P("nuclear_warhead")
+    p.cyl(0, 0.3, -0.5, 0.3, 0.55, "z", ("rust", [("stripe", 0.42, 0.58, (214, 177, 30))]))
+    for i in range(3):
+        k = 1 - (i + 1) / 4
+        p.cyl(0, 0.3, 0.05 + i * 0.17, 0.3 * k, 0.17, "z", "armor_dark")
+    p.cyl(0, 0.3, -0.62, 0.22, 0.12, "z", "gunmetal")
     p = P("airframe")
     p.B(-0.15, 0.1, -0.7, 0.15, 0.4, 0.7, "steel")
     p.B(-0.75, 0.22, -0.25, 0.75, 0.28, 0.25, ("steel", [("star", 0.25, 0.5, 0.12), ("star", 0.75, 0.5, 0.12)]))
@@ -190,7 +196,8 @@ def main():
     for name in parts:
         sc = Scene(res)
         sc.part(ref("icon_" + name))
-        long = name in ("gun_barrel", "autocannon", "gas_turbine", "jet_engine", "rocket_motor", "warhead", "airframe")
+        long = name in ("gun_barrel", "autocannon", "gas_turbine", "jet_engine", "rocket_motor", "warhead", "airframe",
+                        "nuclear_warhead")
         render_icon(sc, name, 225 if not long else 245, 30)
         item_model(name)
     shutil.rmtree(TMP, ignore_errors=True)

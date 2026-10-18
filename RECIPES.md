@@ -120,6 +120,14 @@ IAI
 ```
 `I` iron_ingot, `A` anvil
 
+### Ядерная боевая часть
+```
+XWX
+WNW
+XWX
+```
+`X` netherite_ingot, `W` Боевая часть, `N` nether_star
+
 ### Т-72Б3
 ```
 EBE

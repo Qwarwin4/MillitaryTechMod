@@ -35,22 +35,24 @@ public final class StrikeScheduler {
         @Nullable
         final UUID owner;
         final int key;
+        final boolean nuke;
         int ticks;
 
-        Strike(ServerWorld world, Vector3d target, @Nullable UUID owner, int ticks) {
+        Strike(ServerWorld world, Vector3d target, @Nullable UUID owner, int ticks, boolean nuke) {
             this.world = world;
             this.target = target;
             this.owner = owner;
             this.ticks = ticks;
+            this.nuke = nuke;
             this.key = nextKey++;
         }
     }
 
-    public static void oreshnik(ServerWorld world, Vector3d target, @Nullable UUID owner, Vector3d from) {
+    public static void oreshnik(ServerWorld world, Vector3d target, @Nullable UUID owner, Vector3d from, boolean nuke) {
         double dist = Math.sqrt((target.x - from.x) * (target.x - from.x) + (target.z - from.z) * (target.z - from.z));
         // a few seconds, growing with range: still "hypersonic" next to everything else in the game
         int ticks = 60 + (int) (dist / 25.0);
-        Strike s = new Strike(world, target, owner, ticks);
+        Strike s = new Strike(world, target, owner, ticks, nuke);
         PENDING.add(s);
         ChunkTickets.target(world, target, s.key);
         ServerPlayerEntity p = Explosions.player(world, owner);
@@ -84,9 +86,20 @@ public final class StrikeScheduler {
 
     private static void arrive(Strike s) {
         double top = Math.max(s.target.y + 170, 200);
-        for (int i = 0; i < 6; i++) {
+        if (s.nuke) {
+            Vector3d start = new Vector3d(s.target.x, top, s.target.z);
+            ProjectileEntity w = ProjectileEntity.launch(s.world, Munition.NUKE, null, s.owner, start, new Vector3d(0, -4.0, 0));
+            if (w != null) {
+                w.setStage(2);
+                w.setTargetPos(s.target);
+                s.world.addFreshEntity(w);
+            }
+            return;
+        }
+        for (int i = 0; i < 7; i++) {
             double a = i * Math.PI / 3;
-            Vector3d aim = s.target.add(Math.cos(a) * 15, 0, Math.sin(a) * 15);
+            // six around, one in the middle
+            Vector3d aim = i == 6 ? s.target : s.target.add(Math.cos(a) * 15, 0, Math.sin(a) * 15);
             Vector3d start = new Vector3d(s.target.x + Math.cos(a) * 6, top + i * 3, s.target.z + Math.sin(a) * 6);
             ProjectileEntity w = ProjectileEntity.launch(s.world, Munition.WARHEAD, null, s.owner, start,
                     aim.subtract(start).normalize().scale(4.0));

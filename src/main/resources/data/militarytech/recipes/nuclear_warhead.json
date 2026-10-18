@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "XWX",
+  "WNW",
+  "XWX"
+ ],
+ "key": {
+  "X": {
+   "item": "minecraft:netherite_ingot"
+  },
+  "W": {
+   "item": "militarytech:warhead"
+  },
+  "N": {
+   "item": "minecraft:nether_star"
+  }
+ },
+ "result": {
+  "item": "militarytech:nuclear_warhead",
+  "count": 1
+ }
+}

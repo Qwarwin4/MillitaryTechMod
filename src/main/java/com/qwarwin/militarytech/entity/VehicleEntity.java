@@ -166,6 +166,13 @@ public abstract class VehicleEntity extends Entity {
         return entityData.get(SELECT) & 0xF;
     }
 
+    /** Pick the main weapon's ammo type from a screen (the Oreshnik's warhead). */
+    public void selectAmmo(int v) {
+        if (!spec.weapons.isEmpty() && v >= 0 && v < spec.weapons.get(0).ammo.length) {
+            setSelected(v);
+        }
+    }
+
     protected void setSelected(int v) {
         entityData.set(SELECT, (entityData.get(SELECT) & ~0xF) | (v & 0xF));
     }
@@ -303,6 +310,17 @@ public abstract class VehicleEntity extends Entity {
     /** Crew inside can't be hurt by blast and shrapnel until the vehicle itself goes. */
     public boolean protectsCrew() {
         return spec.enclosed;
+    }
+
+    /** Same, for one passenger: riders on the armour are out in the open. */
+    public boolean protectsCrew(Entity e) {
+        return protectsCrew() && !isOutside(e);
+    }
+
+    /** A passenger sitting outside on the hull (troops riding on the armour). */
+    public boolean isOutside(@Nullable Entity e) {
+        int i = e == null ? -1 : getPassengers().indexOf(e);
+        return i >= spec.insideSeats;
     }
 
     @Nullable
@@ -861,14 +879,28 @@ public abstract class VehicleEntity extends Entity {
 
     // ------------------------------------------------------------------ ammo & interaction
 
+    /** Everything, nuclear warheads included (creative). */
     public void fillAmmo() {
+        fillAmmo(true);
+    }
+
+    /** Ammo crates don't carry nuclear warheads: those are loaded one by one, by hand. */
+    public void fillAmmo(boolean nuclear) {
         for (int i = 0; i < spec.ammoSlots(); i++) {
+            Munition m = spec.munitionAt(i);
+            if (!nuclear && m != null && m.isNuclear()) {
+                continue;
+            }
             setAmmo(i, capacity(i));
         }
     }
 
     public boolean isFullyArmed() {
         for (int i = 0; i < spec.ammoSlots(); i++) {
+            Munition m = spec.munitionAt(i);
+            if (m != null && m.isNuclear()) {
+                continue;
+            }
             if (getAmmo(i) < capacity(i)) {
                 return false;
             }
@@ -891,7 +923,7 @@ public abstract class VehicleEntity extends Entity {
             if (isFullyArmed()) {
                 player.displayClientMessage(new TranslationTextComponent("msg.militarytech.ammo_full"), true);
             } else {
-                fillAmmo();
+                fillAmmo(false);
                 if (!player.abilities.instabuild) {
                     stack.shrink(1);
                 }

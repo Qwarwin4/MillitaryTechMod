@@ -7,6 +7,7 @@ import com.qwarwin.militarytech.item.AmmoCrateItem;
 import com.qwarwin.militarytech.item.TooltipItem;
 import com.qwarwin.militarytech.item.VehicleItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.Rarity;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -37,6 +38,8 @@ public final class ModItems {
             () -> new AmmoCrateItem(props().stacksTo(16)));
     public static final RegistryObject<Item> REPAIR_KIT = ITEMS.register("repair_kit",
             () -> new TooltipItem(props().stacksTo(16), "tooltip.militarytech.repair_kit"));
+    public static final RegistryObject<Item> NUCLEAR_WARHEAD = ITEMS.register("nuclear_warhead",
+            () -> new TooltipItem(props().stacksTo(1).rarity(Rarity.EPIC), "tooltip.militarytech.nuclear_warhead"));
 
     // crafting parts
     public static final RegistryObject<Item> ARMOR_PLATE = part("armor_plate");

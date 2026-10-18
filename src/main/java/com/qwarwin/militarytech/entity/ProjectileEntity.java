@@ -6,7 +6,9 @@ import com.qwarwin.militarytech.registry.ModEntities;
 import com.qwarwin.militarytech.util.ChunkTickets;
 import com.qwarwin.militarytech.util.Explosions;
 import com.qwarwin.militarytech.util.ModDamageSources;
+import com.qwarwin.militarytech.util.Nuke;
 import com.qwarwin.militarytech.util.StrikeScheduler;
+import com.qwarwin.militarytech.util.Thermobaric;
 import com.qwarwin.militarytech.util.Targeting;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
@@ -228,7 +230,7 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             return false;
         }
         // a vehicle's own crew sits inside its hit boxes
-        if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew()) {
+        if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew(e)) {
             return false;
         }
         return !(e instanceof ProjectileEntity && ((ProjectileEntity) e).shooterId == shooterId);
@@ -388,7 +390,7 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
         }
         if (life > 75 || getY() > 420) {
             if (targetPos != null) {
-                StrikeScheduler.oreshnik((ServerWorld) level, targetPos, owner, position());
+                StrikeScheduler.oreshnik((ServerWorld) level, targetPos, owner, position(), munition == Munition.ORESHNIK_NUKE);
             }
             remove();
         }
@@ -401,7 +403,7 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
         }
         double sp = Math.min(stage == 1 ? 6.0 : 7.5, v.length() + 0.25);
         Vector3d to = targetPos.subtract(position());
-        if (stage == 1 && position().y - targetPos.y < 70) {
+        if (stage == 1 && position().y - targetPos.y < 70 && munition != Munition.NUKE) {
             split();
             return v;
         }
@@ -468,7 +470,7 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
                 Explosions.heat(level, attacker, pos, dir, direct, p, munition.damage, p * 1.4 + 1.5);
                 break;
             case THERMOBARIC:
-                Explosions.thermobaric(level, attacker, pos, direct, p, munition.damage);
+                Thermobaric.disperse((ServerWorld) level, attacker, pos, dir, direct, p, munition.damage);
                 break;
             case BOMB:
                 if (direct != null) {
@@ -480,7 +482,11 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
                 Explosions.airburst(level, this, attacker, pos, munition.damage, munition == Munition.R40 ? 6.0 : 4.5);
                 break;
             case WARHEAD:
-                Explosions.warhead(level, attacker, pos, dir, Config.ORESHNIK_POWER.get().floatValue());
+                if (munition == Munition.NUKE) {
+                    Nuke.detonate((ServerWorld) level, pos, owner);
+                } else {
+                    Explosions.warhead(level, attacker, pos, dir, Config.ORESHNIK_POWER.get().floatValue());
+                }
                 break;
             default:
                 break;

@@ -2,7 +2,12 @@ package com.qwarwin.militarytech.entity;
 
 import com.qwarwin.militarytech.Config;
 import com.qwarwin.militarytech.registry.ModSounds;
+import com.qwarwin.militarytech.registry.ModItems;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.particles.ParticleTypes;
@@ -67,6 +72,29 @@ public class OreshnikEntity extends TruckEntity {
     }
 
     @Override
+    public ActionResultType interact(PlayerEntity player, Hand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (hand == Hand.MAIN_HAND && stack.getItem() == ModItems.NUCLEAR_WARHEAD.get()) {
+            if (level.isClientSide) {
+                return ActionResultType.SUCCESS;
+            }
+            int slot = spec.ammoBase(0) + 1;
+            if (getAmmo(slot) > 0) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.nuke_loaded_already"), true);
+            } else {
+                setAmmo(slot, 1);
+                if (!player.abilities.instabuild) {
+                    stack.shrink(1);
+                }
+                level.playSound(null, getX(), getY(), getZ(), ModSounds.get("reload"), SoundCategory.NEUTRAL, 1.5F, 0.6F);
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.nuke_loaded"), true);
+            }
+            return ActionResultType.CONSUME;
+        }
+        return super.interact(player, hand);
+    }
+
+    @Override
     protected boolean fire(int w, ServerPlayerEntity shooter) {
         BlockPos target = getTarget();
         if (!isErected()) {
@@ -91,7 +119,15 @@ public class OreshnikEntity extends TruckEntity {
             cooldown[w] = 20;
             return false;
         }
+        boolean nuke = getSelectedFor(w) == 1;
         boolean ok = super.fire(w, shooter);
+        if (ok && nuke) {
+            // everyone gets to know
+            for (ServerPlayerEntity p : ((ServerWorld) level).getServer().getPlayerList().getPlayers()) {
+                p.displayClientMessage(new TranslationTextComponent("msg.militarytech.nuke_launch", shooter.getDisplayName(),
+                        target.getX(), target.getZ()), false);
+            }
+        }
         if (ok) {
             ServerWorld sw = (ServerWorld) level;
             Vector3d base = toWorld(spec.pivot);

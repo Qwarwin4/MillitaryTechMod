@@ -12,6 +12,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.gen.Heightmap;
@@ -58,6 +59,19 @@ public class TargetScreen extends Screen {
             Network.CHANNEL.sendToServer(new TargetPacket(vehicle.getId(), null));
             onClose();
         }));
+        if (vehicle instanceof OreshnikEntity) {
+            addButton(new Button(cx - 95, cy + 48, 190, 20, warheadLabel(vehicle.getSelected()), b -> {
+                int next = vehicle.getSelected() == 0 ? 1 : 0;
+                Network.CHANNEL.sendToServer(TargetPacket.select(vehicle.getId(), next));
+                b.setMessage(warheadLabel(next));
+            }));
+        }
+    }
+
+    private ITextComponent warheadLabel(int option) {
+        int left = vehicle.getAmmo(option);
+        return new TranslationTextComponent(option == 1 ? "screen.militarytech.warhead_nuke" : "screen.militarytech.warhead_conventional",
+                left);
     }
 
     private void apply() {
@@ -96,7 +110,7 @@ public class TargetScreen extends Screen {
         drawString(ms, font, "X", cx - 95, cy - 41, 0xC0C0C0);
         drawString(ms, font, "Z", cx + 5, cy - 41, 0xC0C0C0);
         if (!error.isEmpty()) {
-            drawCenteredString(ms, font, error, cx, cy + 50, 0xFF5050);
+            drawCenteredString(ms, font, error, cx, cy + 74, 0xFF5050);
         }
         super.render(ms, mouseX, mouseY, partial);
     }

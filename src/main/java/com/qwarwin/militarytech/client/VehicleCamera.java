@@ -177,7 +177,7 @@ public final class VehicleCamera {
     @SubscribeEvent
     public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
         Entity veh = event.getPlayer().getVehicle();
-        if (veh instanceof VehicleEntity && ((VehicleEntity) veh).spec.enclosed) {
+        if (veh instanceof VehicleEntity && ((VehicleEntity) veh).spec.enclosed && !((VehicleEntity) veh).isOutside(event.getPlayer())) {
             // the crew sits inside
             event.setCanceled(true);
         } else if (veh instanceof AircraftEntity && sight && event.getPlayer() == Minecraft.getInstance().player) {

@@ -42,6 +42,16 @@ RU = {
     "munition.militarytech.tos_220": "МО.1.01.04М (термобарическая)", "munition.militarytech.aa_30": "30 мм с дист. подрывом",
     "munition.militarytech.sam": "ЗУР 57Э6",
     "munition.militarytech.oreshnik": "Ракета «Орешник»", "munition.militarytech.warhead": "Боевой блок",
+    "munition.militarytech.oreshnik_nuke": "«Орешник» с ядерной БЧ", "munition.militarytech.nuke": "Ядерная боевая часть",
+    "item.militarytech.nuclear_warhead": "Ядерная боевая часть",
+    "msg.militarytech.nuke_flash": "§e§lЯДЕРНЫЙ ВЗРЫВ",
+    "msg.militarytech.radiation": "§aРадиация! Уходи от эпицентра",
+    "msg.militarytech.nuke_loaded": "Ядерная БЧ установлена. Выбери её в окне наведения (R)",
+    "msg.militarytech.nuke_loaded_already": "Ядерная БЧ уже установлена",
+    "msg.militarytech.nuke_launch": "§c§l⚠ %s запустил ядерный «Орешник»! Цель: X %s, Z %s",
+    "screen.militarytech.warhead_conventional": "БЧ: обычная, 42 блока (в наличии: %s)",
+    "screen.militarytech.warhead_nuke": "§eБЧ: ЯДЕРНАЯ§r (в наличии: %s)",
+    "hud.militarytech.warhead_conventional": "БЧ: обычная", "hud.militarytech.warhead_nuke": "БЧ: ЯДЕРНАЯ",
     # weapons
     "weapon.militarytech.cannon_125": "2А46М-5", "weapon.militarytech.pkt": "ПКТ", "weapon.militarytech.cannon_2a42": "2×2А42",
     "weapon.militarytech.ataka": "«Атака»", "weapon.militarytech.grom": "2А28 «Гром»", "weapon.militarytech.malyutka": "«Малютка»",
@@ -110,6 +120,7 @@ RU = {
     "tooltip.militarytech.controls_aircraft": "W/S — тяга, мышь — курс, A/D — руль, Пробел — тормоз, G — шасси",
     "tooltip.militarytech.ammo_crate": "ПКМ по технике — полный боекомплект",
     "tooltip.militarytech.repair_kit": "ПКМ по технике — чинит треть прочности",
+    "tooltip.militarytech.nuclear_warhead": "ПКМ по «Орешнику» — установить. Ящиками с БК не пополняется",
     # damage
     "death.attack.militarytech.kinetic": "%1$s получил бронебойный", "death.attack.militarytech.kinetic_by": "%1$s получил бронебойный от %2$s",
     "death.attack.militarytech.cumulative": "%1$s сгорел в кумулятивной струе",
@@ -146,6 +157,16 @@ EN = {
     "munition.militarytech.tos_220": "220 mm thermobaric", "munition.militarytech.aa_30": "30 mm airburst",
     "munition.militarytech.sam": "57E6 SAM",
     "munition.militarytech.oreshnik": "Oreshnik missile", "munition.militarytech.warhead": "Reentry vehicle",
+    "munition.militarytech.oreshnik_nuke": "Nuclear Oreshnik", "munition.militarytech.nuke": "Nuclear warhead",
+    "item.militarytech.nuclear_warhead": "Nuclear Warhead",
+    "msg.militarytech.nuke_flash": "§e§lNUCLEAR DETONATION",
+    "msg.militarytech.radiation": "§aRadiation! Get away from ground zero",
+    "msg.militarytech.nuke_loaded": "Nuclear warhead fitted. Pick it in the fire control screen (R)",
+    "msg.militarytech.nuke_loaded_already": "A nuclear warhead is already fitted",
+    "msg.militarytech.nuke_launch": "§c§l⚠ %s launched a nuclear Oreshnik! Target: X %s, Z %s",
+    "screen.militarytech.warhead_conventional": "Warhead: conventional, 42 RVs (have: %s)",
+    "screen.militarytech.warhead_nuke": "§eWarhead: NUCLEAR§r (have: %s)",
+    "hud.militarytech.warhead_conventional": "Warhead: conventional", "hud.militarytech.warhead_nuke": "Warhead: NUCLEAR",
     "weapon.militarytech.cannon_125": "2A46M-5", "weapon.militarytech.pkt": "PKT", "weapon.militarytech.cannon_2a42": "2x 2A42",
     "weapon.militarytech.ataka": "Ataka", "weapon.militarytech.grom": "2A28 Grom", "weapon.militarytech.malyutka": "Malyutka",
     "weapon.militarytech.grad": "40-tube pack", "weapon.militarytech.oreshnik": "Oreshnik",
@@ -207,6 +228,7 @@ EN = {
     "tooltip.militarytech.controls_aircraft": "W/S throttle, mouse to steer, A/D rudder, Space brake, G gear",
     "tooltip.militarytech.ammo_crate": "RMB a vehicle to fill every weapon",
     "tooltip.militarytech.repair_kit": "RMB a vehicle to repair a third of it",
+    "tooltip.militarytech.nuclear_warhead": "RMB the Oreshnik to fit it. Ammo crates don't carry these",
     "death.attack.militarytech.kinetic": "%1$s was hit by a sabot round", "death.attack.militarytech.kinetic_by": "%1$s was hit by %2$s's sabot round",
     "death.attack.militarytech.cumulative": "%1$s burned in a shaped charge jet",
     "death.attack.militarytech.cumulative_by": "%1$s burned in %2$s's shaped charge jet",
@@ -222,14 +244,14 @@ SOUND_RU = {"tank_gun": "Выстрел 125 мм", "grom": "Выстрел «Г�
             "incoming": "Свист приближающихся блоков", "reload": "Перезарядка", "hydraulics": "Гидравлика",
             "tank_engine": "Танковый дизель", "turbine": "Газовая турбина", "truck_engine": "Мотор грузовика",
             "jet_engine": "Реактивный двигатель", "lock_tone": "Захват", "seeker_tone": "ГСН ищет цель",
-            "missile_warning": "Ракетная опасность", "missile_motor": "Двигатель ракеты"}
+            "missile_warning": "Ракетная опасность", "missile_motor": "Двигатель ракеты", "nuke": "Ядерный взрыв"}
 SOUND_EN = {"tank_gun": "125 mm gun fires", "grom": "Grom fires", "mg": "Machine gun", "cannon_30": "30 mm cannon",
             "aircraft_gun": "Aircraft cannon", "atgm_launch": "ATGM launch", "missile_launch": "Missile launch",
             "rocket_launch": "Rocket launch", "grad_launch": "Grad salvo", "bomb_release": "Bomb released",
             "oreshnik_launch": "Oreshnik launch", "incoming": "Incoming warheads", "reload": "Reloading",
             "hydraulics": "Hydraulics", "tank_engine": "Tank diesel", "turbine": "Gas turbine", "truck_engine": "Truck engine",
             "jet_engine": "Jet engine", "lock_tone": "Lock tone", "seeker_tone": "Seeker tone",
-            "missile_warning": "Missile warning", "missile_motor": "Missile motor"}
+            "missile_warning": "Missile warning", "missile_motor": "Missile motor", "nuke": "Nuclear detonation"}
 
 
 def lang():
@@ -277,6 +299,7 @@ RECIPES = [
     ("ammo_crate", ["WGW", "WTW", "WIW"], {"W": "#minecraft:planks", "G": V + "gunpowder", "T": V + "tnt",
                                           "I": V + "iron_ingot"}, 2),
     ("repair_kit", ["III", "IAI"], {"I": V + "iron_ingot", "A": V + "anvil"}, 2),
+    ("nuclear_warhead", ["XWX", "WNW", "XWX"], {"X": V + "netherite_ingot", "W": "warhead", "N": V + "nether_star"}, 1),
     ("t72b3", ["EBE", "PDP", "TFT"], {"E": "era_block", "B": "gun_barrel", "P": "armor_plate", "D": "diesel_engine",
                                       "T": "track_links", "F": "fire_control"}, 1),
     ("tos1a", ["RRR", "PDP", "TFT"], {"R": "rocket_motor", "P": "armor_plate", "D": "diesel_engine",
