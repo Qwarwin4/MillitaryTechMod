@@ -103,12 +103,13 @@ VEHICLES = {
         rules=[("drop", name("Object_4")),
                ("gun", lambda i: i["min"][1] > 1.15 and abs(i["center"][0]) < 0.75)],
         pivot=(0, 1.23, -6.68), origins={"gun": (0, 1.23, -6.68)}, empty=["cap"]),
-    "su25": dict(src="su25", ry=0, k=0.0351, dy=0.047, dz=0, tris=14000, tex=2048, rules=[]),
-    "su34": dict(src="su34", ry=0, k=0.575, dy=1.17, dz=0, tris=16000, tex=2048, rules=[]),
-    "mig23": dict(src="mig-23_ub", ry=0, k=0.0246, dy=0.032, dz=0, tris=14000, tex=2048, rules=[]),
-    "su25": dict(src="su25", ry=0, k=0.0351, dy=0.047, dz=0, tris=14000, tex=2048, rules=[]),
-    "su34": dict(src="su34", ry=0, k=0.575, dy=1.17, dz=0, tris=16000, tex=2048, rules=[]),
-    "mig23": dict(src="mig-23_ub", ry=0, k=0.0246, dy=0.032, dz=0, tris=14000, tex=2048, rules=[]),
+    # aircraft: the gear is its own part, drawn only while it's down
+    "su25": dict(src="su25", ry=0, k=0.0351, dy=0.047, dz=0, tris=14000, tex=2048,
+                 rules=[("gear", lambda i: i["min"][1] < 0.55 and i["max"][1] < 1.25)]),
+    "su34": dict(src="su34", ry=0, k=0.575, dy=1.17, dz=0, tris=16000, tex=2048,
+                 rules=[("gear", lambda i: i["min"][1] < 0.55 and i["max"][1] < 1.35)]),
+    "mig23": dict(src="mig-23_ub", ry=0, k=0.0246, dy=0.032, dz=1.8, tris=14000, tex=2048,
+                  rules=[("gear", lambda i: i["min"][1] < 0.5 and i["max"][1] < 1.05 and i["max"][2] - i["min"][2] < 2.0)]),
 }
 
 
@@ -222,12 +223,14 @@ def build(vid, v):
     preview(vid, v)
 
 
-def preview(vid, v):
-    """the finished parts, put together the way the renderer does (turret turned a bit, gun raised)"""
+def assemble(vid, v=None, yaw=20, pitch=-8):
+    """the finished parts put together the way the renderer does (turret turned, gun raised), for previews/icons"""
     from PIL import Image
+    v = v or VEHICLES[vid]
     mdir = os.path.join(ASSETS, "models", "entity")
     piv, tr, _ = frames(v)
     image = Image.open(os.path.join(ASSETS, "textures", "entity", "mesh", vid + ".png"))
+    Ry = mk.rot("y", yaw)[:3, :3]
     items = []
     for f in sorted(os.listdir(mdir)):
         if not (f.startswith(vid + "_") and f.endswith(".mesh")):
@@ -236,14 +239,20 @@ def preview(vid, v):
         _, P, UV, N = mk.read_mesh(os.path.join(mdir, f))
         if len(P) == 0:
             continue
-        if part == "turret":
-            P = P @ mk.rot("y", 20)[:3, :3].T + piv
+        if part in v.get("origins", {}):
+            P = P + np.array(v["origins"][part])
+        elif part == "turret":
+            P = P @ Ry.T + piv
         elif part in ("gun", "rack"):
-            R = mk.rot("y", 20)[:3, :3] @ mk.rot("x", -8)[:3, :3]
-            P = P @ R.T + mk.rot("y", 20)[:3, :3] @ tr + piv
-        else:
-            P = P + np.array(v.get("origins", {}).get(part, (0, 0, 0)))
+            R = Ry @ mk.rot("x", pitch)[:3, :3]
+            P = P @ R.T + Ry @ tr + piv
         items.append((P, UV, image, N))
+    return items
+
+
+def preview(vid, v):
+    from PIL import Image
+    items = assemble(vid, v)
     os.makedirs(PREVIEW, exist_ok=True)
     W = Image.new("RGB", (1600, 560))
     W.paste(mk.render(items, (800, 560), 35, 18), (0, 0))
@@ -251,6 +260,10 @@ def preview(vid, v):
     out = os.path.join(PREVIEW, vid + ".png")
     W.save(out)
     print("  ->", out)
+
+
+def have_sources():
+    return os.path.isdir(MODELS_DIR)
 
 
 def main(argv):

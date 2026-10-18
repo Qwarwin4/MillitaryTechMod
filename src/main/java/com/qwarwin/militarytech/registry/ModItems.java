@@ -30,7 +30,7 @@ public final class ModItems {
     public static final RegistryObject<Item> ORESHNIK = vehicle(Specs.ORESHNIK);
     public static final RegistryObject<Item> SU25 = vehicle(Specs.SU25);
     public static final RegistryObject<Item> SU34 = vehicle(Specs.SU34);
-    public static final RegistryObject<Item> MIG25 = vehicle(Specs.MIG25);
+    public static final RegistryObject<Item> MIG23 = vehicle(Specs.MIG23);
     public static final RegistryObject<Item> ZAK = vehicle(Specs.ZAK);
     public static final RegistryObject<Item> ZRK = vehicle(Specs.ZRK);
 

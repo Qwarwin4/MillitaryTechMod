@@ -1,5 +1,5 @@
 """
-Su-25 "Grach", Su-34 and MiG-25. Blocks, +z is the nose, +x the left wing; the entity origin is on the ground
+Su-25 "Grach" and Su-34 (box versions; the mod draws the real models from gen_meshes.py). Blocks, +z is the nose, +x the left wing; the entity origin is on the ground
 under the aircraft, gear wheels touch y = 0. Pylon positions match entity/Specs.java.
 """
 import os
@@ -131,47 +131,9 @@ def build_su34():
     gv.finish(b, {"su34_hull": 8, "su34_gear": 4}, {"su34_hull": (0, DY, 0)})
 
 
-def build_mig25():
-    scheme = {"base": "#a3a8ab", "dark": "#7c8286", "light": "#c2c6c8", "camo": None,
-              "belly": "#b2b7ba", "dust": "#9a8f6e", "mud": "#4a3b28", "mud_line": 0.2, "dustiness": 0.2}
-    b = Bake("mig25", gv.MODID, scheme, density=32)
-    h = b.part("mig25_hull")
-    h.B(-0.3, 2.2, 5.4, 0.3, 2.7, 6.05, "radome")
-    h.B(-0.46, 2.08, 4.2, 0.46, 2.82, 5.4, "skin_plain")
-    h.B(-0.56, 2.0, 2.6, 0.56, 3.0, 4.2, {"all": "skin_plain",
-                                          "east": ("skin_plain", [("text", "32", 0.6, 0.55, 0.4, (40, 60, 160), (240, 240, 240))]),
-                                          "west": ("skin_plain", [("text", "32", 0.4, 0.55, 0.4, (40, 60, 160), (240, 240, 240))])})
-    h.B(-0.4, 3.0, 2.8, 0.4, 3.32, 3.85, "canopy")
-    # the huge box intakes and the flat body behind them
-    for sx in (1, -1):
-        x1, x2 = (0.56, 1.5) if sx > 0 else (-1.5, -0.56)
-        h.B(x1, 1.62, -0.5, x2, 3.0, 2.6, {"all": "skin_plain", "south": ("intake", [("rect", 0, 0, 1, 0.12, (150, 155, 158))])})
-        h.B(sx * 0.55 - 0.5, 1.75, -6.95, sx * 0.55 + 0.5, 2.85, -6.0, {"all": "nozzle", "north": "intake"})
-    h.B(-1.38, 1.7, -6.0, 1.38, 2.92, -0.5, "skin_plain")
-    h.B(-0.5, 2.9, -5.0, 0.5, 3.1, 2.6, "skin_plain")
-    # high wing with the anti-flutter tip weights
-    wing(h, 1.38, [(2.7, 0.4, -3.4), (3.8, -1.0, -3.6), (4.6, -2.1, -3.75)], 2.78, 0.12, "skin_plain")
-    h.both(4.55, 2.68, -3.9, 4.7, 2.95, -1.7, "skin_dark")
-    h.B(2.8, 2.9, -3.2, 3.8, 2.91, -1.4, ("skin_plain", [("star", 0.5, 0.5, 0.42)]))
-    h.B(-3.8, 2.9, -3.2, -2.8, 2.91, -1.4, ("skin_plain", [("star", 0.5, 0.5, 0.42)]))
-    for sx in (1, -1):
-        h.B(sx * 1.05 - 0.07, 2.9, -6.45, sx * 1.05 + 0.07, 5.0, -3.9,
-            {"all": "skin_plain", "east": ("skin_plain", [("star", 0.5, 0.45, 0.38)]),
-             "west": ("skin_plain", [("star", 0.5, 0.45, 0.38)])},
-            rot=((sx * 1.05, 2.9, -3.9), "x", -22.5))
-        h.B(sx * 0.95 - 0.06, 1.0, -6.1, sx * 0.95 + 0.06, 1.72, -4.7, "skin_plain")
-    h.both(1.38, 2.3, -6.7, 3.2, 2.4, -5.25, "skin_plain")
-    g = b.part("mig25_gear")
-    gear_leg(g, 0.0, 3.6, 1.4, 0.3, twin=True)
-    gear_leg(g, 1.4, -2.0, 1.05, 0.42)
-    gear_leg(g, -1.4, -2.0, 1.05, 0.42)
-    gv.finish(b, {"mig25_hull": 8, "mig25_gear": 4}, {"mig25_hull": (0, DY, 0)})
-
-
 def main():
     build_su25()
     build_su34()
-    build_mig25()
 
 
 if __name__ == "__main__":

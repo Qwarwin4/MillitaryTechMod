@@ -1,6 +1,6 @@
 {
  "parent": "item/generated",
  "textures": {
-  "layer0": "militarytech:item/mig25"
+  "layer0": "militarytech:item/mig23"
  }
 }

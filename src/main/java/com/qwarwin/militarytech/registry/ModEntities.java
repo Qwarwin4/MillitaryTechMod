@@ -52,7 +52,7 @@ public final class ModEntities {
 
     public static final RegistryObject<EntityType<AircraftEntity>> SU25 = aircraft(Specs.SU25);
     public static final RegistryObject<EntityType<AircraftEntity>> SU34 = aircraft(Specs.SU34);
-    public static final RegistryObject<EntityType<AircraftEntity>> MIG25 = aircraft(Specs.MIG25);
+    public static final RegistryObject<EntityType<AircraftEntity>> MIG23 = aircraft(Specs.MIG23);
 
     public static final RegistryObject<EntityType<ProjectileEntity>> PROJECTILE = ENTITIES.register("projectile",
             () -> EntityType.Builder.<ProjectileEntity>of(ProjectileEntity::new, EntityClassification.MISC)

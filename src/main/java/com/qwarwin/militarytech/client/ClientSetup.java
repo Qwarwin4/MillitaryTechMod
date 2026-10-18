@@ -32,7 +32,7 @@ public final class ClientSetup {
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.ORESHNIK.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.SU25.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.SU34.get(), VehicleRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(ModEntities.MIG25.get(), VehicleRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(ModEntities.MIG23.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.PROJECTILE.get(), ProjectileRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.CAMERA.get(), NothingRenderer::new);
         KeyBinds.register();

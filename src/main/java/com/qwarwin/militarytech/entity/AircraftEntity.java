@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Su-25, Su-34, MiG-25. Flown War Thunder style: the plane chases wherever the pilot looks, W/S is the
+ * Su-25, Su-34, MiG-23. Flown War Thunder style: the plane chases wherever the pilot looks, W/S is the
  * throttle, A/D the rudder (and steering on the ground), Space the air brake, G the gear. LMB is the gun,
  * RMB drops or launches the selected stores, R picks the next kind, K swaps the loadout on the ground.
  */

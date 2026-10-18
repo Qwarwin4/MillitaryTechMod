@@ -39,7 +39,7 @@ VEHICLES = {
                 pitch=-30, yaw=200),
     "zrk": dict(wheels=[], hull="zrk_base", turret="zrk_turret", gun="zrk_launcher", pivot=(0, 1.2, 0), tr=(0, 0.65, 0),
                 pitch=-30, yaw=200),
-    "su25": dict(air=True), "su34": dict(air=True), "mig25": dict(air=True),
+    "su25": dict(air=True), "su34": dict(air=True), "mig23": dict(air=True),
 }
 
 
@@ -187,10 +187,29 @@ def item_model(name):
               os.path.join(gv.ASSETS, "models", "item", name + ".json"))
 
 
+def mesh_icon(name):
+    """vehicles drawn from real models: render the assembled meshes"""
+    import gen_meshes
+    import meshkit
+    air = VEHICLES.get(name, {}).get("air")
+    items = gen_meshes.assemble(name, yaw=-25 if not air else 0, pitch=-6 if not air else 0)
+    os.makedirs(TMP, exist_ok=True)
+    tmp = os.path.join(TMP, name + ".png")
+    meshkit.render(items, (ICON * 4, ICON * 4), 145 if air else 40, 35 if air else 28, ground=False, transparent=True).save(tmp)
+    finish_icon(tmp, os.path.join(gv.ASSETS, "textures", "item", name + ".png"))
+
+
+def has_mesh(name):
+    return os.path.exists(os.path.join(gv.ASSETS, "models", "entity", name + "_hull.mesh"))
+
+
 def main():
     for name in VEHICLES:
-        sc, yaw, pitch = vehicle_scene(name)
-        render_icon(sc, name, yaw, pitch)
+        if has_mesh(name):
+            mesh_icon(name)
+        else:
+            sc, yaw, pitch = vehicle_scene(name)
+            render_icon(sc, name, yaw, pitch)
         item_model(name)
     res, parts = part_models()
     for name in parts:

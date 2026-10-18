@@ -10,7 +10,7 @@ import gen_vehicles as gv  # noqa: E402
 M = gv.MODID
 DATA = os.path.join(gv.RES, "data", M)
 
-VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig25", "zak", "zrk"]
+VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig23", "zak", "zrk"]
 
 RU = {
     "itemGroup.militarytech": "Военная техника",
@@ -18,7 +18,7 @@ RU = {
     "entity.militarytech.t72b3": "Т-72Б3", "entity.militarytech.t80u": "Т-80У", "entity.militarytech.t90m": "Т-90М «Прорыв»",
     "entity.militarytech.bmpt": "БМПТ «Терминатор»", "entity.militarytech.bmp1": "БМП-1",
     "entity.militarytech.grad": "БМ-21 «Град»", "entity.militarytech.oreshnik": "«Орешник»",
-    "entity.militarytech.su25": "Су-25", "entity.militarytech.su34": "Су-34", "entity.militarytech.mig25": "МиГ-25",
+    "entity.militarytech.su25": "Су-25", "entity.militarytech.su34": "Су-34", "entity.militarytech.mig23": "МиГ-23УБ",
     "entity.militarytech.tos1a": "ТОС-1А «Солнцепёк»", "entity.militarytech.zak": "Зенитная турель 2×30 мм",
     "entity.militarytech.zrk": "Зенитная ракетная турель",
     "entity.militarytech.projectile": "Снаряд", "entity.militarytech.camera": "Камера",
@@ -56,15 +56,15 @@ RU = {
     "weapon.militarytech.cannon_125": "2А46М-5", "weapon.militarytech.pkt": "ПКТ", "weapon.militarytech.cannon_2a42": "2×2А42",
     "weapon.militarytech.ataka": "«Атака»", "weapon.militarytech.grom": "2А28 «Гром»", "weapon.militarytech.malyutka": "«Малютка»",
     "weapon.militarytech.grad": "Пакет 40 направляющих", "weapon.militarytech.oreshnik": "«Орешник»",
-    "weapon.militarytech.gsh30": "ГШ-30-2", "weapon.militarytech.gsh301": "ГШ-301",
-    "weapon.militarytech.tos": "Пакет 24 направляющих", "weapon.militarytech.zak_30": "2×30 мм", "weapon.militarytech.zrk": "8 ЗУР",
+    "weapon.militarytech.gsh30": "ГШ-30-2", "weapon.militarytech.gsh301": "ГШ-301", "weapon.militarytech.gsh23": "ГШ-23Л",
+    "weapon.militarytech.tos": "Пакет 30 направляющих", "weapon.militarytech.zak_30": "2×30 мм", "weapon.militarytech.zrk": "8 ЗУР",
     # loadouts
     "loadout.militarytech.cas": "Штурмовой", "loadout.militarytech.rockets": "НАР: 4 блока Б-8 + Р-73",
     "loadout.militarytech.bombs": "8×ФАБ-500", "loadout.militarytech.antitank": "Противотанковый: Х-29Л + НАР",
     "loadout.militarytech.strike": "Ударный: Х-59, Х-29, ФАБ", "loadout.militarytech.heavy": "Тяжёлый бомбовый (ФАБ-1500)",
     "loadout.militarytech.rockets168": "168 × С-8КО",
-    "loadout.militarytech.intercept": "Перехват: 4×Р-40", "loadout.militarytech.dogfight": "Ближний бой: Р-40 + Р-73",
-    "loadout.militarytech.recon_bomber": "МиГ-25РБ: 6×ФАБ-500",
+    "loadout.militarytech.intercept": "Перехват: 2×Р-40 + 2×Р-73", "loadout.militarytech.dogfight": "Ближний бой: 4×Р-73",
+    "loadout.militarytech.mig_bombs": "4×ФАБ-500", "loadout.militarytech.mig_rockets": "4 блока Б-8",
     # messages
     "msg.militarytech.ammo_selected": "Боеприпас: %s", "msg.militarytech.no_ammo": "%s: пусто",
     "msg.militarytech.ammo_full": "Боекомплект полный", "msg.militarytech.rearmed": "Боекомплект пополнен",
@@ -114,7 +114,7 @@ RU = {
     "tooltip.militarytech.oreshnik": "Одна ракета, шесть блоков по шесть суббоеприпасов. По координатам.",
     "tooltip.militarytech.su25": "Штурмовик. ГШ-30-2, НАРы, ФАБы, Х-29, Р-73.",
     "tooltip.militarytech.su34": "Фронтовой бомбардировщик. Х-59, ФАБ-1500, 168 С-8КО.",
-    "tooltip.militarytech.mig25": "Перехватчик. Очень быстрый, Р-40 и Р-73.",
+    "tooltip.militarytech.mig23": "Истребитель с крылом изменяемой стреловидности. Ракеты, бомбы или НАР.",
     "tooltip.militarytech.controls_tank": "WASD — ехать, мышь — башня, ЛКМ/ПКМ — огонь, R — снаряд, C — прицел",
     "tooltip.militarytech.controls_truck": "WASD — ехать, мышь — наводка, R — цель, G — пусковая, C — вид",
     "tooltip.militarytech.controls_aircraft": "W/S — тяга, мышь — курс, A/D — руль, Пробел — тормоз, G — шасси",
@@ -136,7 +136,7 @@ EN = {
     "entity.militarytech.t72b3": "T-72B3", "entity.militarytech.t80u": "T-80U", "entity.militarytech.t90m": "T-90M",
     "entity.militarytech.bmpt": "BMPT Terminator", "entity.militarytech.bmp1": "BMP-1",
     "entity.militarytech.grad": "BM-21 Grad", "entity.militarytech.oreshnik": "Oreshnik",
-    "entity.militarytech.su25": "Su-25", "entity.militarytech.su34": "Su-34", "entity.militarytech.mig25": "MiG-25",
+    "entity.militarytech.su25": "Su-25", "entity.militarytech.su34": "Su-34", "entity.militarytech.mig23": "MiG-23UB",
     "entity.militarytech.tos1a": "TOS-1A Solntsepyok", "entity.militarytech.zak": "AA Gun Turret 2x30 mm",
     "entity.militarytech.zrk": "SAM Turret",
     "entity.militarytech.projectile": "Projectile", "entity.militarytech.camera": "Camera",
@@ -170,14 +170,14 @@ EN = {
     "weapon.militarytech.cannon_125": "2A46M-5", "weapon.militarytech.pkt": "PKT", "weapon.militarytech.cannon_2a42": "2x 2A42",
     "weapon.militarytech.ataka": "Ataka", "weapon.militarytech.grom": "2A28 Grom", "weapon.militarytech.malyutka": "Malyutka",
     "weapon.militarytech.grad": "40-tube pack", "weapon.militarytech.oreshnik": "Oreshnik",
-    "weapon.militarytech.gsh30": "GSh-30-2", "weapon.militarytech.gsh301": "GSh-301",
-    "weapon.militarytech.tos": "24-tube pack", "weapon.militarytech.zak_30": "2x 30 mm", "weapon.militarytech.zrk": "8 SAMs",
+    "weapon.militarytech.gsh30": "GSh-30-2", "weapon.militarytech.gsh301": "GSh-301", "weapon.militarytech.gsh23": "GSh-23L",
+    "weapon.militarytech.tos": "30-tube pack", "weapon.militarytech.zak_30": "2x 30 mm", "weapon.militarytech.zrk": "8 SAMs",
     "loadout.militarytech.cas": "Close support", "loadout.militarytech.rockets": "Rockets: 4 B-8 pods + R-73",
     "loadout.militarytech.bombs": "8x FAB-500", "loadout.militarytech.antitank": "Anti-tank: Kh-29L + rockets",
     "loadout.militarytech.strike": "Strike: Kh-59, Kh-29, FAB", "loadout.militarytech.heavy": "Heavy bombs (FAB-1500)",
     "loadout.militarytech.rockets168": "168x S-8KO",
-    "loadout.militarytech.intercept": "Intercept: 4x R-40", "loadout.militarytech.dogfight": "Dogfight: R-40 + R-73",
-    "loadout.militarytech.recon_bomber": "MiG-25RB: 6x FAB-500",
+    "loadout.militarytech.intercept": "Intercept: 2x R-40 + 2x R-73", "loadout.militarytech.dogfight": "Dogfight: 4x R-73",
+    "loadout.militarytech.mig_bombs": "4x FAB-500", "loadout.militarytech.mig_rockets": "4 B-8 pods",
     "msg.militarytech.ammo_selected": "Round: %s", "msg.militarytech.no_ammo": "%s: empty",
     "msg.militarytech.ammo_full": "Fully armed already", "msg.militarytech.rearmed": "Rearmed",
     "msg.militarytech.no_repair": "No repairs needed", "msg.militarytech.store_selected": "Selected: %s (%s)",
@@ -222,7 +222,7 @@ EN = {
     "tooltip.militarytech.oreshnik": "One missile, six reentry vehicles of six submunitions each. Coordinates only.",
     "tooltip.militarytech.su25": "Attack aircraft. GSh-30-2, rockets, bombs, Kh-29, R-73.",
     "tooltip.militarytech.su34": "Strike fighter. Kh-59, FAB-1500, 168 S-8KO.",
-    "tooltip.militarytech.mig25": "Interceptor. Very fast, R-40 and R-73.",
+    "tooltip.militarytech.mig23": "Swing-wing fighter. Missiles, bombs or rockets.",
     "tooltip.militarytech.controls_tank": "WASD drive, mouse turret, LMB/RMB fire, R round, C sight",
     "tooltip.militarytech.controls_truck": "WASD drive, mouse aim, R target, G launcher, C view",
     "tooltip.militarytech.controls_aircraft": "W/S throttle, mouse to steer, A/D rudder, Space brake, G gear",
@@ -322,7 +322,7 @@ RECIPES = [
     ("su25", ["PCP", "AFA", "J J"], {"P": "armor_plate", "C": "autocannon", "A": "airframe", "F": "fire_control",
                                      "J": "jet_engine"}, 1),
     ("su34", ["AFA", "ACA", "J J"], {"A": "airframe", "F": "fire_control", "C": "autocannon", "J": "jet_engine"}, 1),
-    ("mig25", ["AFA", "JAJ", "J J"], {"A": "airframe", "F": "fire_control", "J": "jet_engine"}, 1),
+    ("mig23", ["AFA", "JAJ", "J J"], {"A": "airframe", "F": "fire_control", "J": "jet_engine"}, 1),
 ]
 
 
