@@ -1,0 +1,44 @@
+{
+ "controls": [
+  {
+   "model": "tu160_throttle",
+   "pivot": [
+    0.76,
+    4.68,
+    19.48
+   ],
+   "kind": "throttle",
+   "tilt": 0
+  },
+  {
+   "model": "tu160_stick",
+   "pivot": [
+    0.45,
+    4.5308,
+    19.62
+   ],
+   "kind": "stick",
+   "tilt": 0
+  },
+  {
+   "model": "tu160_throttle",
+   "pivot": [
+    -0.14,
+    4.68,
+    19.48
+   ],
+   "kind": "throttle",
+   "tilt": 0
+  },
+  {
+   "model": "tu160_stick",
+   "pivot": [
+    -0.45,
+    4.5308,
+    19.62
+   ],
+   "kind": "stick",
+   "tilt": 0
+  }
+ ]
+}

@@ -117,6 +117,9 @@ VEHICLES = {
                  rules=[("drop", lambda i: i["mat"] in ("o892-FACES", "o877-FACES", "o882-FACES") or
                          i["mat"] == "o905-FACES" and i["max"][2] < 4.62 and i["min"][1] > 2.5 and abs(i["center"][0]) < 0.8),
                         ("gear", lambda i: i["min"][1] < 0.88 and i["max"][1] < 2.16)]),
+    # Tu-160: object_2 is the whole landing gear (legs, wheels, doors), object_3 the cockpit windows
+    "tu160": dict(src="tu160", wheels=False, ry=0, k=0.24, dy=0, dz=0, tris=60000, glass_mats=("object_3",), max_tex=2048,
+                  rules=[("gear", lambda i: i["mat"] == "object_2" and i["min"][1] < 3.2)]),
     "mig23": dict(src="mig-23_ub", wheels=False, ry=0, k=0.0357, dy=0.046, dz=2.61, tris=40000,
                   rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.52 and i["max"][2] - i["min"][2] < 2.9)]),
 }
@@ -328,7 +331,9 @@ def build(vid, v):
         if mi in tex_of:
             continue
         mat = s.materials[mi]
-        if mat.image is not None:
+        if mat.name in v.get("glass_mats", ()):
+            tex_of[mi] = "glass"
+        elif mat.image is not None:
             key = ("img", id(mat.image), tuple(np.round(mat.color, 3)), mat.alpha_mode)
             found = [k for k, r in tex_of.items() if isinstance(r, tuple) and r[0] == key]
             if found:
@@ -337,7 +342,7 @@ def build(vid, v):
             idx = len({r[1] for r in tex_of.values() if isinstance(r, tuple)})
             mk.material_image(mat, max_tex).save(os.path.join(tex_dir, f"t{idx}.png"), optimize=True)
             tex_of[mi] = (key, f"t{idx}")
-        elif mat.alpha_mode == "BLEND":
+        elif mat.alpha_mode == "BLEND" or mat.name in v.get("glass_mats", ()):
             tex_of[mi] = "glass"
         else:
             tex_of[mi] = len(palette)

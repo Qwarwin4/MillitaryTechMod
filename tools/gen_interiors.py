@@ -447,7 +447,10 @@ def cockpit(vid, eyes, half_width=0.4):
     th.B(-0.012, 0, -0.012, 0.012, 0.18, 0.012, "int_steel")
     th.B(-0.03, 0.16, -0.035, 0.03, 0.22, 0.035, "int_box")
     save_controls(vid, moving)
-    gv.finish(b, {p.name: 8 for p in b.parts})
+    # a cockpit far from the model origin (a 54 m bomber's nose) is shifted into range, staying where it was built
+    ex, ey, ez = eyes[0]
+    far = abs(ez) > 4 or ey > 3.5
+    gv.finish(b, {p.name: 8 for p in b.parts}, {vid + "_cockpit": (-ex * 0, -ey + 1.5, -ez)} if far else None, keep=far)
 
 
 def oreshnik_housing():
@@ -486,6 +489,8 @@ def main():
     oreshnik_housing()
     # the Su-34 and MiG-23 models have proper cockpits of their own
     cockpit("su25", [(0, 2.79, 2.55)], 0.45)
+    # Tu-160: two pilots side by side, the model has no cockpit of its own
+    cockpit("tu160", [(0.45, 5.3, 19.4), (-0.45, 5.3, 19.4)], 0.4)
 
 
 if __name__ == "__main__":

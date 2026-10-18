@@ -922,8 +922,9 @@ class Bake:
                 return size, placed
             size *= 2
 
-    def model_json(self, part, scale, center_y=False, offset=(0, 0, 0), texture=None, extra=None):
-        """Minecraft model for one part. 1 unit = scale/16 block."""
+    def model_json(self, part, scale, center_y=False, offset=(0, 0, 0), texture=None, extra=None, keep=False):
+        """Minecraft model for one part. 1 unit = scale/16 block. keep: the offset only brings far-away geometry
+        into the model's coordinate range, the origin moves with it so the part still sits where it was built."""
         k = 16.0 / scale
         cy = 8 if center_y else 0
         tex = texture or f"{self.modid}:entity/{self.name}"
@@ -951,7 +952,8 @@ class Bake:
                     e["rotation"] = {"origin": [u(o[i], i) for i in range(3)], "axis": axis, "angle": ang}
                 elements.append(e)
         # "scale"/"origin" are read by the mod's own model loader (client/BoxModel.java)
-        return {"scale": scale, "origin": [8, cy, 8], "ambientocclusion": False,
+        origin = [8 + offset[0] * k, cy + offset[1] * k, 8 + offset[2] * k] if keep else [8, cy, 8]
+        return {"scale": scale, "origin": [round(o, 4) for o in origin], "ambientocclusion": False,
                 "textures": {"t": tex, "particle": tex}, "elements": elements}
 
 

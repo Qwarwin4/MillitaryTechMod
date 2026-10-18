@@ -461,9 +461,9 @@ public final class Specs {
         b.armor = Armor.AIR;
         b.width = 9F;
         b.height = 7F;
-        b.box(-1.9, 1.4, -27, 1.9, 6.2, 27).box(-17.5, 3.2, -9, 17.5, 4.4, 2).box(-6.5, 2.0, -18, 6.5, 4.0, -8)
-                .box(-0.4, 4.0, -27, 0.4, 13.0, -20);
-        b.seats = new Vector3d[]{v(0.62, 4.3, 20.6), v(-0.62, 4.3, 20.6), v(0.62, 4.3, 19.2), v(-0.62, 4.3, 19.2)};
+        b.box(-1.8, 3.2, -27, 1.8, 6.4, 27.1).box(-7, 3.2, -14, 7, 4.8, 6).box(-28.5, 3.6, -12, 28.5, 4.4, 0)
+                .box(-6.6, 2.3, -11.3, 6.6, 3.8, 1).box(-0.4, 6.0, -27, 0.4, 13.0, -18).box(-8, 8.8, -27, 8, 9.4, -22);
+        b.seats = new Vector3d[]{v(0.45, 4.4, 19.4), v(-0.45, 4.4, 19.4), v(0.45, 4.4, 18.2), v(-0.45, 4.4, 18.2)};
         b.riderScale = 0.9F;
         b.separateGunner = false;
         b.hasTurret = false;
@@ -480,15 +480,15 @@ public final class Specs {
         a.takeoffSpeed = 1.9;
         a.pitchRate = 1.5F;
         a.yawRate = 1.1F;
-        a.cockpit = v(0.62, 5.25, 20.9);
+        a.cockpit = v(0.45, 5.3, 19.4);
         a.camDistance = 78;
         a.camHeight = 10;
-        a.exhaust = v(2.4, 2.9, -20.5);
-        a.exhaustSpread = 2.4;
+        a.exhaust = v(4.96, 3.05, -11.4);
+        a.exhaustSpread = 0.9;
         // two bays, six stations each on the rotary launchers
-        a.pylons = new Vector3d[]{v(0.5, 2.6, 10.5), v(-0.5, 2.6, 10.5), v(0.5, 2.6, 8.5), v(-0.5, 2.6, 8.5),
-                v(0.5, 2.6, 6.5), v(-0.5, 2.6, 6.5), v(0.5, 2.6, -1.5), v(-0.5, 2.6, -1.5), v(0.5, 2.6, -3.5),
-                v(-0.5, 2.6, -3.5), v(0.5, 2.6, -5.5), v(-0.5, 2.6, -5.5)};
+        a.pylons = new Vector3d[]{v(0.5, 4.2, 10.5), v(-0.5, 4.2, 10.5), v(0.5, 4.2, 8.5), v(-0.5, 4.2, 8.5),
+                v(0.5, 4.2, 6.5), v(-0.5, 4.2, 6.5), v(0.5, 4.2, -0.5), v(-0.5, 4.2, -0.5), v(0.5, 4.2, -2.5),
+                v(-0.5, 4.2, -2.5), v(0.5, 4.2, -4.5), v(-0.5, 4.2, -4.5)};
         a.internalBay = true;
         a.loadouts.add(AirSpec.loadout("tu_cruise").put(KH101, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).build());
         a.loadouts.add(AirSpec.loadout("tu_nuclear").put(KH102, 1, 0, 1, 2, 3, 4, 5).put(KH101, 1, 6, 7, 8, 9, 10, 11).build());

@@ -60,12 +60,12 @@ def tex_path(name):
     return os.path.join(ASSETS, "textures", "entity", name + ".png")
 
 
-def finish(b, scales, offsets=None):
+def finish(b, scales, offsets=None, keep=False):
     """bake the texture, then write one model per part (UVs only exist after the bake)"""
     size = b.bake(tex_path(b.name))
     for p in b.parts:
         off = (offsets or {}).get(p.name, (0, 0, 0))
-        save_json(b.model_json(p, scales.get(p.name, 4), offset=off), model_path(p.name))
+        save_json(b.model_json(p, scales.get(p.name, 4), offset=off, keep=keep), model_path(p.name))
     print(f"  {b.name}: {size}x{size}")
     return size
 

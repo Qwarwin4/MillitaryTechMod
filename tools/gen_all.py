@@ -78,6 +78,9 @@ def main():
     gen_interiors.main()
     if gen_meshes.have_sources():
         gen_meshes.main([])
+        import gen_munition_meshes
+        if os.path.isdir(gen_munition_meshes.SRC):
+            gen_munition_meshes.main([])
     else:
         print("  no model sources in", gen_meshes.MODELS_DIR, "- keeping the committed meshes")
     drop_superseded()

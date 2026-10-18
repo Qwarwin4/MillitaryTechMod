@@ -15,3 +15,17 @@
 | Су-25 | [Su-25](https://sketchfab.com/3d-models/su-25-88b71eb848cf4418a95dff497c07cefc) | mamont nikita | CC BY 4.0 |
 | Су-34 | [Su34](https://sketchfab.com/3d-models/su34-1c94f436be51453fa598e9eab50eb0a7) | manilov.ap | CC BY 4.0 |
 | МиГ-23УБ | [Mig-23 UB](https://sketchfab.com/3d-models/mig-23-ub-dd4e5995803b4ba28929323f20a18b3d) | Tim Samedov | CC BY 4.0 |
+| Ту-160 | [Tupolev TU-160](https://sketchfab.com/3d-models/d3af9e67f8024dcc9b23a3e91d492e40) | ioai25312 | CC BY 4.0 |
+
+Бомбы и ракеты собраны скриптом `tools/gen_munition_meshes.py` (повёрнуты носом вперёд, приведены к реальной длине).
+
+| Боеприпас | Модель | Автор | Лицензия |
+|---|---|---|---|
+| ФАБ-250 | [FAB-250 M62 bomb](https://sketchfab.com/3d-models/55b7447db0604e26b20fda21c0dc232a) | Jeyhun1985 | CC BY 4.0 |
+| ФАБ-500 | [500 kg FAB-500M-46](https://sketchfab.com/3d-models/a8acf4ec8b5443049d61ec42f63172d7) | KojfDiscord | CC BY 4.0 |
+| ФАБ-1500 | [1500 kg FAB-1500M-46](https://sketchfab.com/3d-models/093a23118c0c41f28a3fad52efef7edb) | KojfDiscord | CC BY 4.0 |
+| ФАБ-3000, ФАБ-9000 | [FAB-3000 M54 bomb](https://sketchfab.com/3d-models/924223eac5544983b99e716d873a0aaf) | Jeyhun1985 | CC BY 4.0 |
+| Х-29, Р-40 (Р-33), Х-59 | [Russian weapon pack](https://sketchfab.com/3d-models/af00b7135a184ecfb2812a0e54458a8a) | Rhine_Lab_Muelsyse | CC BY 4.0 |
+| Р-73 | [Game Ready R-73](https://sketchfab.com/3d-models/00e9be4be4d447a7963eae1fa4ab5cb9) | jokesforboats | CC BY 4.0 |
+| Х-101, Х-102 | [Russian X-555 air-launched cruise missile](https://sketchfab.com/3d-models/204c992ab27c4c1cad6a60b7c20b8c01) | LtxxwSibeRia | CC BY-NC 4.0 |
+| Блок Б-8 (подвес НАР) | [Soviet, Russian aviation missle block B-13 1/72](https://sketchfab.com/3d-models/5311145c05764751b1724b5028e8de61) | viltz | CC BY 4.0 |
