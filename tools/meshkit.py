@@ -543,8 +543,10 @@ def bake(parts, size=1024, samples=3_000_000, pad=3, padding_px=4, weathered=Fal
     if weathered:
         c[:, :3] = weather(c[:, :3].astype(np.float64), TP, TN)
     a = c[:, 3]
-    checker = ((TX + TY) % 2 == 0).astype(np.float32)
-    c[:, 3] = np.where(a < 0.25, 0.0, np.where(a > 0.75, 1.0, checker))
+    # see-through parts (windows) become opaque tinted glass: a checkerboard of holes looked bad in game
+    glass = a < 0.75
+    c[glass, :3] = c[glass, :3] * 0.3 + np.array([46, 58, 66], dtype=np.float32) / 255 * 0.7
+    c[:, 3] = 1.0
     img[TY, TX] = c
     filled[TY, TX] = True
 
