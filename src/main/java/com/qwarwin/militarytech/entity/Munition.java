@@ -14,6 +14,8 @@ public enum Munition {
     GSH_30(Kind.SHELL, Guidance.NONE, 12.0, 0.018, 0.996, 60, 24F, 1.4F, null, Tracer.ORANGE),
     APFSDS(Kind.DART, Guidance.NONE, 18.0, 0.004, 0.999, 60, 210F, 0F, "dart", Tracer.WHITE),
     HE_125(Kind.HE, Guidance.NONE, 11.0, 0.025, 0.997, 90, 40.0F, 5.6F, "shell_125", Tracer.NONE),
+    // 152 mm 3OF45 for the Msta-S: real 24.7 km (30 with the base-bleed shell) at 1:10, ~3000 blocks at 45 degrees
+    HE_152(Kind.HE, Guidance.NONE, 14.0, 0.045, 0.9985, 900, 160.0F, 9.5F, "shell_125", Tracer.NONE),
     HEAT_73(Kind.HEAT, Guidance.NONE, 7.0, 0.030, 0.995, 80, 140F, 1.6F, "shell_73", Tracer.NONE),
     GRAD(Kind.HE, Guidance.NONE, 5.5, 0.035, 0.999, 600, 45.0F, 5.5F, "grad_rocket", Tracer.NONE),
     TOS_220(Kind.THERMOBARIC, Guidance.NONE, 4.6, 0.035, 0.999, 600, 55.0F, 8.0F, "tos_rocket", Tracer.NONE),
@@ -216,6 +218,9 @@ public enum Munition {
             case APFSDS:
             case HE_125:
                 return 30;
+            case HE_152:
+                // separate loading: shell, then the charge
+                return 60;
             case HEAT_73:
                 return 20;
             case REFLEKS:

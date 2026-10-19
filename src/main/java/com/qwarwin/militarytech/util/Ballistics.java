@@ -31,10 +31,38 @@ public final class Ballistics {
      * reach gives the maximum-range elevation along the bearing.
      */
     public static float[] solve(Munition m, Vector3d from, Vector3d to, double maxElevation) {
+        return solve(m, from, to, maxElevation, false);
+    }
+
+    /**
+     * {@code high}: the plunging solution above 45 degrees (over hills and houses, onto roofs), as howitzers fire;
+     * otherwise the flat one at up to 45.
+     */
+    public static float[] solve(Munition m, Vector3d from, Vector3d to, double maxElevation, boolean high) {
         Vector3d d = to.subtract(from);
         double dist = Math.sqrt(d.x * d.x + d.z * d.z);
         float yaw = (float) (MathHelper.atan2(d.z, d.x) * (180.0 / Math.PI)) - 90F;
-        double lo = 0.5, hi = maxElevation;
+        if (high && maxElevation > 46) {
+            // range falls as the barrel rises past 45: the steeper it goes, the shorter
+            double lo = 45, hi = maxElevation;
+            if (range(m, from.y, to.y, lo) < dist) {
+                return new float[]{yaw, (float) -lo, 1F};
+            }
+            if (range(m, from.y, to.y, hi) > dist) {
+                // too close even straight up the highest it goes: lob it as steep as it'll go, it'll land past
+                return new float[]{yaw, (float) -hi, 0F};
+            }
+            for (int i = 0; i < 22; i++) {
+                double mid = (lo + hi) / 2;
+                if (range(m, from.y, to.y, mid) > dist) {
+                    lo = mid;
+                } else {
+                    hi = mid;
+                }
+            }
+            return new float[]{yaw, (float) -((lo + hi) / 2), 0F};
+        }
+        double lo = 0.5, hi = Math.min(maxElevation, 45);
         if (range(m, from.y, to.y, hi) < dist) {
             return new float[]{yaw, (float) -hi, 1F};
         }

@@ -65,6 +65,7 @@ public final class Specs {
     public static final VehicleSpec TOS1A = new VehicleSpec("tos1a", VehicleSpec.Category.TANK);
 
     public static final VehicleSpec PANTSIR = new VehicleSpec("pantsir", VehicleSpec.Category.TRUCK);
+    public static final VehicleSpec MSTA = new VehicleSpec("msta", VehicleSpec.Category.TANK);
     public static final VehicleSpec ZAK = new VehicleSpec("zak", VehicleSpec.Category.TURRET);
 
     public static final VehicleSpec ZRK = new VehicleSpec("zrk", VehicleSpec.Category.TURRET);
@@ -310,6 +311,40 @@ public final class Specs {
         b.weapon("tos").ammo(Munition.TOS_220, 30).interval(8).spread(1.2F).ripple()
                 .mount(WeaponSpec.Mount.GUN, tos)
                 .sound("grad_launch", 12F);
+
+        // ---- 2S19 Msta-S: 152 mm howitzer on a T-80/T-72 chassis, HE-frag only, -4 to +68 degrees
+        b = MSTA;
+        b.health = 260F;
+        b.armor = Armor.LIGHT;
+        b.width = 3.6F;
+        b.height = 3.0F;
+        b.box(-1.73, 0, -3.49, 1.73, 1.52, 3.47);
+        b.box(-1.57, 1.2, -3.42, 1.57, 3.05, 2.42);
+        // driver in front, gunner and commander in the turret, two loaders behind them
+        b.seats = new Vector3d[]{v(0, 0.35, 2.6), v(0.5, 0.95, -0.3), v(-0.5, 0.95, -0.3), v(0.5, 0.95, -1.5),
+                v(-0.5, 0.95, -1.5)};
+        b.insideSeats = 5;
+        b.interior = false;
+        b.wheelZ = T72_WHEELS;
+        b.wheelModel = null;
+        b.pivot = v(0.00, 1.20, -0.55);
+        b.trunnion = v(0.00, 1.05, 1.95);
+        b.minPitch = -68F;
+        b.maxPitch = 4F;
+        b.traverse = 3F;
+        b.sight = v(0.6, 1.95, 1.5);
+        b.driverEye = v(0, 1.75, 2.8);
+        b.view(0, v(0, 1.75, 2.8), false).view(2, v(-0.6, 2.0, -0.2), true);
+        b.camDistance = 12;
+        b.weapon("howitzer_152")
+                .ammo(HE_152, 40)
+                .interval(120).spread(0.25F)
+                .mount(WeaponSpec.Mount.GUN, v(0, 0, 6.2))
+                .sound("tank_gun", 18F);
+        b.weapon("kord")
+                .ammo(KORD, 300).secondary().auto(3).spread(0.8F)
+                .mount(WeaponSpec.Mount.TURRET, v(-0.6, 1.9, 1.3))
+                .sound("mg", 3F);
 
         // ---- Pantsir-S1 on the KamAZ-6560 8x8: 12 x 57E6 missiles, twin 2A38M 30 mm, its own radars
         b = PANTSIR;
@@ -568,6 +603,7 @@ public final class Specs {
         // ---- fuel: minutes of hard running on a full tank, and what one barrel puts back
         GRAD.fuelMinutes = 60;
         PANTSIR.fuelMinutes = 60;
+        MSTA.fuelMinutes = 50;
         ORESHNIK.fuelMinutes = 60;
         ORESHNIK.fuelPerBarrel = 0.2F;
         SU25.fuelMinutes = 25;
@@ -583,7 +619,7 @@ public final class Specs {
         ZRK.fuelMinutes = 0;
     }
 
-    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, PANTSIR, ZAK, ZRK};
+    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, PANTSIR, MSTA, ZAK, ZRK};
 
     private Specs() {
     }

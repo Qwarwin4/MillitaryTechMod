@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "TT ",
+  "II ",
+  "GG "
+ ],
+ "key": {
+  "T": {
+   "item": "minecraft:tnt"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "G": {
+   "item": "minecraft:gunpowder"
+  }
+ },
+ "result": {
+  "item": "militarytech:shell_152_he",
+  "count": 2
+ }
+}

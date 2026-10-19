@@ -324,7 +324,9 @@ public final class Hud {
         } else {
             text(ms, mc, I18n.get("hud.militarytech.manual"), x, y + 22, 0xFF909090);
         }
-        text(ms, mc, I18n.get("hud.militarytech.grad_hint"), x, y + 44, 0xFF909090);
+        String hint = !(g instanceof com.qwarwin.militarytech.entity.MstaEntity) ? "hud.militarytech.grad_hint"
+                : fc.highArc() ? "hud.militarytech.msta_hint_high" : "hud.militarytech.msta_hint_low";
+        text(ms, mc, I18n.get(hint), x, y + 44, 0xFF909090);
     }
 
     private static void oreshnik(MatrixStack ms, Minecraft mc, OreshnikEntity o, int w, int h) {

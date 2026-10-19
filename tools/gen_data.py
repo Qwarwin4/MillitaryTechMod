@@ -10,7 +10,7 @@ import gen_vehicles as gv  # noqa: E402
 M = gv.MODID
 DATA = os.path.join(gv.RES, "data", M)
 
-VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig23", "tu160", "pantsir", "zak", "zrk"]
+VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig23", "tu160", "pantsir", "msta", "zak", "zrk"]
 
 RU = {
     "itemGroup.militarytech": "Военная техника",
@@ -23,6 +23,15 @@ RU = {
     "entity.militarytech.tos1a": "ТОС-1А «Солнцепёк»", "entity.militarytech.zak": "Зенитная турель 2×30 мм",
     "entity.militarytech.zrk": "Зенитная ракетная турель",
     "entity.militarytech.pantsir": "«Панцирь-С1»",
+    "entity.militarytech.msta": "2С19 «Мста-С»",
+    "weapon.militarytech.howitzer_152": "152 мм 2А64", "weapon.militarytech.kord": "12,7 мм «Корд»",
+    "munition.militarytech.he_152": "ОФС 3ОФ45",
+    "item.militarytech.shell_152_he": "152-мм ОФС 3ОФ45",
+    "msg.militarytech.arc_high": "Навесная стрельба (выше 45°)",
+    "msg.militarytech.arc_low": "Настильная стрельба (до 45°)",
+    "hud.militarytech.msta_hint_low": "ЛКМ выстрел, R координаты, G навесом",
+    "hud.militarytech.msta_hint_high": "ЛКМ выстрел, R координаты, G настильно",
+    "tooltip.militarytech.msta": "152-мм САУ, только осколочно-фугасные. УВН −4…+68°, стрельба по координатам до ~3000 блоков (24,7–30 км в масштабе 1:10).",
     "weapon.militarytech.pantsir_30": "2×30 мм 2А38М", "weapon.militarytech.pantsir_sam": "12 ЗУР 57Э6",
     "msg.militarytech.pantsir_auto_on": "«Панцирь»: АВТОМАТИЧЕСКИЙ РЕЖИМ — цели до 1800 блоков",
     "msg.militarytech.pantsir_auto_off": "«Панцирь»: ручное управление",
@@ -239,6 +248,15 @@ EN = {
     "entity.militarytech.tos1a": "TOS-1A Solntsepyok", "entity.militarytech.zak": "AA Gun Turret 2x30 mm",
     "entity.militarytech.zrk": "SAM Turret",
     "entity.militarytech.pantsir": "Pantsir-S1",
+    "entity.militarytech.msta": "2S19 Msta-S",
+    "weapon.militarytech.howitzer_152": "152 mm 2A64", "weapon.militarytech.kord": "12.7 mm Kord",
+    "munition.militarytech.he_152": "3OF45 HE-frag",
+    "item.militarytech.shell_152_he": "152 mm 3OF45 HE-frag shell",
+    "msg.militarytech.arc_high": "High-angle fire (above 45 degrees)",
+    "msg.militarytech.arc_low": "Direct-trajectory fire (up to 45 degrees)",
+    "hud.militarytech.msta_hint_low": "LMB fire, R coordinates, G high angle",
+    "hud.militarytech.msta_hint_high": "LMB fire, R coordinates, G low angle",
+    "tooltip.militarytech.msta": "152 mm self-propelled howitzer, HE-frag only. Elevation -4 to +68 degrees, fires at coordinates out to ~3000 blocks (24.7-30 km at 1:10).",
     "weapon.militarytech.pantsir_30": "2x 30 mm 2A38M", "weapon.militarytech.pantsir_sam": "12x 57E6 SAM",
     "msg.militarytech.pantsir_auto_on": "Pantsir: AUTOMATIC MODE, targets out to 1800 blocks",
     "msg.militarytech.pantsir_auto_off": "Pantsir: manual control",
@@ -535,6 +553,9 @@ RECIPES = [
     ("belt_30", ["III", "GTG", "III"], {"I": V + "iron_ingot", "G": V + "gunpowder", "T": V + "tnt"}, 2),
     ("shell_125_apfsds", [" T ", " I ", " G "], {"T": V + "iron_block", "I": V + "iron_ingot", "G": V + "gunpowder"}, 4),
     ("shell_125_he", [" T ", " I ", " G "], {"T": V + "tnt", "I": V + "iron_ingot", "G": V + "gunpowder"}, 4),
+    ("shell_152_he", ["TT ", "II ", "GG "], {"T": V + "tnt", "I": V + "iron_ingot", "G": V + "gunpowder"}, 2),
+    ("msta", ["BFB", "PDP", "TTT"], {"B": "gun_barrel", "F": "fire_control", "P": "armor_plate", "D": "diesel_engine",
+                                    "T": "track_links"}, 1),
     ("atgm_refleks", ["W", "F", "R"], {"W": "warhead", "F": V + "redstone", "R": "rocket_motor"}, 2),
     ("shell_73", ["T", "I", "G"], {"T": V + "tnt", "I": V + "iron_ingot", "G": V + "gunpowder"}, 4),
     ("atgm_malyutka", ["W", "S", "R"], {"W": "warhead", "S": V + "string", "R": "rocket_motor"}, 2),

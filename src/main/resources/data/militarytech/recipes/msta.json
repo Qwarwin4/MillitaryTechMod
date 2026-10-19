@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "BFB",
+  "PDP",
+  "TTT"
+ ],
+ "key": {
+  "B": {
+   "item": "militarytech:gun_barrel"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "T": {
+   "item": "militarytech:track_links"
+  }
+ },
+ "result": {
+  "item": "militarytech:msta",
+  "count": 1
+ }
+}

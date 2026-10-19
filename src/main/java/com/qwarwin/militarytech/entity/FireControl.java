@@ -15,6 +15,11 @@ public interface FireControl {
 
     /** {yaw, pitch, 1 if out of reach}. */
     default float[] solution(BlockPos target) {
-        return Ballistics.solve(rocket(), rackOrigin(), Vector3d.atCenterOf(target), maxElevation());
+        return Ballistics.solve(rocket(), rackOrigin(), Vector3d.atCenterOf(target), maxElevation(), highArc());
+    }
+
+    /** Plunging fire (above 45 degrees) instead of the flat trajectory. */
+    default boolean highArc() {
+        return false;
     }
 }

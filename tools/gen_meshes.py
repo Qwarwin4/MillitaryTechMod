@@ -110,6 +110,12 @@ VEHICLES = {
         rules=[("drop", name("Object_4")),
                ("gun", lambda i: i["min"][1] > 1.93 and abs(i["center"][0]) < 1.26)],
         pivot=(0, 2.06, -11.19), origins={"gun": (0, 2.06, -11.19)}, empty=["cap"]),
+    # 2S19 Msta-S in pixel camouflage (MirzaArrafiERV_45's model): Object_11 barrel and cradle, Object_10 turret
+    "msta": dict(
+        src="msta_a", ry=180, k=0.95, dy=0.76, dz=0.58, tris=45000, by="node",
+        rules=[("gun", name("Object_11")),
+               ("turret", name("Object_10", "Object_9", "Object_7"))],
+        pivot=(0, 1.2, -0.55), gun_dir=(0, 0.1216, 0.9926), trunnion_model=(0, 2.25, 1.4), empty=["wheel"]),
     # Pantsir-S1 on the KamAZ-6560: Object_13 is the combat module (search radar, tracking radar, 2 x 6 missile
     # tubes, twin 2A38M); the tube packs and cannons on the sides elevate, the rest turns
     "pantsir": dict(

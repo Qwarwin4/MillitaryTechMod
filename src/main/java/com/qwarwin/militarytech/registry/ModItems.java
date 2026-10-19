@@ -32,6 +32,7 @@ public final class ModItems {
     public static final RegistryObject<Item> TOS1A = vehicle(Specs.TOS1A);
     public static final RegistryObject<Item> GRAD = vehicle(Specs.GRAD);
     public static final RegistryObject<Item> PANTSIR = vehicle(Specs.PANTSIR);
+    public static final RegistryObject<Item> MSTA = vehicle(Specs.MSTA);
     public static final RegistryObject<Item> ORESHNIK = vehicle(Specs.ORESHNIK);
     public static final RegistryObject<Item> SU25 = vehicle(Specs.SU25);
     public static final RegistryObject<Item> SU34 = vehicle(Specs.SU34);
@@ -69,6 +70,7 @@ public final class ModItems {
     public static final RegistryObject<Item> BELT_30 = ammo("belt_30", 16, 100, Munition.SHELL_30, Munition.GSH_30, Munition.AA_30);
     public static final RegistryObject<Item> SHELL_125_APFSDS = ammo("shell_125_apfsds", 16, 1, Munition.APFSDS);
     public static final RegistryObject<Item> SHELL_125_HE = ammo("shell_125_he", 16, 1, Munition.HE_125);
+    public static final RegistryObject<Item> SHELL_152_HE = ammo("shell_152_he", 8, 1, Munition.HE_152);
     public static final RegistryObject<Item> ATGM_REFLEKS = ammo("atgm_refleks", 8, 1, Munition.REFLEKS);
     public static final RegistryObject<Item> SHELL_73 = ammo("shell_73", 16, 2, Munition.HEAT_73);
     public static final RegistryObject<Item> ATGM_MALYUTKA = ammo("atgm_malyutka", 8, 1, Munition.MALYUTKA);

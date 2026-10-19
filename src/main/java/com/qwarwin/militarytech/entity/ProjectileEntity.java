@@ -479,7 +479,13 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
                 Explosions.kinetic(level, this, attacker, pos, dir, direct, munition.damage);
                 break;
             case HE:
-                Explosions.he(level, attacker, pos, direct, p, munition.damage, p * 2.2, 18F);
+                if (munition == Munition.HE_152) {
+                    // 43 kg of shell, 7.6 kg of TNT: a deep crater and fragments far out
+                    Explosions.he(level, attacker, pos, direct, p, munition.damage, p * 3.0, 30F);
+                    Explosions.bore(level, pos, new Vector3d(0, -1, 0), 4.0, 0.6F);
+                } else {
+                    Explosions.he(level, attacker, pos, direct, p, munition.damage, p * 2.2, 18F);
+                }
                 break;
             case HEAT:
                 if (munition.isAtgm()) {
