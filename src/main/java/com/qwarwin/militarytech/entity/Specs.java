@@ -247,7 +247,8 @@ public final class Specs {
         b.width = 5.36F;
         b.height = 6.03F;
         b.box(-2.094, 0, -11.223, 2.094, 4.523, 11.223);
-        b.seats = new Vector3d[]{v(1.223, 1.34, 8.375), v(-1.223, 1.34, 8.375)};
+        // on the cab seats: cushions at 1.15, riders sit about half a block lower than that
+        b.seats = new Vector3d[]{v(1.223, 0.72, 8.62), v(-1.223, 0.72, 8.62)};
         b.interior = true;
         b.separateGunner = false;
         b.tracked = false;
@@ -463,7 +464,7 @@ public final class Specs {
         b.height = 7F;
         b.box(-1.8, 3.2, -27, 1.8, 6.4, 27.1).box(-7, 3.2, -14, 7, 4.8, 6).box(-28.5, 3.6, -12, 28.5, 4.4, 0)
                 .box(-6.6, 2.3, -11.3, 6.6, 3.8, 1).box(-0.4, 6.0, -27, 0.4, 13.0, -18).box(-8, 8.8, -27, 8, 9.4, -22);
-        b.seats = new Vector3d[]{v(0.45, 4.4, 19.4), v(-0.45, 4.4, 19.4), v(0.45, 4.4, 18.2), v(-0.45, 4.4, 18.2)};
+        b.seats = new Vector3d[]{v(0.45, 4.12, 19.28), v(-0.45, 4.12, 19.28), v(0.45, 4.12, 18.2), v(-0.45, 4.12, 18.2)};
         b.riderScale = 0.9F;
         b.separateGunner = false;
         b.hasTurret = false;

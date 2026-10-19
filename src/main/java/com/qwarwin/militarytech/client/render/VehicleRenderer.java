@@ -147,6 +147,9 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             // the canister swings up about its hinge in the rear housing
             float up = o.erectProgress(partial);
             ms.translate(s.pivot.x, s.pivot.y, s.pivot.z);
+            // once nearly upright the canister is lowered onto its base on the ground, not left hanging on the hinge
+            float drop = MathHelper.clamp((up - 0.6F) / 0.4F, 0F, 1F);
+            ms.translate(0, -(s.pivot.y - 0.08) * drop, 0);
             ms.mulPose(Vector3f.XP.rotationDegrees(-90F * up));
             BoxModel.get(s.gunModel).render(ms, buf, light);
             if (o.getAmmo(0) > 0) {
