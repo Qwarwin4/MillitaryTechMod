@@ -15,12 +15,35 @@ set "JAVA_HOME=!JDK!"
 echo Using JDK: !JAVA_HOME!
 echo.
 
-call gradlew.bat build --no-daemon
+rem Clean build? Throws away everything Gradle built before (old jars, old resources): slower but always fresh.
+choice /c YN /t 15 /d N /m "Clean build (Y) or quick build (N, in 15 s)"
+if errorlevel 2 (
+    set "TASKS=build"
+) else (
+    set "TASKS=clean build"
+    if exist "build\libs" rmdir /s /q "build\libs"
+)
+echo.
+echo Running: gradlew !TASKS!
+call gradlew.bat !TASKS! --no-daemon
 if errorlevel 1 goto failed
 
+set "JAR="
+for %%F in ("build\libs\militarytech-*.jar") do (
+    echo %%~nF | findstr /i /c:"sources" /c:"dev" >nul || set "JAR=%%~fF"
+)
 echo.
-echo Done. The mod is in:
-for %%F in ("build\libs\militarytech-*.jar") do echo     %%~fF
+echo Done. The mod is:
+echo     !JAR!
+
+rem Put it in the game's mods folder, replacing the old Military Tech jar (two jars = the old one may win)
+set "MODS=%APPDATA%\.minecraft\mods"
+if not exist "!MODS!" goto nomods
+choice /c YN /t 15 /d Y /m "Copy it to !MODS! and remove the old militarytech jar (Y in 15 s)"
+if errorlevel 2 goto nomods
+del /q "!MODS!\militarytech-*.jar" 2>nul
+copy /y "!JAR!" "!MODS!\" >nul && echo Copied to !MODS!
+:nomods
 start "" "build\libs"
 pause
 exit /b 0
