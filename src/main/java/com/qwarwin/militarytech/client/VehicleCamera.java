@@ -274,6 +274,12 @@ public final class VehicleCamera {
     }
 
     /** We're inside this vehicle looking at its interior. */
+    /** The local player's eye is inside this vehicle (cockpit view, any vehicle). */
+    public static boolean eyeInside(VehicleEntity v) {
+        Minecraft mc = Minecraft.getInstance();
+        return mode != OUTSIDE && v.hasPassenger(mc.player) && !bombSight;
+    }
+
     public static boolean showInterior(VehicleEntity v) {
         Minecraft mc = Minecraft.getInstance();
         return mode == INSIDE && v.spec.interior && v.hasPassenger(mc.player);

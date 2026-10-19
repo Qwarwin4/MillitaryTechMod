@@ -35,7 +35,7 @@ public final class FxRenderTypes extends RenderType {
                 RenderType.State.builder()
                         .setTextureState(new RenderState.TextureState(tex, false, false))
                         .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setDiffuseLightingState(DIFFUSE_LIGHTING)
+                        .setDiffuseLightingState(NO_DIFFUSE_LIGHTING)
                         .setAlphaState(DEFAULT_ALPHA)
                         .setCullState(NO_CULL)
                         .setLightmapState(LIGHTMAP)

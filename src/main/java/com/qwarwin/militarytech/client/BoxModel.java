@@ -81,6 +81,9 @@ public final class BoxModel {
         return GLASS.computeIfAbsent(tex, com.qwarwin.militarytech.client.render.FxRenderTypes::glass);
     }
 
+    /** Set while drawing the vehicle the camera sits in: its canopy glass isn't drawn, you look straight out. */
+    public static boolean skipGlass;
+
     public void render(MatrixStack ms, IRenderTypeBuffer buf, int light) {
         render(ms, buf, light, OverlayTexture.NO_OVERLAY, 1F, 1F, 1F, 1F);
     }
@@ -96,13 +99,18 @@ public final class BoxModel {
             // glass is drawn see-through, blended, after the solid parts
             String file = meshTextures[s].getPath().substring(meshTextures[s].getPath().lastIndexOf('/') + 1);
             boolean glass = file.startsWith("glass");
+            if (glass && skipGlass) {
+                continue;
+            }
+            // glass seen from outside: a light tint, not a milky sheet
+            float ga = glass ? a * 0.55F : a;
             IVertexBuilder vb = buf.getBuffer(glass ? glassType(meshTextures[s])
                     : RenderType.entityCutoutNoCull(meshTextures[s]));
             float[] t = meshTris[s];
             for (int o = 0; o < t.length; o += 24) {
                 for (int i = 0; i < 4; i++) {
                     int c = o + Math.min(i, 2) * 8;
-                    vb.vertex(pose, t[c], t[c + 1], t[c + 2]).color(r, g, b, a).uv(t[c + 3], t[c + 4])
+                    vb.vertex(pose, t[c], t[c + 1], t[c + 2]).color(r, g, b, ga).uv(t[c + 3], t[c + 4])
                             .overlayCoords(overlay).uv2(light).normal(normal, t[c + 5], t[c + 6], t[c + 7]).endVertex();
                 }
             }

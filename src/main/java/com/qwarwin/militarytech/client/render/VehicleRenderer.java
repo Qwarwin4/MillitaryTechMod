@@ -50,6 +50,8 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
         // inside an armoured vehicle the armour itself isn't drawn: you look out through the vision slits
         boolean shell = !(inside && s.category == VehicleSpec.Category.TANK);
+        // sitting in it: no canopy glass between the eye and the world
+        BoxModel.skipGlass = VehicleCamera.eyeInside(e);
         if (shell) {
             BoxModel.get(s.hullModel).render(ms, buf, light, overlay, 1F, 1F, 1F, 1F);
         }
@@ -176,6 +178,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             loadedTubes(e, ms, buf, light);
         }
         ms.popPose();
+        BoxModel.skipGlass = false;
         super.render(e, entityYaw, partial, ms, buf, light);
     }
 
