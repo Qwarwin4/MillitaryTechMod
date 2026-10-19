@@ -31,14 +31,14 @@ material("cockpit", mat_flat("#4f9c9a", 0.04, 0.03, worn=True))
 material("cockpit_dark", mat_flat("#2a3133", 0.04, 0.03, worn=False))
 
 def mat_vision():
-    """vision block glass: tinted, every other texel see-through, so you can look out of the vehicle"""
+    """vision block glass: tinted and see-through, so you can look out of the vehicle"""
     import numpy as np
 
     def paint(face):
         rgb = np.zeros((face.h, face.w, 3))
-        rgb[:] = (52, 78, 86)
-        yy, xx = np.mgrid[0:face.h, 0:face.w]
-        a = (((xx + yy) % 2) == 0) * 255.0
+        rgb[:] = (40, 62, 72)
+        # tinted and see-through (drawn blended), no checkerboard
+        a = np.full((face.h, face.w), 80.0)
         return np.concatenate([rgb, a[..., None]], -1)
     return paint
 

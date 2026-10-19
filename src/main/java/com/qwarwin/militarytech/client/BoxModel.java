@@ -118,7 +118,9 @@ public final class BoxModel {
         if (quads.length == 0) {
             return;
         }
-        IVertexBuilder vb = buf.getBuffer(RenderType.entityCutoutNoCull(texture));
+        // interiors have tinted vision blocks: blended so you see out through them
+        IVertexBuilder vb = buf.getBuffer(texture.getPath().contains("interior_") ? RenderType.entityTranslucent(texture)
+                : RenderType.entityCutoutNoCull(texture));
         for (float[] q : quads) {
             for (int i = 0; i < 4; i++) {
                 int o = i * 5;
