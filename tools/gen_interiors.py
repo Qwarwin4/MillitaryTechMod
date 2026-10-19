@@ -485,7 +485,7 @@ def main():
         tank(vid, c)
     bmp1()
     cab("grad", (0.5, 2.15, 2.6), 2.1, 1.35)
-    cab("oreshnik", (1.223, 2.429, 8.877), 1.09, 0.70, depth=0.5)
+    # the Oreshnik's MZKT model has its own two cabs; a generated one only stuck out of them
     oreshnik_housing()
     # the Su-34 and MiG-23 models have proper cockpits of their own
     cockpit("su25", [(0, 2.79, 2.55)], 0.45)

@@ -39,7 +39,7 @@ def clean():
 
 
 # box parts the real models replaced; the small bits (rocket tips, tube caps) stay
-SUPERSEDED = ["grad_mount", "grad_rack", "tos1a_mount", "tos1a_rack", "bmpt_guns", "oreshnik_canister", "ural_wheel",
+SUPERSEDED = ["oreshnik_interior", "oreshnik_steering", "grad_mount", "grad_rack", "tos1a_mount", "tos1a_rack", "bmpt_guns", "oreshnik_canister", "ural_wheel",
               "mzkt_wheel"]
 
 
