@@ -133,6 +133,12 @@ public final class Explosions {
     /** HEAT warhead (ATGM, S-8KO, PG-15V): the hit, the jet through armour and walls, blasts at both ends. */
     public static void heat(World level, @Nullable Entity attacker, Vector3d pos, Vector3d dir, @Nullable Entity direct,
                             float power, float directDamage, double penetration) {
+        heat(level, attacker, pos, dir, direct, power, directDamage, penetration, 0.45F, 0.55F);
+    }
+
+    /** {@code holeChance}: how much of the tunnel's sides crumble too; {@code behind}: the second blast's share. */
+    public static void heat(World level, @Nullable Entity attacker, Vector3d pos, Vector3d dir, @Nullable Entity direct,
+                            float power, float directDamage, double penetration, float holeChance, float behind) {
         if (level.isClientSide) {
             return;
         }
@@ -143,9 +149,9 @@ public final class Explosions {
         Vector3d d = dir.normalize();
         jet(level, attacker, pos.subtract(d.scale(0.5)), d, penetration + 2.0, directDamage * 0.4F);
         explode(level, attacker, pos, power, false);
-        Vector3d end = bore(level, pos.subtract(d.scale(0.3)), d, penetration, 0.45F);
+        Vector3d end = bore(level, pos.subtract(d.scale(0.3)), d, penetration, holeChance);
         if (end.distanceTo(pos) > 1.5) {
-            explode(level, attacker, end, power * 0.55F, false);
+            explode(level, attacker, end, power * behind, false);
         }
         fragments(level, attacker, pos, power * 1.6, 14F);
         ServerWorld sw = (ServerWorld) level;

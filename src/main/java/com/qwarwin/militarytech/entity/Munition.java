@@ -23,9 +23,9 @@ public enum Munition {
     FAB250(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.995, 600, 0.0F, 9.5F, "fab250", Tracer.NONE),
     FAB500(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.995, 600, 0.0F, 14.0F, "fab500", Tracer.NONE),
     FAB1500(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.996, 600, 0.0F, 24.0F, "fab1500", Tracer.NONE),
-    REFLEKS(Kind.HEAT, Guidance.BEAM, 3.6, 0.0, 1.0, 260, 340.0F, 3.6F, "refleks", Tracer.NONE),
-    MALYUTKA(Kind.HEAT, Guidance.BEAM, 2.0, 0.0, 1.0, 420, 290.0F, 3.2F, "malyutka", Tracer.NONE),
-    ATAKA(Kind.HEAT, Guidance.BEAM, 3.2, 0.0, 1.0, 320, 390.0F, 4.4F, "ataka", Tracer.NONE),
+    REFLEKS(Kind.HEAT, Guidance.BEAM, 3.6, 0.0, 1.0, 260, 450.0F, 5.6F, "refleks", Tracer.NONE),
+    MALYUTKA(Kind.HEAT, Guidance.BEAM, 2.0, 0.0, 1.0, 420, 380.0F, 5.0F, "malyutka", Tracer.NONE),
+    ATAKA(Kind.HEAT, Guidance.BEAM, 3.2, 0.0, 1.0, 320, 520.0F, 6.8F, "ataka", Tracer.NONE),
     R73(Kind.AIR, Guidance.IR, 7.0, 0.0, 1.0, 200, 240.0F, 0.0F, "r73", Tracer.NONE),
     R40(Kind.AIR, Guidance.IR, 8.0, 0.0, 1.0, 280, 320.0F, 0.0F, "r40", Tracer.NONE),
     KH29(Kind.HEAT, Guidance.LASER, 5.0, 0.0, 1.0, 320, 480.0F, 10.0F, "kh29", Tracer.NONE),
@@ -96,6 +96,11 @@ public enum Munition {
     /** Only loaded by hand with a nuclear warhead item, never from an ammo crate. */
     public boolean isNuclear() {
         return this == ORESHNIK_NUKE || this == NUKE || this == KH102 || this == RN28;
+    }
+
+    /** Anti-tank guided missiles: tandem charges that go through walls and blow up behind them. */
+    public boolean isAtgm() {
+        return this == REFLEKS || this == MALYUTKA || this == ATAKA;
     }
 
     public boolean isRocket() {

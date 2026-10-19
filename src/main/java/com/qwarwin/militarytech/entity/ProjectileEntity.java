@@ -482,7 +482,12 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
                 Explosions.he(level, attacker, pos, direct, p, munition.damage, p * 2.2, 18F);
                 break;
             case HEAT:
-                Explosions.heat(level, attacker, pos, dir, direct, p, munition.damage, p * 1.4 + 1.5);
+                if (munition.isAtgm()) {
+                    // tandem: the jet goes deep, the hole is wide and the main charge goes off again behind the wall
+                    Explosions.heat(level, attacker, pos, dir, direct, p, munition.damage, p * 2.4 + 4.0, 0.8F, 0.9F);
+                } else {
+                    Explosions.heat(level, attacker, pos, dir, direct, p, munition.damage, p * 1.4 + 1.5);
+                }
                 break;
             case THERMOBARIC:
                 Thermobaric.disperse((ServerWorld) level, attacker, pos, dir, direct, p, munition.damage);
