@@ -268,6 +268,11 @@ public class AircraftEntity extends VehicleEntity {
         if (stack.getItem() instanceof MunitionItem) {
             MunitionItem item = (MunitionItem) stack.getItem();
             Munition want = item.main();
+            if (com.qwarwin.militarytech.Config.banned(want)) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.store_banned",
+                        new TranslationTextComponent(want.key())), true);
+                return;
+            }
             if (!air().allows(pylon, want)) {
                 player.displayClientMessage(new TranslationTextComponent("msg.militarytech.no_pylon_for",
                         new TranslationTextComponent(want.key())), true);
@@ -377,6 +382,20 @@ public class AircraftEntity extends VehicleEntity {
         Munition m = selectedGroup();
         if (m == null) {
             trigger2 = false;
+            return;
+        }
+        if (com.qwarwin.militarytech.Config.banned(m)) {
+            pilot.displayClientMessage(new TranslationTextComponent("msg.militarytech.store_banned",
+                    new TranslationTextComponent(m.key())), true);
+            trigger2 = false;
+            cooldown[5] = 10;
+            return;
+        }
+        if (isOnGround() && !com.qwarwin.militarytech.Config.RELEASE_ON_GROUND.get()) {
+            // weight on wheels: the weapons interlock won't let anything go
+            pilot.displayClientMessage(new TranslationTextComponent("msg.militarytech.interlock"), true);
+            trigger2 = false;
+            cooldown[5] = 10;
             return;
         }
         // take from the fullest pylon carrying it, alternating sides on ties

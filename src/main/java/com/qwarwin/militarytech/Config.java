@@ -22,6 +22,8 @@ public final class Config {
     public static final ForgeConfigSpec.BooleanValue NEED_FUEL;
     public static final ForgeConfigSpec.BooleanValue TIMED_LOADING;
     public static final ForgeConfigSpec.BooleanValue LOAD_CHUNKS;
+    public static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> BANNED_STORES;
+    public static final ForgeConfigSpec.BooleanValue RELEASE_ON_GROUND;
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -50,6 +52,12 @@ public final class Config {
                 .define("timedLoading", true);
         LOAD_CHUNKS = b.comment("Rockets and missiles keep the chunks they fly through loaded")
                 .define("loadChunks", true);
+        BANNED_STORES = b.comment("Aircraft stores nobody may hang or release on this server: munition ids (fab9000, rn28, kh102,",
+                        "kh29, r73, s8, ...), \"nuclear\" for every nuclear weapon, \"all\" for every store")
+                .defineList("bannedStores", java.util.Collections.emptyList(), o -> o instanceof String);
+        RELEASE_ON_GROUND = b.comment("Stores can be released with the weight on the wheels. Off (as in real aircraft): the",
+                        "weapons interlock holds everything until the aircraft is airborne")
+                .define("releaseOnGround", false);
         b.pop();
         b.push("oreshnik");
         ORESHNIK_RANGE = b.comment("Maximum range in blocks").defineInRange("range", 3000, 100, 30000);
@@ -65,5 +73,21 @@ public final class Config {
     }
 
     private Config() {
+    }
+
+    /** Whether the server forbids this store (config bannedStores). */
+    public static boolean banned(com.qwarwin.militarytech.entity.Munition m) {
+        java.util.List<? extends String> list = BANNED_STORES.get();
+        if (list.isEmpty()) {
+            return false;
+        }
+        String id = m.name().toLowerCase(java.util.Locale.ROOT);
+        for (String s : list) {
+            String t = s.trim().toLowerCase(java.util.Locale.ROOT);
+            if (t.equals(id) || t.equals("all") || t.equals("*") || (t.equals("nuclear") && m.isNuclear())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

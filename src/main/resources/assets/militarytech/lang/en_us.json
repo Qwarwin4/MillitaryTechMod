@@ -266,6 +266,8 @@
  "seat.militarytech.outside": "Riding on the armour (exposed)",
  "msg.militarytech.door_shut": "The free seats are behind closed doors: open a door",
  "msg.militarytech.seat_taken": "That seat is taken",
+ "msg.militarytech.store_banned": "%s is banned on this server",
+ "msg.militarytech.interlock": "Weapons interlock: the aircraft is on the ground",
  "msg.militarytech.pylon_busy": "%s already hangs here: take it off first (Shift+RMB, empty hand)",
  "msg.militarytech.pylon_empty": "Pylon %s is empty: right click it with a munition to hang one",
  "msg.militarytech.pylon_has": "Pylon %s: %s %s/%s (Shift+RMB with an empty hand takes it off)",
