@@ -64,6 +64,7 @@ public final class Specs {
 
     public static final VehicleSpec TOS1A = new VehicleSpec("tos1a", VehicleSpec.Category.TANK);
 
+    public static final VehicleSpec PANTSIR = new VehicleSpec("pantsir", VehicleSpec.Category.TRUCK);
     public static final VehicleSpec ZAK = new VehicleSpec("zak", VehicleSpec.Category.TURRET);
 
     public static final VehicleSpec ZRK = new VehicleSpec("zrk", VehicleSpec.Category.TURRET);
@@ -310,6 +311,49 @@ public final class Specs {
                 .mount(WeaponSpec.Mount.GUN, tos)
                 .sound("grad_launch", 12F);
 
+        // ---- Pantsir-S1 on the KamAZ-6560 8x8: 12 x 57E6 missiles, twin 2A38M 30 mm, its own radars
+        b = PANTSIR;
+        b.health = 150F;
+        b.armor = Armor.SOFT;
+        b.width = 3.0F;
+        b.height = 3.6F;
+        b.box(-1.5, 0, -5.3, 1.5, 3.2, 5.3);
+        b.box(-1.45, 2.6, -3.9, 1.45, 5.2, 0.8);
+        // driver, weapons operator and commander in the KamAZ cab
+        b.seats = new Vector3d[]{v(0.55, 1.95, 4.0), v(-0.55, 1.95, 4.0), v(0, 1.95, 3.6)};
+        b.insideSeats = 3;
+        b.interior = true;
+        b.separateGunner = true;
+        b.tracked = false;
+        b.maxSpeed = 0.7;
+        b.reverseSpeed = 0.2;
+        b.accel = 0.012;
+        b.turnRate = 2.6;
+        b.wheelModel = null;
+        b.pivot = v(0.00, 2.78, -2.20);
+        b.trunnion = v(0.00, 0.50, -0.10);
+        b.minPitch = -82F;
+        b.maxPitch = 5F;
+        b.traverse = 7F;
+        b.sight = v(0, 0.9, 2.6);
+        b.driverEye = v(0.55, 2.85, 4.0);
+        b.view(1, v(-0.55, 2.85, 4.0), false).view(2, v(0, 2.85, 3.6), false);
+        b.camDistance = 13;
+        b.engineSound = "truck_engine";
+        // twin 2A38M on the sides of the module, LMB
+        b.weapon("pantsir_30").ammo(Munition.AA_30, 1400).auto(1).spread(0.6F)
+                .mount(WeaponSpec.Mount.GUN, v(0.76, 0.21, 2.56), v(-0.76, 0.21, 2.56))
+                .sound("cannon_30", 7F);
+        // 2 x 6 tubes of 57E6, RMB; in automatic mode the module picks and engages targets itself
+        Vector3d[] sam = new Vector3d[12];
+        for (int i = 0; i < 12; i++) {
+            int side = i % 2 == 0 ? 1 : -1, k = i / 2;
+            sam[i] = v(side * (k % 2 == 0 ? 1.03 : 1.32), -0.24 + (k / 2) * 0.245, 3.09);
+        }
+        b.weapon("pantsir_sam").ammo(Munition.SAM, 12).interval(20).spread(0F).secondary()
+                .mount(WeaponSpec.Mount.GUN, sam)
+                .sound("missile_launch", 8F);
+
         // ---- automatic air defence: twin 30 mm gun turret and a missile turret
         for (VehicleSpec t : new VehicleSpec[]{ZAK, ZRK}) {
             t.armor = Armor.LIGHT;
@@ -523,6 +567,7 @@ public final class Specs {
 
         // ---- fuel: minutes of hard running on a full tank, and what one barrel puts back
         GRAD.fuelMinutes = 60;
+        PANTSIR.fuelMinutes = 60;
         ORESHNIK.fuelMinutes = 60;
         ORESHNIK.fuelPerBarrel = 0.2F;
         SU25.fuelMinutes = 25;
@@ -538,7 +583,7 @@ public final class Specs {
         ZRK.fuelMinutes = 0;
     }
 
-    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, ZAK, ZRK};
+    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, PANTSIR, ZAK, ZRK};
 
     private Specs() {
     }

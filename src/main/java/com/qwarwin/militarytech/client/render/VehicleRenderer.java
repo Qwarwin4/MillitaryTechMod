@@ -193,7 +193,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             WeaponSpec ws = e.spec.weapons.get(w);
             Munition m = ws.ammo[0];
             String cap = m == Munition.ATAKA ? "bmpt_cap" : m == Munition.GRAD ? "grad_rocket_tip"
-                    : m == Munition.TOS_220 ? "tos1a_rocket_tip" : m == Munition.SAM ? "zrk_cap"
+                    : m == Munition.TOS_220 ? "tos1a_rocket_tip" : m == Munition.SAM && !(e instanceof com.qwarwin.militarytech.entity.PantsirEntity) ? "zrk_cap"
                     : m == Munition.MALYUTKA ? "malyutka_rail" : null;
             if (cap == null) {
                 continue;

@@ -31,6 +31,7 @@ public final class ModItems {
     public static final RegistryObject<Item> BMP1 = vehicle(Specs.BMP1);
     public static final RegistryObject<Item> TOS1A = vehicle(Specs.TOS1A);
     public static final RegistryObject<Item> GRAD = vehicle(Specs.GRAD);
+    public static final RegistryObject<Item> PANTSIR = vehicle(Specs.PANTSIR);
     public static final RegistryObject<Item> ORESHNIK = vehicle(Specs.ORESHNIK);
     public static final RegistryObject<Item> SU25 = vehicle(Specs.SU25);
     public static final RegistryObject<Item> SU34 = vehicle(Specs.SU34);

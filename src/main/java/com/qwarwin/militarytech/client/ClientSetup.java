@@ -29,6 +29,7 @@ public final class ClientSetup {
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.ZAK.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.ZRK.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.GRAD.get(), VehicleRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(ModEntities.PANTSIR.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.ORESHNIK.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.SU25.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.SU34.get(), VehicleRenderer::new);

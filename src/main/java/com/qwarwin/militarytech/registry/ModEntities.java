@@ -6,6 +6,7 @@ import com.qwarwin.militarytech.entity.AircraftEntity;
 import com.qwarwin.militarytech.entity.CameraEntity;
 import com.qwarwin.militarytech.entity.GradEntity;
 import com.qwarwin.militarytech.entity.OreshnikEntity;
+import com.qwarwin.militarytech.entity.PantsirEntity;
 import com.qwarwin.militarytech.entity.ProjectileEntity;
 import com.qwarwin.militarytech.entity.Specs;
 import com.qwarwin.militarytech.entity.TankEntity;
@@ -44,6 +45,11 @@ public final class ModEntities {
             () -> EntityType.Builder.<GradEntity>of(GradEntity::new, EntityClassification.MISC)
                     .sized(Specs.GRAD.width, Specs.GRAD.height).clientTrackingRange(16).updateInterval(1)
                     .setShouldReceiveVelocityUpdates(false).build("grad")));
+
+    public static final RegistryObject<EntityType<PantsirEntity>> PANTSIR = reg(Specs.PANTSIR, ENTITIES.register("pantsir",
+            () -> EntityType.Builder.<PantsirEntity>of(PantsirEntity::new, EntityClassification.MISC)
+                    .sized(Specs.PANTSIR.width, Specs.PANTSIR.height).clientTrackingRange(16).updateInterval(1)
+                    .setShouldReceiveVelocityUpdates(false).build("pantsir")));
 
     public static final RegistryObject<EntityType<OreshnikEntity>> ORESHNIK = reg(Specs.ORESHNIK, ENTITIES.register("oreshnik",
             () -> EntityType.Builder.<OreshnikEntity>of(OreshnikEntity::new, EntityClassification.MISC)

@@ -10,7 +10,7 @@ import gen_vehicles as gv  # noqa: E402
 M = gv.MODID
 DATA = os.path.join(gv.RES, "data", M)
 
-VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig23", "tu160", "zak", "zrk"]
+VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig23", "tu160", "pantsir", "zak", "zrk"]
 
 RU = {
     "itemGroup.militarytech": "Военная техника",
@@ -22,6 +22,12 @@ RU = {
     "entity.militarytech.tu160": "Ту-160 «Белый лебедь»",
     "entity.militarytech.tos1a": "ТОС-1А «Солнцепёк»", "entity.militarytech.zak": "Зенитная турель 2×30 мм",
     "entity.militarytech.zrk": "Зенитная ракетная турель",
+    "entity.militarytech.pantsir": "«Панцирь-С1»",
+    "weapon.militarytech.pantsir_30": "2×30 мм 2А38М", "weapon.militarytech.pantsir_sam": "12 ЗУР 57Э6",
+    "msg.militarytech.pantsir_auto_on": "«Панцирь»: АВТОМАТИЧЕСКИЙ РЕЖИМ — цели до 1800 блоков",
+    "msg.militarytech.pantsir_auto_off": "«Панцирь»: ручное управление",
+    "tooltip.militarytech.pantsir": "ЗРПК на КамАЗе: 12 ЗУР до 1800 блоков и 2×30 мм. G — автомат: сам находит и сбивает самолёты, дроны и ракеты.",
+    "hud.militarytech.pantsir_hint": "ЛКМ пушки, ПКМ ракета по цели у прицела, G авторежим",
     "entity.militarytech.projectile": "Снаряд", "entity.militarytech.camera": "Камера",
     # parts and supplies
     "item.militarytech.ammo_crate": "Ящик с боекомплектом", "item.militarytech.repair_kit": "Ремкомплект",
@@ -228,6 +234,12 @@ EN = {
     "entity.militarytech.tu160": "Tu-160 White Swan",
     "entity.militarytech.tos1a": "TOS-1A Solntsepyok", "entity.militarytech.zak": "AA Gun Turret 2x30 mm",
     "entity.militarytech.zrk": "SAM Turret",
+    "entity.militarytech.pantsir": "Pantsir-S1",
+    "weapon.militarytech.pantsir_30": "2x 30 mm 2A38M", "weapon.militarytech.pantsir_sam": "12x 57E6 SAM",
+    "msg.militarytech.pantsir_auto_on": "Pantsir: AUTOMATIC MODE, targets out to 1800 blocks",
+    "msg.militarytech.pantsir_auto_off": "Pantsir: manual control",
+    "tooltip.militarytech.pantsir": "Gun-missile system on a KamAZ: 12 SAMs out to 1800 blocks and 2x 30 mm. G: automatic mode finds and shoots down aircraft, drones and missiles.",
+    "hud.militarytech.pantsir_hint": "LMB guns, RMB missile at the target nearest the sight, G auto mode",
     "entity.militarytech.projectile": "Projectile", "entity.militarytech.camera": "Camera",
     "item.militarytech.ammo_crate": "Ammo Crate", "item.militarytech.repair_kit": "Repair Kit",
     "item.militarytech.armor_plate": "Armor Plate", "item.militarytech.era_block": "Reactive Armor Block",
@@ -488,6 +500,8 @@ RECIPES = [
                                       "T": "track_links", "F": "fire_control"}, 1),
     ("zak", ["AFA", "PDP", "III"], {"A": "autocannon", "F": "fire_control", "P": "armor_plate", "D": "diesel_engine",
                                     "I": V + "iron_block"}, 1),
+    ("pantsir", ["RFR", "GDG", "WWW"], {"R": "rocket_motor", "F": "fire_control", "G": "autocannon", "D": "diesel_engine",
+                                        "W": "truck_wheel"}, 1),
     ("zrk", ["RFR", "RDR", "III"], {"R": "rocket_motor", "F": "fire_control", "D": "diesel_engine",
                                     "I": V + "iron_block"}, 1),
     ("t80u", ["EBE", "PGP", "TFT"], {"E": "era_block", "B": "gun_barrel", "P": "armor_plate", "G": "gas_turbine",

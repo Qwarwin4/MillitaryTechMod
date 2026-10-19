@@ -15,6 +15,7 @@
 | Су-25 | [Su-25](https://sketchfab.com/3d-models/su-25-88b71eb848cf4418a95dff497c07cefc) | mamont nikita | CC BY 4.0 |
 | Су-34 | [Su34](https://sketchfab.com/3d-models/su34-1c94f436be51453fa598e9eab50eb0a7) | manilov.ap | CC BY 4.0 |
 | МиГ-23УБ | [Mig-23 UB](https://sketchfab.com/3d-models/mig-23-ub-dd4e5995803b4ba28929323f20a18b3d) | Tim Samedov | CC BY 4.0 |
+| «Панцирь-С1» | [Pantsir-S1](https://sketchfab.com/3d-models/pantsir-s1-3cb67b0bae10418190e7ce32142231e4) | SanderWolf | CC BY 4.0 |
 | Ту-160 | [Tupolev TU-160](https://sketchfab.com/3d-models/d3af9e67f8024dcc9b23a3e91d492e40) | ioai25312 | CC BY 4.0 |
 
 Бомбы и ракеты собраны скриптом `tools/gen_munition_meshes.py` (повёрнуты носом вперёд, приведены к реальной длине).

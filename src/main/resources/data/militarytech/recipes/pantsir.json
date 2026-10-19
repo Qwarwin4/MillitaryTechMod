@@ -1,0 +1,29 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "RFR",
+  "GDG",
+  "WWW"
+ ],
+ "key": {
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "G": {
+   "item": "militarytech:autocannon"
+  },
+  "D": {
+   "item": "militarytech:diesel_engine"
+  },
+  "W": {
+   "item": "militarytech:truck_wheel"
+  }
+ },
+ "result": {
+  "item": "militarytech:pantsir",
+  "count": 1
+ }
+}

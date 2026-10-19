@@ -38,6 +38,7 @@ VEHICLES = {
                      canister=True, pivot=(0, 2.55, -6.0)),
     "tos1a": dict(wheels=W72, wx=1.43, wy=0.52, turret="tos1a_mount", gun="tos1a_rack", pivot=(0, 1.45, -0.6),
                   tr=(0, 0.55, -1.25), pitch=-25),
+    "pantsir": dict(),
     "zak": dict(wheels=[], hull="zak_base", turret="zak_turret", gun="zak_guns", pivot=(0, 1.2, 0), tr=(0, 0.55, 0.05),
                 pitch=-30, yaw=200),
     "zrk": dict(wheels=[], hull="zrk_base", turret="zrk_turret", gun="zrk_launcher", pivot=(0, 1.2, 0), tr=(0, 0.65, 0),

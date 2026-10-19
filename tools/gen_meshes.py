@@ -110,6 +110,14 @@ VEHICLES = {
         rules=[("drop", name("Object_4")),
                ("gun", lambda i: i["min"][1] > 1.93 and abs(i["center"][0]) < 1.26)],
         pivot=(0, 2.06, -11.19), origins={"gun": (0, 2.06, -11.19)}, empty=["cap"]),
+    # Pantsir-S1 on the KamAZ-6560: Object_13 is the combat module (search radar, tracking radar, 2 x 6 missile
+    # tubes, twin 2A38M); the tube packs and cannons on the sides elevate, the rest turns
+    "pantsir": dict(
+        src="pantsir", tracked=False, ry=180, k=0.65, dy=0.04, dz=3.67, tris=45000,
+        rules=[("gun", both(name("Object_13"), box(-1.6, 2.85, -3.6, 1.6, 3.75, 0.95),
+                            lambda i: abs(i["center"][0]) >= 0.6)),
+               ("turret", both(name("Object_13"), box(-2.0, 2.5, -4.2, 2.0, 5.5, 1.0)))],
+        pivot=(0, 2.78, -2.2), trunnion=(0, 0.5, -0.1)),
     # aircraft: the gear is its own part, drawn only while it's down
     "su25": dict(src="su25", wheels=False, ry=0, k=0.0463, dy=0.062, dz=0, tris=40000,
                  bays=[(0.02, 1.6, 0.52, 3.0), (-1.65, -1.4, -0.9, 1.7), (0.9, -1.4, 1.65, 1.7)],
