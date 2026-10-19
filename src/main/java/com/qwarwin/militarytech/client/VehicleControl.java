@@ -170,6 +170,8 @@ public final class VehicleControl {
         VehicleCamera.onVehicleChanged(to);
     }
 
+    private static int lastTakeover = -100;
+
     private static void readKeys(Minecraft mc, VehicleEntity v) {
         GameSettings o = mc.options;
         boolean noScreen = mc.screen == null;
@@ -196,6 +198,14 @@ public final class VehicleControl {
             } else {
                 action = true;
             }
+        }
+        // dual controls: the other pilot takes over by touching the stick or the pedals
+        if (noScreen && v.dualControls() && !v.isDriver(mc.player) && (v.seatOf(mc.player) == 0 || v.seatOf(mc.player) == 1)
+                && (o.keyUp.isDown() || o.keyDown.isDown() || o.keyLeft.isDown() || o.keyRight.isDown() || o.keyJump.isDown())
+                && mc.player.tickCount - lastTakeover > 10) {
+            lastTakeover = mc.player.tickCount;
+            com.qwarwin.militarytech.network.Network.CHANNEL.sendToServer(new com.qwarwin.militarytech.network.ClickVehiclePacket(
+                    v.getId(), VehicleEntity.TAKE_CONTROLS, 0));
         }
         for (int n = KeyBinds.presses(KeyBinds.BOMBSIGHT); n > 0; n--) {
             if (v instanceof AircraftEntity && v.isDriver(mc.player)) {

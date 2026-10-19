@@ -267,6 +267,7 @@
  "seat.militarytech.outside": "На броне (без защиты)",
  "msg.militarytech.door_shut": "Свободные места за закрытыми дверями — откройте десантную дверь",
  "msg.militarytech.seat_taken": "Место занято",
+ "msg.militarytech.has_control": "Управление у: %s",
  "msg.militarytech.store_banned": "%s запрещено на этом сервере",
  "msg.militarytech.interlock": "Блокировка применения: самолёт на земле",
  "msg.militarytech.pylon_busy": "На пилоне уже %s — снимите (Shift+ПКМ пустой рукой)",

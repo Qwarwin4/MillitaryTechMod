@@ -71,6 +71,8 @@ public abstract class VehicleEntity extends Entity {
     private static final DataParameter<Float> FUEL = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.FLOAT);
     /** ticks of loading still queued (for the HUD) */
     private static final DataParameter<Integer> LOADING = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.INT);
+    /** Aircraft with two pilots: which of the two pilot seats has the controls. */
+    private static final DataParameter<Integer> CONTROL = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.INT);
     public static final int MAX_AMMO_SLOTS = 13;
     @SuppressWarnings("unchecked")
     private static final DataParameter<Integer>[] AMMO = new DataParameter[MAX_AMMO_SLOTS];
@@ -135,6 +137,7 @@ public abstract class VehicleEntity extends Entity {
         entityData.define(DOORS, 0);
         entityData.define(FUEL, 1F);
         entityData.define(LOADING, 0);
+        entityData.define(CONTROL, 0);
         for (DataParameter<Integer> p : AMMO) {
             entityData.define(p, 0);
         }
@@ -333,13 +336,39 @@ public abstract class VehicleEntity extends Entity {
 
     @Nullable
     public Entity getDriver() {
+        if (dualControls()) {
+            // dual controls: whoever has them flies; with that seat empty, the other pilot does
+            int c = entityData.get(CONTROL) == 1 ? 1 : 0;
+            Entity e = inSeat(c);
+            return e != null ? e : inSeat(1 - c);
+        }
         return inSeat(0);
+    }
+
+    /** An aircraft with two pilot seats: both have a stick and either can fly. */
+    public boolean dualControls() {
+        return spec.air != null && Math.min(spec.seats.length, spec.insideSeats) >= 2;
+    }
+
+    /** The pilot in the other seat takes the controls ("I have control"). */
+    public void takeControls(ServerPlayerEntity player) {
+        int s = seatOf(player);
+        if (!dualControls() || (s != 0 && s != 1) || isDriver(player)) {
+            return;
+        }
+        entityData.set(CONTROL, s);
+        for (Entity p : getPassengers()) {
+            if (p instanceof PlayerEntity) {
+                ((PlayerEntity) p).displayClientMessage(new TranslationTextComponent("msg.militarytech.has_control",
+                        new TranslationTextComponent(seatKey(s))), true);
+            }
+        }
     }
 
     @Nullable
     public Entity getGunner() {
         if (!spec.separateGunner) {
-            return inSeat(0);
+            return getDriver();
         }
         Entity g = inSeat(1);
         // alone in the vehicle, the driver works the gun too
@@ -555,7 +584,7 @@ public abstract class VehicleEntity extends Entity {
 
     // ------------------------------------------------------------------ clicking parts of a vehicle
 
-    public static final int PICK_HULL = 0, PICK_SEAT = 1, PICK_DOOR = 2, PICK_PYLON = 3;
+    public static final int PICK_HULL = 0, PICK_SEAT = 1, PICK_DOOR = 2, PICK_PYLON = 3, TAKE_CONTROLS = 4;
 
     /** What a look ray from the eye meets on this vehicle: {kind, index, distance}, or null. Seats, doors and
      * pylons count wherever on them the ray passes, even through the hull or the canopy around them. */
@@ -608,6 +637,12 @@ public abstract class VehicleEntity extends Entity {
 
     /** A click the client picked out (see {@link #pick}): get in, work a door, hang a store, or use the item. */
     public void handleClick(ServerPlayerEntity player, int kind, int index) {
+        if (kind == TAKE_CONTROLS) {
+            if (player.getVehicle() == this) {
+                takeControls(player);
+            }
+            return;
+        }
         if (player.getVehicle() == this || player.distanceToSqr(this) > 40 * 40) {
             return;
         }
