@@ -639,10 +639,14 @@ def material_image(mat, max_size=1024, glass_checker=True):
     elif mat.alpha_mode == "MASK":
         a = (a >= mat.cutoff).astype(np.float64)
     else:
-        tint = np.array([0.16, 0.2, 0.24])
-        rgb = rgb * a[..., None] + tint * (1 - a[..., None])
-        yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
-        a = ((xx + yy) % 2 == 0).astype(np.float64) if glass_checker else np.ones_like(a)
+        if glass_checker:
+            tint = np.array([0.16, 0.2, 0.24])
+            rgb = rgb * a[..., None] + tint * (1 - a[..., None])
+            yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+            a = ((xx + yy) % 2 == 0).astype(np.float64)
+        else:
+            # real see-through glass: its own alpha, never quite invisible
+            a = np.clip(a * float(mat.color[3]) if len(mat.color) > 3 else a, 0.18, 1.0)
     out = Image.fromarray((np.dstack([rgb, a]).clip(0, 1) * 255).astype(np.uint8), "RGBA")
     if max(out.size) > max_size:
         k = max_size / max(out.size)

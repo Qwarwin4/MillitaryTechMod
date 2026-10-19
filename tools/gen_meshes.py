@@ -422,8 +422,11 @@ def build(vid, v):
                 tex_of[mi] = tex_of[found[0]]
                 continue
             idx = len({r[1] for r in tex_of.values() if isinstance(r, tuple)})
-            mk.material_image(mat, max_tex).save(os.path.join(tex_dir, f"t{idx}.png"), optimize=True)
-            tex_of[mi] = (key, f"t{idx}")
+            # blended textures (canopies) keep their real alpha and are drawn translucent ("glass" in the name)
+            ref = f"glass_t{idx}" if mat.alpha_mode == "BLEND" else f"t{idx}"
+            mk.material_image(mat, max_tex, glass_checker=mat.alpha_mode != "BLEND").save(
+                os.path.join(tex_dir, ref + ".png"), optimize=True)
+            tex_of[mi] = (key, ref)
         elif mat.alpha_mode == "BLEND" or mat.name in v.get("glass_mats", ()):
             tex_of[mi] = "glass"
         else:
@@ -439,8 +442,10 @@ def build(vid, v):
         pim.save(os.path.join(tex_dir, "palette.png"))
     if any(r == "glass" for r in tex_of.values()):
         g = np.zeros((8, 8, 4), dtype=np.uint8)
-        g[..., :3] = (40, 52, 62)
-        g[..., 3] = ((np.indices((8, 8)).sum(0) % 2) == 0) * 255
+        # see-through tinted glass (drawn translucent by BoxModel), a faint glint along one edge
+        g[..., :3] = (150, 175, 190)
+        g[..., 3] = 70
+        g[0, :, 3] = 110
         Image.fromarray(g, "RGBA").save(os.path.join(tex_dir, "glass.png"))
 
     sections = {}

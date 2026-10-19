@@ -615,6 +615,9 @@ public abstract class VehicleEntity extends Entity {
 
     /** "driver", "gunner", "commander", "troops", "on the armour" */
     public String seatKey(int s) {
+        if (spec.air != null) {
+            return s == 0 ? "seat.militarytech.pilot" : "seat.militarytech.copilot";
+        }
         if (s == 0) {
             return "seat.militarytech.driver";
         }

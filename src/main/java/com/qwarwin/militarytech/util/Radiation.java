@@ -114,6 +114,8 @@ public final class Radiation extends WorldSavedData {
                 if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew(e)) {
                     dose *= 0.1;
                 }
+                // the helmet's gas mask, and the whole flight kit, keep most of the fallout out
+                dose *= com.qwarwin.militarytech.item.PilotArmor.doseFactor(e);
                 if (dose < 0.02) {
                     continue;
                 }

@@ -85,6 +85,8 @@ def main():
         print("  no model sources in", gen_meshes.MODELS_DIR, "- keeping the committed meshes")
     drop_superseded()
     gen_icons.main()
+    import gen_armor
+    gen_armor.main()
     gen_sounds.main()
     gen_data.main()
     print("done:", gen_vehicles.RES)

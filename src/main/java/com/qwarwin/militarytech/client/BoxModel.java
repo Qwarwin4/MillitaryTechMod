@@ -87,7 +87,11 @@ public final class BoxModel {
         Matrix3f normal = ms.last().normal();
         // the entity render types draw quads: each triangle goes out as a quad with its last corner doubled
         for (int s = 0; s < meshTris.length; s++) {
-            IVertexBuilder vb = buf.getBuffer(RenderType.entityCutoutNoCull(meshTextures[s]));
+            // glass is drawn see-through, blended, after the solid parts
+            String file = meshTextures[s].getPath().substring(meshTextures[s].getPath().lastIndexOf('/') + 1);
+            boolean glass = file.startsWith("glass");
+            IVertexBuilder vb = buf.getBuffer(glass ? RenderType.entityTranslucent(meshTextures[s])
+                    : RenderType.entityCutoutNoCull(meshTextures[s]));
             float[] t = meshTris[s];
             for (int o = 0; o < t.length; o += 24) {
                 for (int i = 0; i < 4; i++) {

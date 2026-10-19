@@ -129,6 +129,37 @@ III
 ```
 `I` iron_ingot, `C` coal_block, `B` bucket
 
+### Защитный шлем ЗШ-7 с маской
+```
+III
+IGI
+LSL
+```
+`I` iron_ingot, `G` glass_pane, `L` leather, `S` string
+
+### Лётная куртка
+```
+L.L
+LWL
+LWL
+```
+`L` leather, `W` любые доски
+
+### Лётные брюки
+```
+LWL
+L.L
+L.L
+```
+`L` leather, `W` любые доски
+
+### Лётные ботинки
+```
+L.L
+I.I
+```
+`L` leather, `I` iron_nugget
+
 ### Ремкомплект ×2
 ```
 III

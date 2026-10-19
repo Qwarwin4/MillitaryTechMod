@@ -6,6 +6,7 @@ import com.qwarwin.militarytech.entity.Specs;
 import com.qwarwin.militarytech.entity.VehicleSpec;
 import com.qwarwin.militarytech.item.AmmoCrateItem;
 import com.qwarwin.militarytech.item.MunitionItem;
+import com.qwarwin.militarytech.item.PilotArmor;
 import com.qwarwin.militarytech.item.TooltipItem;
 import com.qwarwin.militarytech.item.VehicleItem;
 import net.minecraft.item.Item;
@@ -39,6 +40,15 @@ public final class ModItems {
 
     public static final RegistryObject<Item> AMMO_CRATE = ITEMS.register("ammo_crate",
             () -> new AmmoCrateItem(props().stacksTo(16)));
+    // the pilot's kit
+    public static final RegistryObject<Item> PILOT_HELMET = ITEMS.register("pilot_helmet",
+            () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.HEAD, props()));
+    public static final RegistryObject<Item> PILOT_SUIT = ITEMS.register("pilot_suit",
+            () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.CHEST, props()));
+    public static final RegistryObject<Item> PILOT_TROUSERS = ITEMS.register("pilot_trousers",
+            () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.LEGS, props()));
+    public static final RegistryObject<Item> PILOT_BOOTS = ITEMS.register("pilot_boots",
+            () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.FEET, props()));
     public static final RegistryObject<Item> FUEL_BARREL = ITEMS.register("fuel_barrel",
             () -> new TooltipItem(props().stacksTo(4), "tooltip.militarytech.fuel_barrel"));
     public static final RegistryObject<Item> REPAIR_KIT = ITEMS.register("repair_kit",

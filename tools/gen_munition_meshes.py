@@ -104,8 +104,8 @@ def build(name, cfg):
         elif mat.alpha_mode == "BLEND":
             ref = "glass"
             g = np.zeros((8, 8, 4), dtype=np.uint8)
-            g[..., :3] = (40, 52, 62)
-            g[..., 3] = ((np.indices((8, 8)).sum(0) % 2) == 0) * 255
+            g[..., :3] = (150, 175, 190)
+            g[..., 3] = 70
             Image.fromarray(g, "RGBA").save(os.path.join(tex_dir, "glass.png"))
             UV = np.stack([(P3[..., 0] + P3[..., 2]) * 8, P3[..., 1] * 8], -1)
         else:
