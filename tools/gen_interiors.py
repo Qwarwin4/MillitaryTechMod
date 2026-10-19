@@ -401,7 +401,7 @@ def fit_to_hull(P, eye, w, depth, head):
     return min(w, max(0.15, side - 0.05)), min(depth, max(0.3, down - 0.04)), min(head, max(0.05, up - 0.04))
 
 
-def cockpit(vid, eyes, half_width=0.4):
+def cockpit(vid, eyes, half_width=0.4, shell=True):
     """eyes: list of (x, y, z) per seat; a panel, a seat, a stick, side consoles and the canopy bow for each,
     each made to fit inside the real model's fuselage"""
     b = Bake("cockpit_" + vid, gv.MODID, gv.GREEN, density=64)
@@ -411,9 +411,10 @@ def cockpit(vid, eyes, half_width=0.4):
     stick_len = 0.5
     for ex, ey, ez in eyes:
         w, depth, head = fit_to_hull(P, (ex, ey, ez), half_width, 0.95, 0.22)
-        # tub walls and floor
-        c.B(ex - w - 0.03, ey - depth, ez - 0.55, ex - w, ey - 0.3, ez + 0.7, "cockpit")
-        c.B(ex + w, ey - depth, ez - 0.55, ex + w + 0.03, ey - 0.3, ez + 0.7, "cockpit")
+        # tub walls and floor (not where the model has its own fuselage tight round the crew)
+        if shell:
+            c.B(ex - w - 0.03, ey - depth, ez - 0.55, ex - w, ey - 0.3, ez + 0.7, "cockpit")
+            c.B(ex + w, ey - depth, ez - 0.55, ex + w + 0.03, ey - 0.3, ez + 0.7, "cockpit")
         c.B(ex - w, ey - depth - 0.03, ez - 0.55, ex + w, ey - depth, ez + 0.7, "cockpit_dark")
         # main panel under the glare shield
         c.B(ex - w, ey - 0.62, ez + 0.6, ex + w, ey - 0.2, ez + 0.66, {"all": "cockpit_dark", "north": ("cockpit_dark", gauges(4, 3, 0.05))})
@@ -432,13 +433,16 @@ def cockpit(vid, eyes, half_width=0.4):
         stick_len = depth - 0.42
         # ejection seat: tall back, headbox, yellow-black handle
         c.B(ex - 0.22, ey - 0.85, ez - 0.32, ex + 0.22, ey - 0.75, ez + 0.12, "int_seat")
-        c.B(ex - 0.22, ey - 0.85, ez - 0.45, ex + 0.22, ey + 0.05, ez - 0.32, "int_seat")
-        c.B(ex - 0.16, ey + 0.05, ez - 0.45, ex + 0.16, ey + 0.2, ez - 0.32, "cockpit_dark")
+        # kept under the canopy: the headbox never pokes through the glass
+        back_top = ey + min(0.05, head - 0.17)
+        c.B(ex - 0.22, ey - 0.85, ez - 0.45, ex + 0.22, back_top, ez - 0.32, "int_seat")
+        c.B(ex - 0.16, back_top, ez - 0.45, ex + 0.16, back_top + 0.13, ez - 0.32, "cockpit_dark")
         c.B(ex - 0.06, ey - 0.78, ez + 0.1, ex + 0.06, ey - 0.73, ez + 0.14, ("int_box", [("stripe", 0.0, 0.5, (210, 180, 30))]))
         # canopy bow: two posts and the arch over the windscreen
-        for x in (ex - w + 0.02, ex + w - 0.02):
+        for x in ((ex - w + 0.02, ex + w - 0.02) if shell else ()):
             c.B(x - 0.02, ey - 0.2, ez + 0.66, x + 0.02, ey + head, ez + 0.7, "cockpit_dark")
-        c.B(ex - w + 0.02, ey + head - 0.03, ez + 0.6, ex + w - 0.02, ey + head, ez + 0.7, "cockpit_dark")
+        if shell:
+            c.B(ex - w + 0.02, ey + head - 0.03, ez + 0.6, ex + w - 0.02, ey + head, ez + 0.7, "cockpit_dark")
     st = b.part(vid + "_stick")
     st.B(-0.02, 0, -0.02, 0.02, stick_len - 0.08, 0.02, "int_steel")
     st.B(-0.035, stick_len - 0.1, -0.03, 0.035, stick_len, 0.04, "int_box")
@@ -490,7 +494,7 @@ def main():
     # the Su-34 and MiG-23 models have proper cockpits of their own
     cockpit("su25", [(0, 2.79, 2.55)], 0.45)
     # Tu-160: two pilots side by side, the model has no cockpit of its own
-    cockpit("tu160", [(0.45, 5.3, 19.4), (-0.45, 5.3, 19.4)], 0.4)
+    cockpit("tu160", [(0.45, 5.3, 19.4), (-0.45, 5.3, 19.4)], 0.32, shell=False)
 
 
 if __name__ == "__main__":
