@@ -197,6 +197,7 @@
  "item.militarytech.pilot_boots": "Лётные ботинки",
  "seat.militarytech.pilot": "Место пилота",
  "seat.militarytech.copilot": "Место второго пилота",
+ "msg.militarytech.click_seat": "Кликните по сиденью, люку или кабине, чтобы сесть",
  "item.militarytech.munition_box": "Ящик для боеприпасов",
  "tooltip.militarytech.box_line": "%s ×%s",
  "tooltip.militarytech.box_more": "...и ещё %s",

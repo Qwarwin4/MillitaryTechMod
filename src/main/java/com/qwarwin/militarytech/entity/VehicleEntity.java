@@ -542,6 +542,8 @@ public abstract class VehicleEntity extends Entity {
     }
 
     private int pendingSeat = -1;
+    /** how close to a seat a click has to land to take it, blocks */
+    private static final double SEAT_REACH = 1.9;
 
     private void enter(PlayerEntity player, int seat) {
         if (owner == null) {
@@ -589,7 +591,15 @@ public abstract class VehicleEntity extends Entity {
         if (player.isShiftKeyDown() && getPassengers().isEmpty()) {
             return ActionResultType.PASS;
         }
+        // you sit where you click: on the seat, its hatch or the cockpit over it
         int s = nearestSeat(local, null);
+        if (s >= 0 && spec.seats[s].distanceTo(local) > SEAT_REACH) {
+            if (level.isClientSide) {
+                return ActionResultType.SUCCESS;
+            }
+            player.displayClientMessage(new TranslationTextComponent("msg.militarytech.click_seat"), true);
+            return ActionResultType.CONSUME;
+        }
         if (s < 0 || player.isPassenger()) {
             return ActionResultType.PASS;
         }
@@ -1522,11 +1532,7 @@ public abstract class VehicleEntity extends Entity {
             pickUp(player);
             return ActionResultType.CONSUME;
         }
-        int seat = nearestSeat(toLocal(player.position()), null);
-        if (seat >= 0 && !player.isPassenger()) {
-            enter(player, seat);
-            return ActionResultType.CONSUME;
-        }
+        // seats are taken by clicking them (interactAt); this is only reached when the click missed the hull
         if (!spec.doors.isEmpty() && canAddPassenger(player)) {
             player.displayClientMessage(new TranslationTextComponent("msg.militarytech.door_shut"), true);
         }

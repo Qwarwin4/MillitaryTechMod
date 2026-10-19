@@ -196,6 +196,7 @@
  "item.militarytech.pilot_boots": "Flight Boots",
  "seat.militarytech.pilot": "Pilot's seat",
  "seat.militarytech.copilot": "Co-pilot's seat",
+ "msg.militarytech.click_seat": "Click a seat, a hatch or the cockpit to get in",
  "item.militarytech.munition_box": "Ammunition Box",
  "tooltip.militarytech.box_line": "%s x%s",
  "tooltip.militarytech.box_more": "...and %s more",
