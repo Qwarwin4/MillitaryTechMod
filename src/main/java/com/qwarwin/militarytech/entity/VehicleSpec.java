@@ -28,6 +28,11 @@ public final class VehicleSpec {
     public boolean separateGunner = true;
     /** crew can't be shot or fragged while inside */
     public boolean enclosed = true;
+    /**
+     * Built to fly through its own war: anti-flash white paint, shielded electronics, a sealed and filtered cabin,
+     * flash curtains for the crew (the Tu-160). The pulse doesn't stop it, the blast and the fallout do far less.
+     */
+    public boolean nuclearHardened;
     /** seats from this index on are outside, riding on the armour: visible, unprotected, free to shoot */
     public int insideSeats = 99;
 

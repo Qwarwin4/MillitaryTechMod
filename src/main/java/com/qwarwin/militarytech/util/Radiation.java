@@ -112,7 +112,8 @@ public final class Radiation extends WorldSavedData {
             for (LivingEntity e : w.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
                 double dose = r.dose(e.position(), now);
                 if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew(e)) {
-                    dose *= 0.1;
+                    // a sealed, filtered, shielded cabin keeps out nearly all of it
+                    dose *= ((VehicleEntity) e.getVehicle()).spec.nuclearHardened ? 0.02 : 0.1;
                 }
                 // the helmet's gas mask, and the whole flight kit, keep most of the fallout out
                 dose *= com.qwarwin.militarytech.item.PilotArmor.doseFactor(e);

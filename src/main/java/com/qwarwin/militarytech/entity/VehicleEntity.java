@@ -809,6 +809,11 @@ public abstract class VehicleEntity extends Entity {
         return spec.enclosed;
     }
 
+    /** Whether {@code e} rides in a vehicle hardened against nuclear weapons. */
+    public static boolean hardened(@Nullable Entity e) {
+        return e != null && e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).spec.nuclearHardened;
+    }
+
     /** Same, for one passenger: riders on the armour are out in the open. */
     public boolean protectsCrew(Entity e) {
         return protectsCrew() && !isOutside(e);

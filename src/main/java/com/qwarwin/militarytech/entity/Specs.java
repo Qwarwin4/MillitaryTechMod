@@ -532,6 +532,7 @@ public final class Specs {
         MIG23.fuelMinutes = 20;
         MIG23.fuelPerBarrel = 0.2F;
         TU160.fuelMinutes = 90;
+        TU160.nuclearHardened = true;
         TU160.fuelPerBarrel = 0.05F;
         ZAK.fuelMinutes = 0;
         ZRK.fuelMinutes = 0;

@@ -120,7 +120,8 @@ public final class NukeFx {
         Vector3d eye = mc.player.getEyePosition(1F);
         Vector3d to = pos.add(0, crater * 0.4, 0).subtract(eye).normalize();
         double facing = Math.max(0, mc.player.getViewVector(1F).dot(to));
-        flash = Math.max(flash, (float) MathHelper.clamp((1.5 - d / (blast * 6)) * (0.4 + 0.6 * facing), 0.2, 1.0));
+        float max = com.qwarwin.militarytech.entity.VehicleEntity.hardened(mc.player) ? 0.25F : 1.0F;
+        flash = Math.max(flash, (float) MathHelper.clamp((1.5 - d / (blast * 6)) * (0.4 + 0.6 * facing), 0.2, max));
         flashO = flash;
     }
 

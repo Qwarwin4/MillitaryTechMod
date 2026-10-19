@@ -121,7 +121,8 @@ public final class Nuke {
                 new NukeFxPacket(pos, (float) crater, (float) blast, true));
         for (ServerPlayerEntity p : world.players()) {
             double d = p.position().distanceTo(pos);
-            if (d < blast * 3 && sees(world, pos.add(0, crater * 0.4, 0), p)) {
+            // the hardened bomber's crew fly behind flash curtains
+            if (d < blast * 3 && !VehicleEntity.hardened(p) && sees(world, pos.add(0, crater * 0.4, 0), p)) {
                 p.addEffect(new EffectInstance(Effects.BLINDNESS, d < blast ? 80 : 40, 0, false, false));
             }
             if (d < 6000) {
@@ -156,7 +157,7 @@ public final class Nuke {
             double d = e.position().distanceTo(b.pos);
             if (e instanceof VehicleEntity) {
                 // the electromagnetic pulse kills engines and electronics for a while
-                if (d < b.blast * 1.5) {
+                if (d < b.blast * 1.5 && !((VehicleEntity) e).spec.nuclearHardened) {
                     ((VehicleEntity) e).emp((int) (200 + 600 * (1 - d / (b.blast * 1.5))));
                 }
                 if (d < b.crater * 1.1) {
@@ -430,7 +431,9 @@ public final class Nuke {
             float cover = d < b.crater * 2 || open ? 1F : 0.45F;
             float scale = b.nuclear ? 1F : 0.35F;
             if (e instanceof VehicleEntity) {
-                e.hurt(src, (float) (9000 * hit) * cover * scale);
+                // a hardened airframe rides out a blast that would break an ordinary one
+                float hard = ((VehicleEntity) e).spec.nuclearHardened ? 0.25F : 1F;
+                e.hurt(src, (float) (9000 * hit) * cover * scale * hard);
             } else if (e instanceof LivingEntity) {
                 if (e.getVehicle() instanceof VehicleEntity && ((VehicleEntity) e.getVehicle()).protectsCrew(e)) {
                     continue;
