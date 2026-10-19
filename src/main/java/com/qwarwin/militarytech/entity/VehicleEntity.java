@@ -1350,7 +1350,27 @@ public abstract class VehicleEntity extends Entity {
      * or as many as fit when sneaking.
      */
     public void loadItem(PlayerEntity player, ItemStack stack, MunitionItem item) {
-        boolean all = player.isShiftKeyDown();
+        loadItem(player, stack, item, player.isShiftKeyDown());
+    }
+
+    /** From an ammunition box: everything in it the vehicle takes, as much as fits. */
+    public void loadBox(PlayerEntity player, ItemStack box) {
+        net.minecraft.util.NonNullList<ItemStack> items = com.qwarwin.militarytech.item.MunitionBoxItem.contents(box);
+        boolean any = false;
+        for (ItemStack s : items) {
+            if (!s.isEmpty() && s.getItem() instanceof MunitionItem) {
+                int before = s.getCount();
+                loadItem(player, s, (MunitionItem) s.getItem(), true);
+                any |= s.getCount() != before;
+            }
+        }
+        com.qwarwin.militarytech.item.MunitionBoxItem.store(box, items);
+        if (!any) {
+            player.displayClientMessage(new TranslationTextComponent("msg.militarytech.box_nothing"), true);
+        }
+    }
+
+    public void loadItem(PlayerEntity player, ItemStack stack, MunitionItem item, boolean all) {
         boolean timed = Config.TIMED_LOADING.get() && !player.abilities.instabuild;
         if (timed && busyMoving()) {
             player.displayClientMessage(new TranslationTextComponent(spec.air != null ? "msg.militarytech.land_to_load"
@@ -1437,6 +1457,10 @@ public abstract class VehicleEntity extends Entity {
         }
         if (stack.getItem() instanceof MunitionItem) {
             loadItem(player, stack, (MunitionItem) stack.getItem());
+            return ActionResultType.CONSUME;
+        }
+        if (stack.getItem() instanceof com.qwarwin.militarytech.item.MunitionBoxItem) {
+            loadBox(player, stack);
             return ActionResultType.CONSUME;
         }
         if (stack.getItem() == ModItems.FUEL_BARREL.get()) {

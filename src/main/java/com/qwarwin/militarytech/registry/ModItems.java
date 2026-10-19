@@ -5,6 +5,7 @@ import com.qwarwin.militarytech.entity.Munition;
 import com.qwarwin.militarytech.entity.Specs;
 import com.qwarwin.militarytech.entity.VehicleSpec;
 import com.qwarwin.militarytech.item.AmmoCrateItem;
+import com.qwarwin.militarytech.item.MunitionBoxItem;
 import com.qwarwin.militarytech.item.MunitionItem;
 import com.qwarwin.militarytech.item.PilotArmor;
 import com.qwarwin.militarytech.item.TooltipItem;
@@ -49,6 +50,8 @@ public final class ModItems {
             () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.LEGS, props()));
     public static final RegistryObject<Item> PILOT_BOOTS = ITEMS.register("pilot_boots",
             () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.FEET, props()));
+    public static final RegistryObject<Item> MUNITION_BOX = ITEMS.register("munition_box",
+            () -> new MunitionBoxItem(props().stacksTo(1)));
     public static final RegistryObject<Item> FUEL_BARREL = ITEMS.register("fuel_barrel",
             () -> new TooltipItem(props().stacksTo(4), "tooltip.militarytech.fuel_barrel"));
     public static final RegistryObject<Item> REPAIR_KIT = ITEMS.register("repair_kit",

@@ -160,6 +160,14 @@ I.I
 ```
 `L` leather, `I` iron_nugget
 
+### Ящик для боеприпасов
+```
+IWI
+WCW
+IWI
+```
+`I` iron_ingot, `W` любые доски, `C` chest
+
 ### Ремкомплект ×2
 ```
 III

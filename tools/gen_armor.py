@@ -130,6 +130,15 @@ def icon(kind):
         px(4, 2, 12, 3, STRAP)
         px(4, 9, 7, 10, SUIT_D)
         px(9, 9, 12, 10, SUIT_D)
+    elif kind == "munition_box":
+        px(1, 4, 15, 14, (78, 92, 60))
+        px(1, 4, 15, 6, (60, 72, 46))
+        px(1, 13, 15, 14, (52, 62, 40))
+        for x in (1, 7, 14):
+            px(x, 4, x + 1, 14, (52, 62, 40))
+        px(3, 8, 6, 10, (214, 190, 60))
+        px(9, 8, 13, 10, (214, 190, 60))
+        px(6, 3, 10, 4, (90, 90, 86))
     else:
         px(2, 6, 6, 13, BOOT)
         px(2, 11, 8, 14, BOOT)
@@ -154,7 +163,7 @@ def main():
     os.makedirs(armor, exist_ok=True)
     Image.fromarray(layer1(), "RGBA").save(os.path.join(armor, "pilot_layer_1.png"))
     Image.fromarray(layer2(), "RGBA").save(os.path.join(armor, "pilot_layer_2.png"))
-    for kind in ("pilot_helmet", "pilot_suit", "pilot_trousers", "pilot_boots"):
+    for kind in ("pilot_helmet", "pilot_suit", "pilot_trousers", "pilot_boots", "munition_box"):
         Image.fromarray(icon(kind), "RGBA").save(os.path.join(gv.ASSETS, "textures", "item", kind + ".png"))
         gv.save_json({"parent": "item/generated", "textures": {"layer0": f"{gv.MODID}:item/{kind}"}},
                      os.path.join(gv.ASSETS, "models", "item", kind + ".json"))
