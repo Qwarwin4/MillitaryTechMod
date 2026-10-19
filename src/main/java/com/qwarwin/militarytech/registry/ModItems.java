@@ -55,6 +55,9 @@ public final class ModItems {
             () -> new MunitionBoxItem(props().stacksTo(1)));
     public static final RegistryObject<Item> FUEL_BARREL = ITEMS.register("fuel_barrel",
             () -> new TooltipItem(props().stacksTo(4), "tooltip.militarytech.fuel_barrel"));
+    /** The only way to take a vehicle back into the inventory (or, in creative, to break it with a hit). */
+    public static final RegistryObject<Item> WRENCH = ITEMS.register("wrench",
+            () -> new TooltipItem(props().stacksTo(1), "tooltip.militarytech.wrench"));
     public static final RegistryObject<Item> REPAIR_KIT = ITEMS.register("repair_kit",
             () -> new TooltipItem(props().stacksTo(16), "tooltip.militarytech.repair_kit"));
     public static final RegistryObject<Item> NUCLEAR_WARHEAD = ITEMS.register("nuclear_warhead",

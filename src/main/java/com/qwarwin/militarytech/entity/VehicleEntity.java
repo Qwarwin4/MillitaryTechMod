@@ -648,6 +648,10 @@ public abstract class VehicleEntity extends Entity {
         }
         ItemStack stack = player.getMainHandItem();
         boolean tool = !stack.isEmpty();
+        if (stack.getItem() == ModItems.WRENCH.get()) {
+            interact(player, Hand.MAIN_HAND);
+            return;
+        }
         if (kind == PICK_PYLON && this instanceof AircraftEntity) {
             ((AircraftEntity) this).clickPylon(player, index, stack);
             return;
@@ -677,7 +681,7 @@ public abstract class VehicleEntity extends Entity {
             }
             return;
         }
-        // anything else: the item in hand (ammo, fuel, repairs) or, sneaking with an empty hand, picking it up
+        // anything else: the item in hand (ammo, fuel, repairs, the wrench)
         interact(player, Hand.MAIN_HAND);
     }
 
@@ -688,8 +692,8 @@ public abstract class VehicleEntity extends Entity {
             return ActionResultType.PASS;
         }
         ItemStack stack = player.getItemInHand(hand);
-        if (!stack.isEmpty() || player.isShiftKeyDown() && getPassengers().isEmpty() && spec.doors.isEmpty()) {
-            // ammo, repair kits, picking the vehicle up: interact() does those
+        if (!stack.isEmpty()) {
+            // ammo, repair kits, the wrench: interact() does those
             return ActionResultType.PASS;
         }
         // the entity's box is a square around the middle; where the player really looks on the hull picks the spot
@@ -715,9 +719,6 @@ public abstract class VehicleEntity extends Entity {
                 setDoor(d, false);
             }
             return ActionResultType.CONSUME;
-        }
-        if (player.isShiftKeyDown() && getPassengers().isEmpty()) {
-            return ActionResultType.PASS;
         }
         // you sit where you click: on the seat, its hatch or the cockpit over it
         int s = nearestSeat(local, null);
@@ -1668,7 +1669,17 @@ public abstract class VehicleEntity extends Entity {
             }
             return ActionResultType.CONSUME;
         }
-        if (stack.isEmpty() && player.isShiftKeyDown() && getPassengers().isEmpty()) {
+        if (stack.getItem() == ModItems.WRENCH.get()) {
+            // only the wrench takes a vehicle apart: no losing it to a stray sneak-click while rearming
+            if (!getPassengers().isEmpty()) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.wrench_crew"), true);
+                return ActionResultType.CONSUME;
+            }
+            if (!player.isShiftKeyDown()) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.wrench_hint"), true);
+                return ActionResultType.CONSUME;
+            }
+            level.playSound(null, getX(), getY(), getZ(), SoundEvents.ANVIL_USE, SoundCategory.NEUTRAL, 0.8F, 1.4F);
             pickUp(player);
             return ActionResultType.CONSUME;
         }
@@ -1741,6 +1752,10 @@ public abstract class VehicleEntity extends Entity {
         }
         if (source.getEntity() instanceof PlayerEntity && ((PlayerEntity) source.getEntity()).abilities.instabuild
                 && direct == source.getEntity()) {
+            // creative: a hit with the wrench removes it, any other hit does nothing
+            if (((PlayerEntity) direct).getMainHandItem().getItem() != ModItems.WRENCH.get()) {
+                return false;
+            }
             destroy(null);
             return true;
         }
