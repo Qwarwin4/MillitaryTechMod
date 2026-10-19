@@ -79,6 +79,8 @@
  "screen.militarytech.symmetric_off": "Симметрично: нет",
  "screen.militarytech.weight": "Нагрузка: %s / %s кг",
  "screen.militarytech.pylon_max": "Пилон %s: до %s кг",
+ "item.militarytech.bomb_rn28": "Ядерная бомба РН-28",
+ "munition.militarytech.rn28": "РН-28 (ядерная)",
  "screen.militarytech.empty_pylon": "пусто",
  "hud.militarytech.fuel": "Топливо",
  "hud.militarytech.loading": "Заряжание: %s с",

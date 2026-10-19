@@ -444,6 +444,10 @@ public class ProjectileEntity extends Entity implements IEntityAdditionalSpawnDa
             dir = new Vector3d(0, -1, 0);
         }
         float p = munition.power;
+        if (munition == Munition.RN28) {
+            Nuke.detonate((ServerWorld) level, pos, owner, 0.6);
+            return;
+        }
         if (munition == Munition.KH102) {
             // a 250 kt warhead on a cruise missile: smaller than the Oreshnik's, still a city gone
             Nuke.detonate((ServerWorld) level, pos, owner, 0.8);

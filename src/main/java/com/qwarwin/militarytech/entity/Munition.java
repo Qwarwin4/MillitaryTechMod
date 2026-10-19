@@ -39,7 +39,9 @@ public enum Munition {
     FAB9000(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.997, 900, 0.0F, 45.0F, "fab9000", Tracer.NONE),
     // Tu-160's cruise missiles: to the coordinates entered in flight, or to where the sight points
     KH101(Kind.HEAT, Guidance.CRUISE, 4.4, 0.0, 1.0, 3000, 700.0F, 16.0F, "kh101", Tracer.NONE),
-    KH102(Kind.HEAT, Guidance.CRUISE, 4.4, 0.0, 1.0, 3000, 0.0F, 0.0F, "kh102", Tracer.NONE);
+    KH102(Kind.HEAT, Guidance.CRUISE, 4.4, 0.0, 1.0, 3000, 0.0F, 0.0F, "kh102", Tracer.NONE),
+    // free-fall tactical nuclear bomb, for anything that can lift it
+    RN28(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.997, 900, 0.0F, 0.0F, "nuke", Tracer.NONE);
 
     public enum Kind {
         BULLET, SHELL, DART, HE, HEAT, THERMOBARIC, BOMB, AIR, BALLISTIC, WARHEAD
@@ -93,7 +95,7 @@ public enum Munition {
 
     /** Only loaded by hand with a nuclear warhead item, never from an ammo crate. */
     public boolean isNuclear() {
-        return this == ORESHNIK_NUKE || this == NUKE || this == KH102;
+        return this == ORESHNIK_NUKE || this == NUKE || this == KH102 || this == RN28;
     }
 
     public boolean isRocket() {
@@ -190,6 +192,8 @@ public enum Munition {
                 return 3000;
             case FAB9000:
                 return 9000;
+            case RN28:
+                return 550;
             default:
                 return 0;
         }
@@ -242,6 +246,8 @@ public enum Munition {
                 return 200;
             case FAB9000:
                 return 300;
+            case RN28:
+                return 120;
             case ORESHNIK:
                 return 600;
             default:

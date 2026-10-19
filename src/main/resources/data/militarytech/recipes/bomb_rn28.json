@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "I",
+  "N",
+  "I"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_block"
+  },
+  "N": {
+   "item": "militarytech:nuclear_warhead"
+  }
+ },
+ "result": {
+  "item": "militarytech:bomb_rn28",
+  "count": 1
+ }
+}

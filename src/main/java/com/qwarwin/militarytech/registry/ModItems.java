@@ -77,6 +77,8 @@ public final class ModItems {
     public static final RegistryObject<Item> MISSILE_KH101 = ammo("missile_kh101", 4, 1, Munition.KH101);
     public static final RegistryObject<Item> MISSILE_KH102 = ITEMS.register("missile_kh102",
             () -> new MunitionItem(props().stacksTo(1).rarity(Rarity.EPIC), 1, Munition.KH102));
+    public static final RegistryObject<Item> BOMB_RN28 = ITEMS.register("bomb_rn28",
+            () -> new MunitionItem(props().stacksTo(1).rarity(Rarity.EPIC), 1, Munition.RN28));
     public static final RegistryObject<Item> BOMB_FAB250 = ammo("bomb_fab250", 8, 1, Munition.FAB250);
     public static final RegistryObject<Item> BOMB_FAB500 = ammo("bomb_fab500", 4, 1, Munition.FAB500);
     public static final RegistryObject<Item> BOMB_FAB1500 = ammo("bomb_fab1500", 2, 1, Munition.FAB1500);

@@ -79,6 +79,8 @@
  "screen.militarytech.symmetric_off": "Symmetric: off",
  "screen.militarytech.weight": "Load: %s / %s kg",
  "screen.militarytech.pylon_max": "Pylon %s: up to %s kg",
+ "item.militarytech.bomb_rn28": "RN-28 Nuclear Bomb",
+ "munition.militarytech.rn28": "RN-28 (nuclear)",
  "screen.militarytech.empty_pylon": "empty",
  "hud.militarytech.fuel": "Fuel",
  "hud.militarytech.loading": "Loading: %s s",

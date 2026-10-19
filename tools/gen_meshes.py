@@ -114,7 +114,8 @@ VEHICLES = {
     "su25": dict(src="su25", wheels=False, ry=0, k=0.0463, dy=0.062, dz=0, tris=40000,
                  bays=[(0.02, 1.6, 0.52, 3.0), (-1.65, -1.4, -0.9, 1.7), (0.9, -1.4, 1.65, 1.7)],
                  rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.65)]),
-    "su34": dict(src="su34", wheels=False, ry=0, k=0.92, dy=1.87, dz=0, tris=45000,
+    # o1436 / o1692 are the canopy glass painted opaque light blue in the source: drawn as glass
+    "su34": dict(src="su34", wheels=False, ry=0, k=0.92, dy=1.87, dz=0, tris=45000, glass_mats=("o1436-FACES", "o1692-FACES"),
                  bays=[(-0.3, 2.6, 0.3, 4.1), (-2.4, -4.0, -1.7, -2.45), (1.7, -4.0, 2.4, -2.45)],
                  rules=[("drop", lambda i: i["mat"] in ("o892-FACES", "o877-FACES", "o882-FACES") or
                          i["mat"] == "o905-FACES" and i["max"][2] < 4.62 and i["min"][1] > 2.5 and abs(i["center"][0]) < 0.8),

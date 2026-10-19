@@ -91,28 +91,26 @@ public final class AirSpec {
         return m == Munition.S8KO ? 160 + 11.3 * count : m.massKg() * count;
     }
 
+    /** Every store there is: any of them goes on any pylon, the weight only costs speed and agility. */
+    public static final Munition[] ALL_STORES = {Munition.R73, Munition.R40, Munition.KH29, Munition.KH59, Munition.KH101,
+            Munition.KH102, Munition.S8KO, Munition.FAB250, Munition.FAB500, Munition.FAB1500, Munition.FAB3000,
+            Munition.FAB9000, Munition.RN28};
+
     public boolean allows(int pylon, Munition m) {
         if (pylon < 0 || pylon >= pylons.length) {
             return false;
         }
-        boolean carried = false;
-        for (Munition c : carries) {
-            carried |= c == m;
+        for (Munition c : ALL_STORES) {
+            if (c == m) {
+                return true;
+            }
         }
-        if (!carried) {
-            return false;
-        }
-        boolean aam = pylonAam.length > pylon && pylonAam[pylon];
-        if (aam && m.kind != Munition.Kind.AIR) {
-            return false;
-        }
-        double max = pylonMax.length > pylon ? pylonMax[pylon] : 1000;
-        return storeMass(m, countFor(pylon, m)) <= max;
+        return false;
     }
 
     public List<Munition> allowed(int pylon) {
         List<Munition> out = new ArrayList<>();
-        for (Munition m : carries) {
+        for (Munition m : ALL_STORES) {
             if (allows(pylon, m)) {
                 out.add(m);
             }
