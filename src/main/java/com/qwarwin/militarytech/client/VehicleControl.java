@@ -201,6 +201,9 @@ public final class VehicleControl {
             if (v instanceof AircraftEntity && ((AircraftEntity) v).air().internalBay && !v.isOnGround() && v.isGunner(mc.player)) {
                 // strategic bomber in flight: K enters the cruise missiles' target coordinates
                 mc.setScreen(new TargetScreen(v));
+            } else if (v instanceof AircraftEntity && v.isDriver(mc.player)) {
+                // on the ground: choose what hangs on each pylon
+                mc.setScreen(new com.qwarwin.militarytech.client.screen.LoadoutScreen((AircraftEntity) v));
             } else {
                 loadout = true;
             }

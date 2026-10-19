@@ -55,6 +55,10 @@ public final class VehicleSpec {
     public boolean interior;
     /** riders drawn smaller so they fit under a canopy built for real people (aircraft) */
     public float riderScale = 1F;
+    /** minutes of hard driving on a full tank (0: needs no fuel, like the static AA mounts) */
+    public double fuelMinutes = 45;
+    /** what one fuel barrel puts in, as a share of the tank */
+    public float fuelPerBarrel = 0.25F;
     /** what each crew member looks through in sight view (null: the gunner's sight / the driver's eye) */
     public Vector3d[] seatViews;
     /** seat views that sit on the turret and turn with it */

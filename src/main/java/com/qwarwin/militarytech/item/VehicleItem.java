@@ -59,8 +59,12 @@ public class VehicleItem extends Item {
         boolean creative = player != null && player.abilities.instabuild;
         if (stack.getTagElement("Vehicle") != null) {
             v.readItemData(stack.getTagElement("Vehicle"));
-        } else if (creative || !Config.NEED_AMMO_CRATES.get()) {
-            v.fillAmmo(creative);
+        } else {
+            if (creative || !Config.NEED_AMMO_CRATES.get()) {
+                v.fillAmmo(creative);
+            }
+            // a new vehicle comes with half a tank
+            v.setFuel(creative ? 1F : 0.5F);
         }
         if (!level.noCollision(v, v.getBoundingBox().deflate(0.05))) {
             if (player != null) {

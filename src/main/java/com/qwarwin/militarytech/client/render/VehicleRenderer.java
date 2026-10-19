@@ -266,26 +266,27 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         VehicleSpec s = a.spec;
         if (a.isGearDown() && s.gunModel != null) {
             BoxModel.get(s.gunModel).render(ms, buf, light);
+        } else if (!a.isGearDown()) {
+            // gear up: the bay doors shut over the wells
+            BoxModel.get(s.id + "_gearup").render(ms, buf, light);
         }
         AirSpec air = a.air();
         if (air.internalBay) {
             // in the bomb bays, out of sight
             return;
         }
-        AirSpec.Loadout l = a.getLoadout();
         for (int i = 0; i < air.pylons.length; i++) {
-            AirSpec.Store st = l.at(i);
-            if (st == null) {
-                continue;
-            }
-            boolean pod = st.munition == Munition.S8KO;
-            if (!pod && a.getAmmo(1 + i) <= 0) {
-                continue;
-            }
             Vector3d p = air.pylons[i];
+            AirSpec.Store st = a.storeAt(i);
             ms.pushPose();
             ms.translate(p.x, p.y, p.z);
+            // the pylon stays on the wing whatever hangs from it
             BoxModel.get("pylon").render(ms, buf, light);
+            boolean pod = st != null && st.munition == Munition.S8KO;
+            if (st == null || !pod && a.getAmmo(1 + i) <= 0) {
+                ms.popPose();
+                continue;
+            }
             ms.translate(0, -0.3, 0);
             BoxModel.get(pod ? "munition/b8_pod" : "munition/" + st.munition.model).render(ms, buf, light);
             ms.popPose();

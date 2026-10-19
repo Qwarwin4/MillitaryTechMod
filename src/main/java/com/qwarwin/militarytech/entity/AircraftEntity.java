@@ -5,6 +5,10 @@ import com.qwarwin.militarytech.item.MunitionItem;
 import com.qwarwin.militarytech.registry.ModItems;
 import com.qwarwin.militarytech.registry.ModSounds;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -35,6 +39,7 @@ public class AircraftEntity extends VehicleEntity {
 
     public AircraftEntity(EntityType<?> type, World world, VehicleSpec spec) {
         super(type, world, spec);
+        defaultPylons();
     }
 
     @Override
@@ -66,23 +71,81 @@ public class AircraftEntity extends VehicleEntity {
         return Vector3d.directionFromRotation(xRot, yRot);
     }
 
-    // ------------------------------------------------------------------ loadout
+    // ------------------------------------------------------------------ stores, pylon by pylon
 
-    public int getLoadoutIndex() {
-        int n = air().loadouts.size();
-        return n == 0 ? 0 : Math.min(getSelectBits(8), n - 1);
+    /** munition ordinal per pylon (-1: empty), in "P" */
+    private static final DataParameter<CompoundNBT> STORES = EntityDataManager.defineId(AircraftEntity.class, DataSerializers.COMPOUND_TAG);
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(STORES, new CompoundNBT());
     }
 
-    public AirSpec.Loadout getLoadout() {
-        return air().loadouts.get(getLoadoutIndex());
+    private int[] pylonIds() {
+        int[] a = entityData.get(STORES).getIntArray("P");
+        if (a.length != air().pylons.length) {
+            int[] b = new int[air().pylons.length];
+            java.util.Arrays.fill(b, -1);
+            System.arraycopy(a, 0, b, 0, Math.min(a.length, b.length));
+            return b;
+        }
+        return a;
     }
 
-    /** Kinds of stores in the current loadout, in the order R cycles through them. */
+    private void setPylonIds(int[] ids) {
+        CompoundNBT t = new CompoundNBT();
+        t.putIntArray("P", ids.clone());
+        entityData.set(STORES, t);
+    }
+
+    /** What hangs on a pylon, or null. */
+    @Nullable
+    public Munition pylonMunition(int pylon) {
+        int[] a = pylonIds();
+        return pylon >= 0 && pylon < a.length && a[pylon] >= 0 ? Munition.byId(a[pylon]) : null;
+    }
+
+    @Nullable
+    public AirSpec.Store storeAt(int pylon) {
+        Munition m = pylonMunition(pylon);
+        return m == null ? null : air().store(pylon, m);
+    }
+
+    /** The preset this matches, for the HUD; "custom" otherwise. */
+    public String loadoutKey() {
+        for (AirSpec.Loadout l : air().loadouts) {
+            boolean same = true;
+            for (int i = 0; i < air().pylons.length && same; i++) {
+                AirSpec.Store st = l.at(i);
+                same = (st == null ? null : st.munition) == pylonMunition(i);
+            }
+            if (same) {
+                return l.key();
+            }
+        }
+        return "loadout.militarytech.custom";
+    }
+
+    /** All the stores' weight, kg (a rocket pod weighs even when it's empty). */
+    public double storeMass() {
+        double kg = 0;
+        for (int i = 0; i < air().pylons.length; i++) {
+            Munition m = pylonMunition(i);
+            if (m != null) {
+                kg += m == Munition.S8KO ? AirSpec.storeMass(m, getAmmo(1 + i)) : m.massKg() * getAmmo(1 + i);
+            }
+        }
+        return kg;
+    }
+
+    /** Kinds of stores hung now, in the order R cycles through them. */
     public List<Munition> groups() {
         List<Munition> out = new ArrayList<>();
-        for (AirSpec.Store s : getLoadout().stores) {
-            if (!out.contains(s.munition)) {
-                out.add(s.munition);
+        for (int i = 0; i < air().pylons.length; i++) {
+            Munition m = pylonMunition(i);
+            if (m != null && !out.contains(m)) {
+                out.add(m);
             }
         }
         return out;
@@ -99,10 +162,8 @@ public class AircraftEntity extends VehicleEntity {
 
     public int countOf(Munition m) {
         int n = 0;
-        AirSpec.Loadout l = getLoadout();
         for (int i = 0; i < air().pylons.length; i++) {
-            AirSpec.Store s = l.at(i);
-            if (s != null && s.munition == m) {
+            if (pylonMunition(i) == m) {
                 n += getAmmo(1 + i);
             }
         }
@@ -114,7 +175,7 @@ public class AircraftEntity extends VehicleEntity {
         if (slot == 0) {
             return spec.weapons.isEmpty() ? 0 : spec.weapons.get(0).capacity[0];
         }
-        AirSpec.Store s = getLoadout().at(slot - 1);
+        AirSpec.Store s = storeAt(slot - 1);
         return s == null ? 0 : s.count;
     }
 
@@ -124,8 +185,7 @@ public class AircraftEntity extends VehicleEntity {
         if (slot == 0) {
             return spec.weapons.isEmpty() ? null : spec.weapons.get(0).ammo[0];
         }
-        AirSpec.Store s = getLoadout().at(slot - 1);
-        return s == null ? null : s.munition;
+        return pylonMunition(slot - 1);
     }
 
     @Override
@@ -142,39 +202,102 @@ public class AircraftEntity extends VehicleEntity {
 
     @Override
     protected void nextLoadout(ServerPlayerEntity player) {
-        if (!isOnGround() || speed > 0.1) {
+        // K opens the loadout screen on the client now; a stray press does nothing here
+    }
+
+    /** Standing still on the ground: the armourers can work. */
+    public boolean canRearm() {
+        return isOnGround() && serverSpeed < 0.05 && speed < 0.1;
+    }
+
+    /**
+     * The loadout screen: hang {@code m} (null: nothing) on {@code pylon}, and on its mirror when {@code both}.
+     * What comes off goes back to the player as items. Returns false (with a message) if it can't be done.
+     */
+    public boolean configurePylon(ServerPlayerEntity player, int pylon, @Nullable Munition m, boolean both) {
+        if (!canRearm()) {
+            player.displayClientMessage(new TranslationTextComponent("msg.militarytech.land_first"), true);
+            return false;
+        }
+        if (m != null && !air().allows(pylon, m)) {
+            return false;
+        }
+        int[] ids = pylonIds();
+        boolean free = player.abilities.instabuild || !Config.NEED_AMMO_CRATES.get();
+        int mirror = both ? air().mirror(pylon) : -1;
+        for (int p : mirror >= 0 ? new int[]{pylon, mirror} : new int[]{pylon}) {
+            if (pylonMunition(p) == m) {
+                continue;
+            }
+            unload(player, p, free);
+            ids[p] = m == null ? -1 : m.ordinal();
+            setPylonIds(ids);
+            setAmmo(1 + p, free && m != null && (!m.isNuclear() || player.abilities.instabuild) ? capacity(1 + p) : 0);
+        }
+        setSelectBits(16, 0);
+        level.playSound(null, getX(), getY(), getZ(), ModSounds.get("hydraulics"), SoundCategory.NEUTRAL, 0.8F, 1.2F);
+        return true;
+    }
+
+    /** One of the presets, all pylons at once. */
+    public void applyPreset(ServerPlayerEntity player, int index) {
+        if (index < 0 || index >= air().loadouts.size()) {
+            return;
+        }
+        if (!canRearm()) {
             player.displayClientMessage(new TranslationTextComponent("msg.militarytech.land_first"), true);
             return;
         }
-        int n = air().loadouts.size();
-        int next = (getLoadoutIndex() + 1) % n;
-        int gun = getAmmo(0);
-        boolean free = player.abilities.instabuild || !Config.NEED_AMMO_CRATES.get();
-        if (!free && Config.REALISTIC_AMMO.get()) {
-            // the stores come off the pylons and go back to whoever swaps the loadout
-            for (int i = 0; i < air().pylons.length; i++) {
-                Munition m = munitionIn(1 + i);
-                MunitionItem item = m == null ? null : MunitionItem.of(m);
-                int left = getAmmo(1 + i);
-                if (item != null && left > 0) {
-                    int count = Math.max(1, left / item.rounds);
-                    net.minecraft.item.ItemStack st = new net.minecraft.item.ItemStack(item, count);
-                    if (!player.inventory.add(st)) {
-                        player.drop(st, false);
-                    }
-                }
+        AirSpec.Loadout l = air().loadouts.get(index);
+        for (int i = 0; i < air().pylons.length; i++) {
+            AirSpec.Store st = l.at(i);
+            configurePylon(player, i, st == null ? null : st.munition, false);
+        }
+        player.displayClientMessage(new TranslationTextComponent("msg.militarytech.loadout", new TranslationTextComponent(l.key())), true);
+    }
+
+    /** Take what's on a pylon off and hand it to the player. */
+    private void unload(ServerPlayerEntity player, int pylon, boolean free) {
+        Munition old = pylonMunition(pylon);
+        int left = getAmmo(1 + pylon);
+        if (old == null || left <= 0 || free || !Config.REALISTIC_AMMO.get()) {
+            return;
+        }
+        MunitionItem item = MunitionItem.of(old);
+        if (item == null) {
+            return;
+        }
+        int count = Math.max(1, left / item.rounds);
+        net.minecraft.item.ItemStack st = new net.minecraft.item.ItemStack(item, count);
+        if (!player.inventory.add(st)) {
+            player.drop(st, false);
+        }
+    }
+
+    @Override
+    protected void saveExtra(CompoundNBT tag) {
+        tag.putIntArray("Pylons", pylonIds());
+    }
+
+    @Override
+    protected void loadExtra(CompoundNBT tag) {
+        if (tag.contains("Pylons")) {
+            setPylonIds(tag.getIntArray("Pylons"));
+        }
+    }
+
+    /** New aircraft come with the first preset's pylons (empty unless crates aren't needed). */
+    private void defaultPylons() {
+        int[] ids = new int[air().pylons.length];
+        java.util.Arrays.fill(ids, -1);
+        if (!air().loadouts.isEmpty()) {
+            AirSpec.Loadout l = air().loadouts.get(0);
+            for (int i = 0; i < ids.length; i++) {
+                AirSpec.Store st = l.at(i);
+                ids[i] = st == null ? -1 : st.munition.ordinal();
             }
         }
-        setSelectBits(8, next);
-        setSelectBits(16, 0);
-        for (int i = 0; i < air().pylons.length; i++) {
-            Munition m = munitionIn(1 + i);
-            setAmmo(1 + i, free && (m == null || !m.isNuclear() || player.abilities.instabuild) ? capacity(1 + i) : 0);
-        }
-        setAmmo(0, gun);
-        player.displayClientMessage(new TranslationTextComponent("msg.militarytech.loadout",
-                new TranslationTextComponent(getLoadout().key())), true);
-        level.playSound(null, getX(), getY(), getZ(), ModSounds.get("reload"), SoundCategory.NEUTRAL, 1F, 0.8F);
+        setPylonIds(ids);
     }
 
     // ------------------------------------------------------------------ weapons
@@ -199,13 +322,12 @@ public class AircraftEntity extends VehicleEntity {
             trigger2 = false;
             return;
         }
-        AirSpec.Loadout l = getLoadout();
         // take from the fullest pylon carrying it, alternating sides on ties
         int best = -1, bestLeft = 0;
         int n = air().pylons.length;
         for (int k = 0; k < n; k++) {
             int i = (k + storeCounter) % n;
-            AirSpec.Store s = l.at(i);
+            AirSpec.Store s = storeAt(i);
             if (s == null || s.munition != m) {
                 continue;
             }
@@ -305,9 +427,12 @@ public class AircraftEntity extends VehicleEntity {
     @Override
     public void simulate(@Nullable Controls in) {
         AirSpec a = air();
-        double maxV = a.maxSpeed * Config.AIR_SPEED.get();
-        double stall = a.stallSpeed * Math.sqrt(Config.AIR_SPEED.get());
-        double takeoff = a.takeoffSpeed * Math.sqrt(Config.AIR_SPEED.get());
+        // a heavy load makes it slower, needs more runway and turns like a truck
+        double load = Math.min(1.5, storeMass() / Math.max(1, a.maxLoad));
+        double maxV = a.maxSpeed * Config.AIR_SPEED.get() * (1 - 0.16 * load);
+        double stall = a.stallSpeed * Math.sqrt(Config.AIR_SPEED.get()) * (1 + 0.12 * load);
+        double takeoff = a.takeoffSpeed * Math.sqrt(Config.AIR_SPEED.get()) * (1 + 0.2 * load);
+        float agility = (float) (1 - 0.3 * load);
         boolean ground = isOnGround();
         float thr = getThrottle();
         boolean brake = false;
@@ -349,7 +474,7 @@ public class AircraftEntity extends VehicleEntity {
             xRot += MathHelper.clamp(want - xRot, -1.2F, 1.2F);
         } else {
             double auth = MathHelper.clamp((v - stall * 0.5) / stall, 0.12, 1.0);
-            float yr = (float) (a.yawRate * auth), pr = (float) (a.pitchRate * auth);
+            float yr = (float) (a.yawRate * auth) * agility, pr = (float) (a.pitchRate * auth) * agility;
             float dy = MathHelper.wrapDegrees(tYaw - yRot);
             float dp = tPitch - xRot;
             yRot += MathHelper.clamp(dy, -yr, yr) + rudder * 0.6F;

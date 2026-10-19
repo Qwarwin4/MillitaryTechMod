@@ -164,6 +164,91 @@ public enum Munition {
         return out;
     }
 
+    /** Weight of one, kg: what a pylon or a bomb bay has to carry. */
+    public double massKg() {
+        switch (this) {
+            case S8KO:
+                return 11.3;
+            case R73:
+                return 105;
+            case R40:
+                return 475;
+            case KH29:
+                return 680;
+            case KH59:
+                return 930;
+            case KH101:
+            case KH102:
+                return 2400;
+            case FAB250:
+                return 250;
+            case FAB500:
+                return 500;
+            case FAB1500:
+                return 1500;
+            case FAB3000:
+                return 3000;
+            case FAB9000:
+                return 9000;
+            default:
+                return 0;
+        }
+    }
+
+    /** Ticks it takes to load one item of it by hand: a belt, a shell, a rocket, a bomb winched up. */
+    public int loadTicks() {
+        switch (this) {
+            case PKT:
+            case KORD:
+            case SHELL_30:
+            case GSH_30:
+            case AA_30:
+                return 40;
+            case APFSDS:
+            case HE_125:
+                return 30;
+            case HEAT_73:
+                return 20;
+            case REFLEKS:
+            case MALYUTKA:
+            case ATAKA:
+                return 40;
+            case GRAD:
+                return 60;
+            case TOS_220:
+                return 80;
+            case SAM:
+                return 80;
+            case S8KO:
+                return 100;
+            case R73:
+                return 60;
+            case R40:
+                return 80;
+            case KH29:
+                return 100;
+            case KH59:
+                return 120;
+            case KH101:
+            case KH102:
+                return 160;
+            case FAB250:
+                return 60;
+            case FAB500:
+                return 80;
+            case FAB1500:
+                return 140;
+            case FAB3000:
+                return 200;
+            case FAB9000:
+                return 300;
+            case ORESHNIK:
+                return 600;
+            default:
+                return 20;
+        }
+    }
+
     public String key() {
         return "munition.militarytech." + name().toLowerCase(java.util.Locale.ROOT);
     }

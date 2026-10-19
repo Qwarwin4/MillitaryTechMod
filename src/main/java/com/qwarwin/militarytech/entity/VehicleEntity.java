@@ -67,6 +67,10 @@ public abstract class VehicleEntity extends Entity {
     private static final DataParameter<CompoundNBT> SEATS = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.COMPOUND_TAG);
     /** one bit per door: open */
     private static final DataParameter<Integer> DOORS = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.INT);
+    /** 0..1 of a full tank */
+    private static final DataParameter<Float> FUEL = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.FLOAT);
+    /** ticks of loading still queued (for the HUD) */
+    private static final DataParameter<Integer> LOADING = EntityDataManager.defineId(VehicleEntity.class, DataSerializers.INT);
     public static final int MAX_AMMO_SLOTS = 13;
     @SuppressWarnings("unchecked")
     private static final DataParameter<Integer>[] AMMO = new DataParameter[MAX_AMMO_SLOTS];
@@ -129,6 +133,8 @@ public abstract class VehicleEntity extends Entity {
         entityData.define(TARGET, Optional.empty());
         entityData.define(SEATS, new CompoundNBT());
         entityData.define(DOORS, 0);
+        entityData.define(FUEL, 1F);
+        entityData.define(LOADING, 0);
         for (DataParameter<Integer> p : AMMO) {
             entityData.define(p, 0);
         }
@@ -341,6 +347,115 @@ public abstract class VehicleEntity extends Entity {
     }
 
     // ------------------------------------------------------------------ doors
+
+    // ------------------------------------------------------------------ fuel
+
+    public float getFuel() {
+        return entityData.get(FUEL);
+    }
+
+    public void setFuel(float f) {
+        entityData.set(FUEL, MathHelper.clamp(f, 0F, 1F));
+    }
+
+    public boolean usesFuel() {
+        return spec.fuelMinutes > 0 && Config.NEED_FUEL.get();
+    }
+
+    /** Tanks dry: the engine won't run. */
+    public boolean outOfFuel() {
+        return usesFuel() && getFuel() <= 0F;
+    }
+
+    /** One tick of burning: idling with someone at the wheel, more the harder it works. */
+    private void burnFuel() {
+        if (!usesFuel() || getFuel() <= 0F) {
+            return;
+        }
+        float work;
+        if (spec.air != null) {
+            work = hasFlag(FLAG_ENGINE) ? Math.max(0.15F, getThrottle()) : 0F;
+        } else {
+            work = getDriver() == null ? 0F : 0.2F + 0.8F * (float) Math.min(1.0, serverSpeed / Math.max(0.05, spec.maxSpeed));
+        }
+        if (work > 0F) {
+            setFuel(getFuel() - (float) (work / (spec.fuelMinutes * 1200.0)));
+            if (getFuel() <= 0F && getDriver() instanceof PlayerEntity) {
+                ((PlayerEntity) getDriver()).displayClientMessage(new TranslationTextComponent("msg.militarytech.out_of_fuel"), true);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ loading by hand, one item at a time
+
+    private static final class PendingLoad {
+        final int slot, amount;
+        final Munition munition;
+        final UUID who;
+        int ticks;
+
+        PendingLoad(int slot, int amount, Munition munition, UUID who, int ticks) {
+            this.slot = slot;
+            this.amount = amount;
+            this.munition = munition;
+            this.who = who;
+            this.ticks = ticks;
+        }
+    }
+
+    private final java.util.ArrayDeque<PendingLoad> loads = new java.util.ArrayDeque<>();
+    /** horizontal speed measured on the server from the position, blocks/tick */
+    protected double serverSpeed;
+    private Vector3d lastServerPos;
+
+    private int pendingFor(int slot) {
+        int n = 0;
+        for (PendingLoad l : loads) {
+            if (l.slot == slot) {
+                n += l.amount;
+            }
+        }
+        return n;
+    }
+
+    /** Ticks of loading still to go (any side: synced). */
+    public int loadingTicks() {
+        return entityData.get(LOADING);
+    }
+
+    /** Too much on the move to pass shells in or winch a bomb up. */
+    public boolean busyMoving() {
+        return serverSpeed > 0.06 || spec.air != null && !isOnGround();
+    }
+
+    private void tickLoading() {
+        if (loads.isEmpty()) {
+            if (entityData.get(LOADING) != 0) {
+                entityData.set(LOADING, 0);
+            }
+            return;
+        }
+        PendingLoad l = loads.peekFirst();
+        // the crew stops working while it moves, and goes on once it stands still
+        if (!busyMoving() && --l.ticks <= 0) {
+            loads.pollFirst();
+            if (munitionIn(l.slot) == l.munition) {
+                setAmmo(l.slot, getAmmo(l.slot) + l.amount);
+                level.playSound(null, getX(), getY(), getZ(), ModSounds.get("reload"), SoundCategory.NEUTRAL, 1.2F,
+                        l.munition.kind == Munition.Kind.BOMB ? 0.6F : 0.95F);
+                PlayerEntity p = level.getPlayerByUUID(l.who);
+                if (p != null && p.distanceTo(this) < 24) {
+                    p.displayClientMessage(new TranslationTextComponent("msg.militarytech.load_done",
+                            new TranslationTextComponent(l.munition.key()), loads.size()), true);
+                }
+            }
+        }
+        int sum = 0;
+        for (PendingLoad q : loads) {
+            sum += q.ticks;
+        }
+        entityData.set(LOADING, sum);
+    }
 
     private int empTicks;
 
@@ -835,6 +950,11 @@ public abstract class VehicleEntity extends Entity {
         if (empTicks > 0 && --empTicks == 0) {
             setFlag(FLAG_EMP, false);
         }
+        Vector3d here = position();
+        serverSpeed = lastServerPos == null ? 0 : Math.sqrt(Math.pow(here.x - lastServerPos.x, 2) + Math.pow(here.z - lastServerPos.z, 2));
+        lastServerPos = here;
+        burnFuel();
+        tickLoading();
         serverWeapons();
         if (getY() < -64) {
             destroy(DamageSource.OUT_OF_WORLD);
@@ -1055,6 +1175,14 @@ public abstract class VehicleEntity extends Entity {
             return false;
         }
         Munition m = ws.ammo[opt];
+        if (ws.ripple && serverSpeed > 0.06) {
+            // rocket launchers fire from a standstill: the pack has to be laid
+            if (cooldown[w] <= 0 && shooter != null) {
+                shooter.displayClientMessage(new TranslationTextComponent("msg.militarytech.stop_to_fire"), true);
+            }
+            cooldown[w] = 20;
+            return false;
+        }
         int muzzle;
         if (ws.ripple || m.isGuided() && ws.muzzles.length > 1) {
             // tubes empty in order
@@ -1078,6 +1206,10 @@ public abstract class VehicleEntity extends Entity {
         }
         setAmmo(slot, left - 1);
         cooldown[w] = ws.interval;
+        if (w == 0 && spec.category == VehicleSpec.Category.TANK && spec.separateGunner && ws.interval >= 20 && inSeat(1) == null) {
+            // the driver jumped into the gunner's seat himself: nobody to help with the gun, it's slower
+            cooldown[w] = (int) (ws.interval * 1.6);
+        }
         SoundEvent s = ModSounds.get(ws.sound);
         level.playSound(null, pos.x, pos.y, pos.z, s, SoundCategory.HOSTILE, ws.volume, 0.95F + random.nextFloat() * 0.1F);
         muzzleFlash(ws, m, pos, dir);
@@ -1216,9 +1348,15 @@ public abstract class VehicleEntity extends Entity {
      */
     public void loadItem(PlayerEntity player, ItemStack stack, MunitionItem item) {
         boolean all = player.isShiftKeyDown();
-        int used = 0, loaded = 0;
+        boolean timed = Config.TIMED_LOADING.get() && !player.abilities.instabuild;
+        if (timed && busyMoving()) {
+            player.displayClientMessage(new TranslationTextComponent(spec.air != null ? "msg.militarytech.land_to_load"
+                    : "msg.militarytech.stop_to_load"), true);
+            return;
+        }
+        int used = 0, loaded = 0, ticks = 0;
         boolean fits = false;
-        while (!stack.isEmpty()) {
+        while (!stack.isEmpty() && loads.size() < 64) {
             int slot = -1, free = 0;
             for (int i = 0; i < spec.ammoSlots(); i++) {
                 Munition m = munitionIn(i);
@@ -1226,7 +1364,7 @@ public abstract class VehicleEntity extends Entity {
                     continue;
                 }
                 fits = true;
-                int f = capacity(i) - getAmmo(i);
+                int f = capacity(i) - getAmmo(i) - pendingFor(i);
                 if (f > free) {
                     free = f;
                     slot = i;
@@ -1236,7 +1374,15 @@ public abstract class VehicleEntity extends Entity {
                 break;
             }
             int put = Math.min(item.rounds, free);
-            setAmmo(slot, getAmmo(slot) + put);
+            Munition m = munitionIn(slot);
+            if (timed) {
+                // with the crew short-handed it goes slower
+                int t = (int) (m.loadTicks() * (getPassengers().isEmpty() ? 1.0 : 0.75));
+                loads.addLast(new PendingLoad(slot, put, m, player.getUUID(), t));
+                ticks += t;
+            } else {
+                setAmmo(slot, getAmmo(slot) + put);
+            }
             loaded += put;
             used++;
             if (!player.abilities.instabuild) {
@@ -1260,6 +1406,15 @@ public abstract class VehicleEntity extends Entity {
                 cap += capacity(i);
             }
         }
+        if (timed) {
+            int wait = 0;
+            for (PendingLoad q : loads) {
+                wait += q.ticks;
+            }
+            player.displayClientMessage(new TranslationTextComponent("msg.militarytech.loading",
+                    new TranslationTextComponent(item.main().key()), loaded, (wait + 19) / 20), true);
+            return;
+        }
         level.playSound(null, getX(), getY(), getZ(), ModSounds.get("reload"), SoundCategory.NEUTRAL, 1.2F,
                 item.main().kind == Munition.Kind.BOMB ? 0.6F : 0.95F);
         player.displayClientMessage(new TranslationTextComponent("msg.militarytech.loaded",
@@ -1281,11 +1436,34 @@ public abstract class VehicleEntity extends Entity {
             loadItem(player, stack, (MunitionItem) stack.getItem());
             return ActionResultType.CONSUME;
         }
+        if (stack.getItem() == ModItems.FUEL_BARREL.get()) {
+            if (spec.fuelMinutes <= 0 || getFuel() >= 0.99F) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.fuel_full"), true);
+            } else {
+                setFuel(getFuel() + spec.fuelPerBarrel);
+                if (!player.abilities.instabuild) {
+                    stack.shrink(1);
+                    ItemStack empty = new ItemStack(net.minecraft.item.Items.BUCKET);
+                    if (!player.inventory.add(empty)) {
+                        player.drop(empty, false);
+                    }
+                }
+                level.playSound(null, getX(), getY(), getZ(), SoundEvents.BUCKET_EMPTY, SoundCategory.NEUTRAL, 1F, 0.8F);
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.fuel",
+                        (int) (getFuel() * 100)), true);
+            }
+            return ActionResultType.CONSUME;
+        }
         if (stack.getItem() instanceof AmmoCrateItem) {
             if (player.abilities.instabuild) {
                 // creative: everything, nuclear weapons included
                 fillAmmo(true);
                 player.displayClientMessage(new TranslationTextComponent("msg.militarytech.rearmed"), true);
+                return ActionResultType.CONSUME;
+            }
+            if (Config.TIMED_LOADING.get() && busyMoving()) {
+                player.displayClientMessage(new TranslationTextComponent(spec.air != null ? "msg.militarytech.land_to_load"
+                        : "msg.militarytech.stop_to_load"), true);
                 return ActionResultType.CONSUME;
             }
             if (!fillFromCrate()) {
@@ -1338,10 +1516,19 @@ public abstract class VehicleEntity extends Entity {
         }
         tag.putIntArray("Ammo", ammo);
         tag.putInt("Select", entityData.get(SELECT));
+        tag.putFloat("Fuel", getFuel());
+        saveExtra(tag);
         if (!player.inventory.add(item)) {
             player.drop(item, false);
         }
         remove();
+    }
+
+    /** Subclass state kept with the vehicle and in its item (an aircraft's pylons). */
+    protected void saveExtra(CompoundNBT tag) {
+    }
+
+    protected void loadExtra(CompoundNBT tag) {
     }
 
     /** Restore what {@link #pickUp} saved. */
@@ -1355,6 +1542,10 @@ public abstract class VehicleEntity extends Entity {
         if (tag.contains("Select")) {
             entityData.set(SELECT, tag.getInt("Select"));
         }
+        if (tag.contains("Fuel")) {
+            setFuel(tag.getFloat("Fuel"));
+        }
+        loadExtra(tag);
         int[] ammo = tag.getIntArray("Ammo");
         for (int i = 0; i < ammo.length; i++) {
             setAmmo(i, ammo[i]);
@@ -1476,6 +1667,9 @@ public abstract class VehicleEntity extends Entity {
         if (tag.contains("Health")) {
             setHealth(tag.getFloat("Health"));
         }
+        setFuel(tag.contains("Fuel") ? tag.getFloat("Fuel") : 1F);
+        // before the ammo: what the counters hold can depend on it (an aircraft's stores)
+        loadExtra(tag);
         int[] ammo = tag.getIntArray("Ammo");
         for (int i = 0; i < ammo.length; i++) {
             setAmmo(i, ammo[i]);
@@ -1500,6 +1694,8 @@ public abstract class VehicleEntity extends Entity {
         tag.putIntArray("Ammo", ammo);
         tag.putInt("Select", entityData.get(SELECT));
         tag.putInt("Flags", getFlags());
+        tag.putFloat("Fuel", getFuel());
+        saveExtra(tag);
         tag.putFloat("TurretYaw", entityData.get(TURRET_YAW));
         tag.putFloat("GunPitch", entityData.get(GUN_PITCH));
         if (owner != null) {

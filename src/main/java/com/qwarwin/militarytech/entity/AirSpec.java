@@ -15,6 +15,14 @@ public final class AirSpec {
     /** where the gear touches, used for the ground clearance of the model */
     public double gearHeight = 1.2;
     public Vector3d[] pylons = {};
+    /** what each pylon may carry, kg */
+    public double[] pylonMax = {};
+    /** wingtip rails: air-to-air missiles only */
+    public boolean[] pylonAam = {};
+    /** everything this aircraft can hang, in the order the loadout screen offers it */
+    public Munition[] carries = {};
+    /** take-off load the flight model is tuned around, kg: more makes it slower and less agile */
+    public double maxLoad = 4000;
     /** downward offset of whatever hangs on a pylon */
     public final List<Loadout> loadouts = new ArrayList<>();
     public double camDistance = 20, camHeight = 4;
@@ -63,6 +71,74 @@ public final class AirSpec {
             }
             return null;
         }
+    }
+
+    // ------------------------------------------------------------------ choosing stores pylon by pylon
+
+    /** How many of a munition one pylon takes: a pod of 20 rockets, racks of bombs in a bay, else one. */
+    public int countFor(int pylon, Munition m) {
+        if (m == Munition.S8KO) {
+            return 20;
+        }
+        if (internalBay && m.kind == Munition.Kind.BOMB) {
+            return (int) Math.max(1, Math.min(6, Math.floor(pylonMax[pylon] / m.massKg())));
+        }
+        return 1;
+    }
+
+    /** Weight of a store: the rocket pod is 160 kg empty. */
+    public static double storeMass(Munition m, int count) {
+        return m == Munition.S8KO ? 160 + 11.3 * count : m.massKg() * count;
+    }
+
+    public boolean allows(int pylon, Munition m) {
+        if (pylon < 0 || pylon >= pylons.length) {
+            return false;
+        }
+        boolean carried = false;
+        for (Munition c : carries) {
+            carried |= c == m;
+        }
+        if (!carried) {
+            return false;
+        }
+        boolean aam = pylonAam.length > pylon && pylonAam[pylon];
+        if (aam && m.kind != Munition.Kind.AIR) {
+            return false;
+        }
+        double max = pylonMax.length > pylon ? pylonMax[pylon] : 1000;
+        return storeMass(m, countFor(pylon, m)) <= max;
+    }
+
+    public List<Munition> allowed(int pylon) {
+        List<Munition> out = new ArrayList<>();
+        for (Munition m : carries) {
+            if (allows(pylon, m)) {
+                out.add(m);
+            }
+        }
+        return out;
+    }
+
+    private final java.util.Map<Long, Store> stores = new java.util.HashMap<>();
+
+    /** The store a pylon carries with this munition (cached, so renderers can call it every frame). */
+    public Store store(int pylon, Munition m) {
+        long key = (long) pylon << 32 | m.ordinal();
+        return stores.computeIfAbsent(key, k -> new Store(pylon, m, countFor(pylon, m),
+                m == Munition.S8KO ? "b8_pod" : m.model));
+    }
+
+    /** The pylon on the other wing, or -1. */
+    public int mirror(int pylon) {
+        Vector3d p = pylons[pylon];
+        for (int i = 0; i < pylons.length; i++) {
+            Vector3d q = pylons[i];
+            if (i != pylon && Math.abs(q.x + p.x) < 0.05 && Math.abs(q.y - p.y) < 0.05 && Math.abs(q.z - p.z) < 0.05) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /** Symmetric pairs are listed left first: a(0..n) for pylons on both wings. */

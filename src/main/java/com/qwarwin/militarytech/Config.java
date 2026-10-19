@@ -19,6 +19,8 @@ public final class Config {
     public static final ForgeConfigSpec.IntValue NUKE_FALLOUT;
     public static final ForgeConfigSpec.BooleanValue NEED_AMMO_CRATES;
     public static final ForgeConfigSpec.BooleanValue REALISTIC_AMMO;
+    public static final ForgeConfigSpec.BooleanValue NEED_FUEL;
+    public static final ForgeConfigSpec.BooleanValue TIMED_LOADING;
     public static final ForgeConfigSpec.BooleanValue LOAD_CHUNKS;
 
     static {
@@ -43,6 +45,9 @@ public final class Config {
         REALISTIC_AMMO = b.comment("Shells, rockets, missiles and bombs are items loaded into vehicles one by one; the ammo crate",
                         "only tops up machine-gun belts and 30 mm. Off: the crate fills everything but nuclear weapons.")
                 .define("realisticAmmo", true);
+        NEED_FUEL = b.comment("Vehicles burn fuel and are refuelled with fuel barrels").define("needFuel", true);
+        TIMED_LOADING = b.comment("Loading a shell, a rocket or a bomb takes time, and only with the vehicle stopped")
+                .define("timedLoading", true);
         LOAD_CHUNKS = b.comment("Rockets and missiles keep the chunks they fly through loaded")
                 .define("loadChunks", true);
         b.pop();

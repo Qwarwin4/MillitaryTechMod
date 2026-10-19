@@ -414,7 +414,7 @@ public final class Specs {
                 .put(FAB500, 1, 8, 9).build());
         a.loadouts.add(AirSpec.loadout("heavy").put(R73, 1, 3, 7).put(FAB500, 1, 1, 5, 2, 6).put(FAB1500, 1, 0, 4)
                 .put(FAB250, 1, 8, 9, 10, 11).build());
-        a.loadouts.add(AirSpec.loadout("rockets168").put(S8KO, 21, 0, 4, 1, 5, 2, 6, 3, 7, 8, 9, 10, 11).build());
+        a.loadouts.add(AirSpec.loadout("rockets168").put(R73, 1, 3, 7).put(S8KO, 20, 0, 4, 1, 5, 2, 6, 8, 9, 10, 11).build());
         b.air = a;
         b.weapon("gsh301").ammo(GSH_30, 180).auto(1).spread(0.4F)
                 .mount(WeaponSpec.Mount.HULL, v(-1.6, 2.32, 2.4)).sound("aircraft_gun", 6F);
@@ -496,6 +496,43 @@ public final class Specs {
         a.loadouts.add(AirSpec.loadout("tu_fab3000").put(FAB3000, 1, 0, 1, 2, 3, 6, 7, 8, 9).build());
         a.loadouts.add(AirSpec.loadout("tu_carpet").put(FAB500, 4, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).build());
         b.air = a;
+
+        // ---- what each pylon takes (kg), the wingtip rails, what each aircraft can carry at all
+        AirSpec su25 = SU25.air;
+        su25.pylonMax = new double[]{900, 800, 600, 500, 150, 900, 800, 600, 500, 150};
+        su25.pylonAam = new boolean[]{false, false, false, false, true, false, false, false, false, true};
+        su25.carries = new Munition[]{R73, KH29, S8KO, FAB250, FAB500};
+        su25.maxLoad = 4400;
+        AirSpec su34 = SU34.air;
+        su34.pylonMax = new double[]{1600, 1000, 700, 150, 1600, 1000, 700, 150, 1600, 1600, 600, 600};
+        su34.pylonAam = new boolean[]{false, false, false, true, false, false, false, true, false, false, false, false};
+        su34.carries = new Munition[]{R73, KH29, KH59, S8KO, FAB250, FAB500, FAB1500};
+        su34.maxLoad = 8000;
+        AirSpec mig = MIG23.air;
+        mig.pylonMax = new double[]{600, 600, 600, 600};
+        mig.pylonAam = new boolean[]{false, false, false, false};
+        mig.carries = new Munition[]{R40, R73, S8KO, FAB250, FAB500};
+        mig.maxLoad = 3000;
+        AirSpec tu = TU160.air;
+        tu.pylonMax = new double[]{3500, 3500, 9500, 3500, 3500, 3500, 3500, 3500, 9500, 3500, 3500, 3500};
+        tu.pylonAam = new boolean[12];
+        tu.carries = new Munition[]{KH101, KH102, FAB250, FAB500, FAB1500, FAB3000, FAB9000};
+        tu.maxLoad = 40000;
+
+        // ---- fuel: minutes of hard running on a full tank, and what one barrel puts back
+        GRAD.fuelMinutes = 60;
+        ORESHNIK.fuelMinutes = 60;
+        ORESHNIK.fuelPerBarrel = 0.2F;
+        SU25.fuelMinutes = 25;
+        SU25.fuelPerBarrel = 0.2F;
+        SU34.fuelMinutes = 35;
+        SU34.fuelPerBarrel = 0.15F;
+        MIG23.fuelMinutes = 20;
+        MIG23.fuelPerBarrel = 0.2F;
+        TU160.fuelMinutes = 90;
+        TU160.fuelPerBarrel = 0.05F;
+        ZAK.fuelMinutes = 0;
+        ZRK.fuelMinutes = 0;
     }
 
     public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, ZAK, ZRK};

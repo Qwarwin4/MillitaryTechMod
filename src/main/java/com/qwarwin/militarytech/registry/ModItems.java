@@ -39,6 +39,8 @@ public final class ModItems {
 
     public static final RegistryObject<Item> AMMO_CRATE = ITEMS.register("ammo_crate",
             () -> new AmmoCrateItem(props().stacksTo(16)));
+    public static final RegistryObject<Item> FUEL_BARREL = ITEMS.register("fuel_barrel",
+            () -> new TooltipItem(props().stacksTo(4), "tooltip.militarytech.fuel_barrel"));
     public static final RegistryObject<Item> REPAIR_KIT = ITEMS.register("repair_kit",
             () -> new TooltipItem(props().stacksTo(16), "tooltip.militarytech.repair_kit"));
     public static final RegistryObject<Item> NUCLEAR_WARHEAD = ITEMS.register("nuclear_warhead",

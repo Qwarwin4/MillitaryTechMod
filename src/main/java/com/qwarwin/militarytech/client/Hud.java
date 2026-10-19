@@ -189,7 +189,7 @@ public final class Hud {
         float pt = mc.getFrameTime();
         int seat = v.seatOf(mc.player);
         // ---- left: the vehicle itself
-        int x0 = 8, x1 = 186, y1 = h - 8, y0 = y1 - 70;
+        int x0 = 8, x1 = 186, y1 = h - 8, y0 = y1 - 82;
         HudKit.panel(ms, mc, x0, y0, x1, y1, HudKit.ACCENT, I18n.get(v.spec.key()), I18n.get(v.seatKey(seat)));
         float hp = v.getHealth() / v.getMaxHealth();
         text(ms, mc, I18n.get("hud.militarytech.hull"), x0 + 5, y0 + 17, HudKit.TEXT_DIM);
@@ -200,15 +200,15 @@ public final class Hud {
             kmh = v.getDeltaMovement().length() * 72;
         }
         double max = v.spec.maxSpeed * 72;
-        HudKit.dial(ms, x0 + 22, y0 + 46, 15, (float) (kmh / Math.max(1, max)), HudKit.ACCENT);
+        HudKit.dial(ms, x0 + 22, y0 + 58, 15, (float) (kmh / Math.max(1, max)), HudKit.ACCENT);
         String sp = String.valueOf((int) Math.round(kmh));
-        mc.font.drawShadow(ms, sp, x0 + 22 - mc.font.width(sp) / 2F, y0 + 52, HudKit.TEXT);
-        text(ms, mc, I18n.get("hud.militarytech.kmh_unit"), x0 + 40, y0 + 52, HudKit.TEXT_DIM);
+        mc.font.drawShadow(ms, sp, x0 + 22 - mc.font.width(sp) / 2F, y0 + 64, HudKit.TEXT);
+        text(ms, mc, I18n.get("hud.militarytech.kmh_unit"), x0 + 40, y0 + 64, HudKit.TEXT_DIM);
         // crew: one pip per seat inside, lit if taken; then riders on the armour
         int inside = Math.min(v.spec.insideSeats, v.spec.seats.length);
-        text(ms, mc, I18n.get("hud.militarytech.crew"), x0 + 64, y0 + 31, HudKit.TEXT_DIM);
+        text(ms, mc, I18n.get("hud.militarytech.crew"), x0 + 64, y0 + 41, HudKit.TEXT_DIM);
         for (int i = 0; i < v.spec.seats.length; i++) {
-            int px = x0 + 64 + (i % 12) * 9, py = y0 + 42 + (i / 12) * 9;
+            int px = x0 + 64 + (i % 12) * 9, py = y0 + 52 + (i / 12) * 9;
             boolean taken = v.inSeat(i) != null;
             int c = i == seat ? HudKit.AMBER : taken ? (i < inside ? HudKit.ACCENT : 0xFFB0B0A0) : 0x50808080;
             AbstractGui.fill(ms, px, py, px + 6, py + 6, c);
@@ -216,9 +216,19 @@ public final class Hud {
                 AbstractGui.fill(ms, px + 1, py + 1, px + 5, py + 5, taken ? 0xFF404038 : 0x30000000);
             }
         }
-        String status = v.isEmpDead() ? I18n.get("hud.militarytech.engine_dead")
+        if (v.usesFuel()) {
+            float f = v.getFuel();
+            text(ms, mc, I18n.get("hud.militarytech.fuel"), x0 + 5, y0 + 28, HudKit.TEXT_DIM);
+            HudKit.segments(ms, x0 + 42, y0 + 28, 100, 7, 12, f);
+            text(ms, mc, (int) (f * 100) + "%", x0 + 147, y0 + 28, f > 0.15F ? HudKit.TEXT : HudKit.RED);
+        }
+        if (v.loadingTicks() > 0) {
+            String ld = I18n.get("hud.militarytech.loading", (v.loadingTicks() + 19) / 20);
+            text(ms, mc, ld, x1 - 4 - mc.font.width(ld), y0 + 41, HudKit.AMBER);
+        }
+        String status = v.outOfFuel() ? I18n.get("hud.militarytech.no_fuel") : v.isEmpDead() ? I18n.get("hud.militarytech.engine_dead")
                 : v.spec.doors.isEmpty() ? I18n.get("hud.militarytech.seat_hint") : I18n.get("hud.militarytech.door_hint");
-        text(ms, mc, status, x0 + 64, y0 + 58, v.isEmpDead() ? HudKit.RED : 0xFF707A70);
+        text(ms, mc, status, x0 + 64, y0 + 70, v.isEmpDead() || v.outOfFuel() ? HudKit.RED : 0xFF707A70);
 
         // ---- top: heading tape for whoever looks out
         HudKit.compass(ms, mc, w / 2, 16, 220, mc.player.getViewYRot(pt), HudKit.ACCENT_DIM);
@@ -454,6 +464,15 @@ public final class Hud {
         int top = (int) (y1 - 6 - (y1 - 6 - (y0 + 26)) * thr);
         AbstractGui.fill(ms, x1 - 14, top, x1 - 8, y1 - 6, thr > 0.95F ? HudKit.AMBER : HudKit.ACCENT);
         text(ms, mc, I18n.get("hud.militarytech.thr_short", (int) (thr * 100)), x0 + 46, y0 + 48, HudKit.TEXT_DIM);
+        if (a.usesFuel()) {
+            float f = a.getFuel();
+            AbstractGui.fill(ms, x1 - 24, y0 + 26, x1 - 18, y1 - 6, 0x60202820);
+            int ft = (int) (y1 - 6 - (y1 - 6 - (y0 + 26)) * f);
+            AbstractGui.fill(ms, x1 - 24, ft, x1 - 18, y1 - 6, f > 0.2F ? 0xFFD0A040 : HudKit.RED);
+        }
+        if (a.loadingTicks() > 0) {
+            text(ms, mc, I18n.get("hud.militarytech.loading", (a.loadingTicks() + 19) / 20), x0 + 2, y0 - 12, HudKit.AMBER);
+        }
         boolean down = a.isGearDown();
         AbstractGui.fill(ms, x0 + 46, y0 + 60, x0 + 52, y0 + 66, down ? HudKit.ACCENT : 0x50808080);
         text(ms, mc, I18n.get(down ? "hud.militarytech.gear_down" : "hud.militarytech.gear_up"), x0 + 56, y0 + 59,
@@ -464,7 +483,7 @@ public final class Hud {
         java.util.List<Munition> groups = a.groups();
         int rows = groups.size() + (a.spec.weapons.isEmpty() ? 0 : 1);
         int bx1 = w - 8, bx0 = bx1 - 190, by1 = h - 8, by0 = by1 - (18 + rows * 19);
-        HudKit.panel(ms, mc, bx0, by0, bx1, by1, HudKit.ACCENT, I18n.get(a.getLoadout().key()), null);
+        HudKit.panel(ms, mc, bx0, by0, bx1, by1, HudKit.ACCENT, I18n.get(a.loadoutKey()), null);
         int line = by0 + 15;
         if (!a.spec.weapons.isEmpty()) {
             WeaponSpec gun = a.spec.weapons.get(0);

@@ -112,15 +112,19 @@ VEHICLES = {
         pivot=(0, 2.06, -11.19), origins={"gun": (0, 2.06, -11.19)}, empty=["cap"]),
     # aircraft: the gear is its own part, drawn only while it's down
     "su25": dict(src="su25", wheels=False, ry=0, k=0.0463, dy=0.062, dz=0, tris=40000,
+                 bays=[(0.02, 1.6, 0.52, 3.0), (-1.65, -1.4, -0.9, 1.7), (0.9, -1.4, 1.65, 1.7)],
                  rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.65)]),
     "su34": dict(src="su34", wheels=False, ry=0, k=0.92, dy=1.87, dz=0, tris=45000,
+                 bays=[(-0.3, 2.6, 0.3, 4.1), (-2.4, -4.0, -1.7, -2.45), (1.7, -4.0, 2.4, -2.45)],
                  rules=[("drop", lambda i: i["mat"] in ("o892-FACES", "o877-FACES", "o882-FACES") or
                          i["mat"] == "o905-FACES" and i["max"][2] < 4.62 and i["min"][1] > 2.5 and abs(i["center"][0]) < 0.8),
                         ("gear", lambda i: i["min"][1] < 0.88 and i["max"][1] < 2.16)]),
     # Tu-160: object_2 is the whole landing gear (legs, wheels, doors), object_3 the cockpit windows
     "tu160": dict(src="tu160", wheels=False, ry=0, k=0.24, dy=0, dz=0, tris=60000, glass_mats=("object_3",), max_tex=2048,
+                  bays=[(-0.72, 11.8, 0.72, 15.45), (-3.6, -7.0, -0.85, -1.4), (0.85, -7.0, 3.6, -1.4)],
                   rules=[("gear", lambda i: i["mat"] == "object_2" and i["min"][1] < 3.2)]),
     "mig23": dict(src="mig-23_ub", wheels=False, ry=0, k=0.0357, dy=0.046, dz=2.61, tris=40000,
+                  bays=[(-0.22, 2.9, 0.22, 3.9), (-1.3, -2.65, -0.55, -1.4), (0.55, -2.65, 1.3, -1.4)],
                   rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.52 and i["max"][2] - i["min"][2] < 2.9)]),
 }
 
@@ -261,6 +265,83 @@ def frames(v):
     return piv, tr, local
 
 
+def _ray_hit(P, o, d):
+    """nearest triangle along a ray: (distance, index) or (None, None)"""
+    v0, e1, e2 = P[:, 0], P[:, 1] - P[:, 0], P[:, 2] - P[:, 0]
+    h = np.cross(d, e2)
+    a = np.einsum("ij,ij->i", e1, h)
+    ok = np.abs(a) > 1e-12
+    f = np.where(ok, 1.0 / np.where(ok, a, 1), 0)
+    sv = o - v0
+    u = f * np.einsum("ij,ij->i", sv, h)
+    q = np.cross(sv, e1)
+    w = f * (q @ d)
+    t = f * np.einsum("ij,ij->i", e2, q)
+    hit = ok & (u >= 0) & (w >= 0) & (u + w <= 1) & (t > 1e-6)
+    if not hit.any():
+        return None, None
+    i = np.where(hit)[0][np.argmin(t[hit])]
+    return float(t[i]), int(i)
+
+
+def gear_covers(rects, hull):
+    """
+    Lids for the gear bays, drawn while the gear is up (the doors go away with the gear part): a flat panel over
+    each bay (x1, z1, x2, z2), at the height of the skin round it and in the skin's colour there, both found by
+    shooting rays up from under the aircraft just outside the bay. Returns (triangles (n,3,3), rgb per tri) or None.
+    """
+    HP = hull.P
+    lo_y = HP[..., 1].min() - 1.0
+    tris, cols = [], []
+    for x1, z1, x2, z2 in rects:
+        cx, cz = (x1 + x2) / 2, (z1 + z2) / 2
+        probes = [(x1 - 0.15, cz), (x2 + 0.15, cz), (cx, z1 - 0.15), (cx, z2 + 0.15),
+                  (x1 - 0.15, z1 - 0.15), (x2 + 0.15, z2 + 0.15), (x1 - 0.15, z2 + 0.15), (x2 + 0.15, z1 - 0.15)]
+        ys, hits = [], []
+        for qx, qz in probes:
+            t, i = _ray_hit(HP, np.array([qx, lo_y, qz]), np.array([0.0, 1.0, 0.0]))
+            if t is not None:
+                ys.append(lo_y + t)
+                hits.append(i)
+        if not ys:
+            continue
+        # the lower half of what was hit: the skin, not a wing above it
+        ys = np.array(ys)
+        keep = ys <= np.median(ys) + 0.05
+        y = float(np.percentile(ys[keep], 20)) - 0.012
+        rgb = []
+        for i in np.array(hits)[keep]:
+            mat = hull.materials[hull.mat[i]]
+            if mat.image is None:
+                rgb.append(mk.solid_colour(mat)[0])
+                continue
+            img = mk.material_image(mat, 256).convert("RGB")
+            uv = hull.UV[i].mean(0)
+            rgb.append(img.getpixel((int((uv[0] % 1) * (img.width - 1)), int((uv[1] % 1) * (img.height - 1)))))
+        col = tuple(int(x) for x in np.median(np.array(rgb), 0))
+        q = [(x1, y, z1), (x2, y, z1), (x2, y, z2), (x1, y, z2)]
+        tris += [[q[0], q[2], q[1]], [q[0], q[3], q[2]]]
+        cols += [col, col]
+        # a thin seam line round the lid so it reads as a door
+        seam = tuple(int(c * 0.55) for c in col)
+        for a, b in ((0, 1), (1, 2), (2, 3), (3, 0)):
+            pa, pb = np.array(q[a]), np.array(q[b])
+            d = pb - pa
+            n = np.array([-d[2], 0, d[0]]) / (np.linalg.norm(d) + 1e-9) * 0.03
+            r = [pa - n + [0, -0.002, 0], pb - n + [0, -0.002, 0], pb + n + [0, -0.002, 0], pa + n + [0, -0.002, 0]]
+            tris += [[r[0], r[2], r[1]], [r[0], r[3], r[2]]]
+            cols += [seam, seam]
+        # split line down the middle: two doors
+        if x2 - x1 > 0.3:
+            m0, m1 = np.array([cx, y - 0.002, z1]), np.array([cx, y - 0.002, z2])
+            r = [m0 + [-0.025, 0, 0], m1 + [-0.025, 0, 0], m1 + [0.025, 0, 0], m0 + [0.025, 0, 0]]
+            tris += [[r[0], r[2], r[1]], [r[0], r[3], r[2]]]
+            cols += [seam, seam]
+    if not tris:
+        return None
+    return np.array(tris, dtype=np.float64), cols
+
+
 def build(vid, v):
     """decimate every material on its own with its uvs, and keep the original textures: no re-bake, no blur"""
     import shutil
@@ -307,6 +388,7 @@ def build(vid, v):
             return P - centers[p]
         return local0(p, P)
 
+    gear_scene, hull_scene = parts.get("gear"), parts.get("hull")
     # (part, material) groups and their triangle budgets: half by area, half by source detail
     groups = []
     for p, sc in parts.items():
@@ -417,6 +499,24 @@ def build(vid, v):
               f"local x[{lo[0]:.2f},{hi[0]:.2f}] y[{lo[1]:.2f},{hi[1]:.2f}] z[{lo[2]:.2f},{hi[2]:.2f}]")
     for p in v.get("empty", []):
         mk.write_mesh_sections(os.path.join(mdir, f"{vid}_{p}.mesh"), [])
+    # gear bay lids for when the gear is retracted
+    covers = gear_covers(v["bays"], hull_scene) if v.get("bays") and hull_scene is not None else None
+    if covers is not None:
+        T, cols = covers
+        uniq = sorted(set(cols))
+        cim = Image.new("RGBA", (4 * len(uniq), 4), (0, 0, 0, 255))
+        for i, c in enumerate(uniq):
+            cim.paste(Image.new("RGBA", (4, 4), tuple(c) + (255,)), (i * 4, 0))
+        cim.save(os.path.join(tex_dir, "covers.png"))
+        UV = np.zeros(T.shape[:2] + (2,))
+        for n, c in enumerate(cols):
+            UV[n, :, 0] = (uniq.index(c) + 0.5) / len(uniq)
+            UV[n, :, 1] = 0.5
+        N = np.zeros_like(T)
+        N[..., 1] = -1
+        L = local("hull", T.reshape(-1, 3)).reshape(-1, 3, 3)
+        mk.write_mesh_sections(os.path.join(mdir, f"{vid}_gearup.mesh"), [(f"{MODID}:entity/mesh/{vid}/covers", L, UV, N)])
+        print(f"  {vid}_gearup: {len(T)} tris, {len(uniq)} colours")
     # the renderer spins these: centres in hull coordinates, radius for the spin rate
     for f in os.listdir(mdir):
         if f.startswith(vid + "_w") and f.endswith(".mesh") and f[len(vid) + 2:-5].isdigit() and f[:-5] not in [w["model"] for w in wheel_list]:

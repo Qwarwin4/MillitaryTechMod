@@ -113,6 +113,22 @@ WIW
 ```
 `W` любые доски, `G` gunpowder, `T` tnt, `I` iron_ingot
 
+### Бочка топлива
+```
+ICI
+IBI
+III
+```
+`I` iron_ingot, `C` coal_block, `B` bucket
+
+### Бочка топлива
+```
+ICI
+IBI
+III
+```
+`I` iron_ingot, `C` coal_block, `B` bucket
+
 ### Ремкомплект ×2
 ```
 III
