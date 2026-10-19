@@ -106,6 +106,7 @@ public abstract class VehicleEntity extends Entity {
 
     // ---- server side input from the crew
     protected boolean trigger1, trigger2;
+    private long lastPreload;
     protected final int[] cooldown = new int[6];
     private final int[] muzzleIndex = new int[6];
     protected int rippleLeft;
@@ -1196,6 +1197,11 @@ public abstract class VehicleEntity extends Entity {
                 positionRider(p);
             }
             ((ServerWorld) level).getChunkSource().move(player);
+            if (spec.air != null && level.getGameTime() - lastPreload >= 20) {
+                // a jet outruns chunk generation: get the ground ahead ready before the pilot sees it
+                lastPreload = level.getGameTime();
+                com.qwarwin.militarytech.util.ChunkTickets.preload((ServerWorld) level, this, getDeltaMovement(), 8, 4);
+            }
             if (m.crashed) {
                 crash();
                 return;
