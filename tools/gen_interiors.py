@@ -434,15 +434,11 @@ def cockpit(vid, eyes, half_width=0.4, shell=True):
         # ejection seat: tall back, headbox, yellow-black handle
         c.B(ex - 0.22, ey - 0.85, ez - 0.32, ex + 0.22, ey - 0.75, ez + 0.12, "int_seat")
         # kept under the canopy: the headbox never pokes through the glass
-        back_top = ey + min(0.05, head - 0.17)
+        back_top = ey + min(0.0, head - 0.2)
         c.B(ex - 0.22, ey - 0.85, ez - 0.45, ex + 0.22, back_top, ez - 0.32, "int_seat")
         c.B(ex - 0.16, back_top, ez - 0.45, ex + 0.16, back_top + 0.13, ez - 0.32, "cockpit_dark")
         c.B(ex - 0.06, ey - 0.78, ez + 0.1, ex + 0.06, ey - 0.73, ez + 0.14, ("int_box", [("stripe", 0.0, 0.5, (210, 180, 30))]))
-        # canopy bow: two posts and the arch over the windscreen
-        for x in ((ex - w + 0.02, ex + w - 0.02) if shell else ()):
-            c.B(x - 0.02, ey - 0.2, ez + 0.66, x + 0.02, ey + head, ez + 0.7, "cockpit_dark")
-        if shell:
-            c.B(ex - w + 0.02, ey + head - 0.03, ez + 0.6, ex + w - 0.02, ey + head, ez + 0.7, "cockpit_dark")
+        # no canopy bow of our own: the models have their frames, ours poked through the glass
     st = b.part(vid + "_stick")
     st.B(-0.02, 0, -0.02, 0.02, stick_len - 0.08, 0.02, "int_steel")
     st.B(-0.035, stick_len - 0.1, -0.03, 0.035, stick_len, 0.04, "int_box")
