@@ -75,6 +75,12 @@ public final class BoxModel {
         return m;
     }
 
+    private static final java.util.Map<ResourceLocation, RenderType> GLASS = new java.util.HashMap<>();
+
+    private static RenderType glassType(ResourceLocation tex) {
+        return GLASS.computeIfAbsent(tex, com.qwarwin.militarytech.client.render.FxRenderTypes::glass);
+    }
+
     public void render(MatrixStack ms, IRenderTypeBuffer buf, int light) {
         render(ms, buf, light, OverlayTexture.NO_OVERLAY, 1F, 1F, 1F, 1F);
     }
@@ -90,7 +96,7 @@ public final class BoxModel {
             // glass is drawn see-through, blended, after the solid parts
             String file = meshTextures[s].getPath().substring(meshTextures[s].getPath().lastIndexOf('/') + 1);
             boolean glass = file.startsWith("glass");
-            IVertexBuilder vb = buf.getBuffer(glass ? RenderType.entityTranslucent(meshTextures[s])
+            IVertexBuilder vb = buf.getBuffer(glass ? glassType(meshTextures[s])
                     : RenderType.entityCutoutNoCull(meshTextures[s]));
             float[] t = meshTris[s];
             for (int o = 0; o < t.length; o += 24) {

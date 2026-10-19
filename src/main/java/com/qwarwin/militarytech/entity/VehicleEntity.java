@@ -553,6 +553,99 @@ public abstract class VehicleEntity extends Entity {
         player.startRiding(this);
     }
 
+    // ------------------------------------------------------------------ clicking parts of a vehicle
+
+    public static final int PICK_HULL = 0, PICK_SEAT = 1, PICK_DOOR = 2, PICK_PYLON = 3;
+
+    /** What a look ray from the eye meets on this vehicle: {kind, index, distance}, or null. Seats, doors and
+     * pylons count wherever on them the ray passes, even through the hull or the canopy around them. */
+    @Nullable
+    public double[] pick(Vector3d eye, Vector3d dir, double reach) {
+        Vector3d a = toLocal(eye);
+        Vector3d b = toLocal(eye.add(dir.scale(reach)));
+        double best = Double.MAX_VALUE;
+        int kind = -1, index = -1;
+        for (int s = 0; s < spec.seats.length; s++) {
+            Vector3d p = spec.seats[s];
+            Optional<Vector3d> h = new AxisAlignedBB(p.x - 0.42, p.y - 0.15, p.z - 0.5, p.x + 0.42, p.y + 1.35, p.z + 0.5).clip(a, b);
+            if (h.isPresent() && a.distanceTo(h.get()) < best) {
+                best = a.distanceTo(h.get());
+                kind = PICK_SEAT;
+                index = s;
+            }
+        }
+        for (int d = 0; d < spec.doors.size(); d++) {
+            Optional<Vector3d> h = spec.doors.get(d).area.clip(a, b);
+            if (h.isPresent() && a.distanceTo(h.get()) < best) {
+                best = a.distanceTo(h.get());
+                kind = PICK_DOOR;
+                index = d;
+            }
+        }
+        if (spec.air != null) {
+            for (int i = 0; i < spec.air.pylons.length; i++) {
+                Vector3d p = spec.air.pylons[i];
+                Optional<Vector3d> h = new AxisAlignedBB(p.x - 0.45, p.y - 1.0, p.z - 1.6, p.x + 0.45, p.y + 0.25, p.z + 1.6).clip(a, b);
+                if (h.isPresent() && a.distanceTo(h.get()) < best) {
+                    best = a.distanceTo(h.get());
+                    kind = PICK_PYLON;
+                    index = i;
+                }
+            }
+        }
+        if (kind < 0) {
+            for (AxisAlignedBB box : hitBoxes()) {
+                Optional<Vector3d> h = box.inflate(0.1).clip(a, b);
+                if (h.isPresent() && a.distanceTo(h.get()) < best) {
+                    best = a.distanceTo(h.get());
+                    kind = PICK_HULL;
+                    index = 0;
+                }
+            }
+        }
+        return kind < 0 ? null : new double[]{kind, index, best};
+    }
+
+    /** A click the client picked out (see {@link #pick}): get in, work a door, hang a store, or use the item. */
+    public void handleClick(ServerPlayerEntity player, int kind, int index) {
+        if (player.getVehicle() == this || player.distanceToSqr(this) > 40 * 40) {
+            return;
+        }
+        ItemStack stack = player.getMainHandItem();
+        boolean tool = !stack.isEmpty();
+        if (kind == PICK_PYLON && this instanceof AircraftEntity) {
+            ((AircraftEntity) this).clickPylon(player, index, stack);
+            return;
+        }
+        if (kind == PICK_DOOR && !tool && index < spec.doors.size()) {
+            VehicleSpec.Door door = spec.doors.get(index);
+            if (!isDoorOpen(index) || player.isShiftKeyDown()) {
+                setDoor(index, !isDoorOpen(index));
+                return;
+            }
+            int s = nearestSeat(toLocal(player.position()), door.seats);
+            if (s >= 0 && !player.isPassenger()) {
+                enter(player, s);
+            }
+            return;
+        }
+        if (kind == PICK_SEAT && !tool && !player.isShiftKeyDown() && index < spec.seats.length) {
+            if (player.isPassenger()) {
+                return;
+            }
+            if (!isSeatFree(index)) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.seat_taken"), true);
+            } else if (!reachable(index)) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.door_shut"), true);
+            } else {
+                enter(player, index);
+            }
+            return;
+        }
+        // anything else: the item in hand (ammo, fuel, repairs) or, sneaking with an empty hand, picking it up
+        interact(player, Hand.MAIN_HAND);
+    }
+
     /** Right click: the spot clicked picks the seat; clicking a door opens it, or gets you in through it. */
     @Override
     public ActionResultType interactAt(PlayerEntity player, Vector3d vec, Hand hand) {
@@ -1383,6 +1476,11 @@ public abstract class VehicleEntity extends Entity {
     }
 
     public void loadItem(PlayerEntity player, ItemStack stack, MunitionItem item, boolean all) {
+        loadItem(player, stack, item, all, -1);
+    }
+
+    /** {@code onlySlot}: load into that counter only (a store on the pylon that was clicked), -1 any. */
+    public void loadItem(PlayerEntity player, ItemStack stack, MunitionItem item, boolean all, int onlySlot) {
         boolean timed = Config.TIMED_LOADING.get() && !player.abilities.instabuild;
         if (timed && busyMoving()) {
             player.displayClientMessage(new TranslationTextComponent(spec.air != null ? "msg.militarytech.land_to_load"
@@ -1395,7 +1493,7 @@ public abstract class VehicleEntity extends Entity {
             int slot = -1, free = 0;
             for (int i = 0; i < spec.ammoSlots(); i++) {
                 Munition m = munitionIn(i);
-                if (m == null || !item.feeds(m)) {
+                if (m == null || !item.feeds(m) || onlySlot >= 0 && i != onlySlot) {
                     continue;
                 }
                 fits = true;

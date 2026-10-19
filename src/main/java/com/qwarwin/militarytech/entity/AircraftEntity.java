@@ -256,6 +256,63 @@ public class AircraftEntity extends VehicleEntity {
         player.displayClientMessage(new TranslationTextComponent("msg.militarytech.loadout", new TranslationTextComponent(l.key())), true);
     }
 
+    /**
+     * Clicked a pylon under the wing: with a store in hand it's hung there (the pylon takes whatever was clicked onto
+     * it), sneaking with an empty hand takes off what hangs there, an empty hand just says what's on it.
+     */
+    public void clickPylon(ServerPlayerEntity player, int pylon, ItemStack stack) {
+        if (pylon < 0 || pylon >= air().pylons.length) {
+            return;
+        }
+        Munition cur = pylonMunition(pylon);
+        if (stack.getItem() instanceof MunitionItem) {
+            MunitionItem item = (MunitionItem) stack.getItem();
+            Munition want = item.main();
+            if (!air().allows(pylon, want)) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.no_pylon_for",
+                        new TranslationTextComponent(want.key())), true);
+                return;
+            }
+            if (!canRearm()) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.land_to_load"), true);
+                return;
+            }
+            if (cur != null && cur != want && getAmmo(1 + pylon) > 0) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.pylon_busy",
+                        new TranslationTextComponent(cur.key())), true);
+                return;
+            }
+            if (cur != want) {
+                int[] ids = pylonIds();
+                ids[pylon] = want.ordinal();
+                setPylonIds(ids);
+                setAmmo(1 + pylon, 0);
+                setSelectBits(16, 0);
+            }
+            loadItem(player, stack, item, player.isShiftKeyDown(), 1 + pylon);
+            return;
+        }
+        if (stack.isEmpty() && player.isShiftKeyDown()) {
+            if (!canRearm()) {
+                player.displayClientMessage(new TranslationTextComponent("msg.militarytech.land_to_load"), true);
+                return;
+            }
+            if (cur != null) {
+                unload(player, pylon, player.abilities.instabuild);
+                int[] ids = pylonIds();
+                ids[pylon] = -1;
+                setPylonIds(ids);
+                setAmmo(1 + pylon, 0);
+                setSelectBits(16, 0);
+                level.playSound(null, getX(), getY(), getZ(), ModSounds.get("reload"), SoundCategory.NEUTRAL, 1F, 0.7F);
+            }
+            return;
+        }
+        player.displayClientMessage(cur == null ? new TranslationTextComponent("msg.militarytech.pylon_empty", pylon + 1)
+                : new TranslationTextComponent("msg.militarytech.pylon_has", pylon + 1, new TranslationTextComponent(cur.key()),
+                getAmmo(1 + pylon), capacity(1 + pylon)), true);
+    }
+
     /** Take what's on a pylon off and hand it to the player. */
     private void unload(ServerPlayerEntity player, int pylon, boolean free) {
         Munition old = pylonMunition(pylon);

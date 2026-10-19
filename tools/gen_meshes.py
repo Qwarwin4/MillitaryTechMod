@@ -116,6 +116,7 @@ VEHICLES = {
                  rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.65)]),
     # o1436 / o1692 are the canopy glass painted opaque light blue in the source: drawn as glass
     "su34": dict(src="su34", wheels=False, ry=0, k=0.92, dy=1.87, dz=0, tris=45000, glass_mats=("o1436-FACES", "o1692-FACES"),
+                 drop_mats=("o892-FACES", "o877-FACES", "o882-FACES"),
                  bays=[(-0.3, 2.6, 0.3, 4.1), (-2.4, -4.0, -1.7, -2.45), (1.7, -4.0, 2.4, -2.45)],
                  rules=[("drop", lambda i: i["mat"] in ("o892-FACES", "o877-FACES", "o882-FACES") or
                          i["mat"] == "o905-FACES" and i["max"][2] < 4.62 and i["min"][1] > 2.5 and abs(i["center"][0]) < 0.8),
@@ -389,6 +390,13 @@ def build(vid, v):
             return P - centers[p]
         return local0(p, P)
 
+    # whole materials that must go (the pilots' suits), triangle by triangle whatever piece they're part of
+    if v.get("drop_mats"):
+        for p in list(parts):
+            sc = parts[p]
+            bad = np.array([sc.materials[m].name in v["drop_mats"] for m in range(len(sc.materials))])
+            keep = ~bad[sc.mat]
+            parts[p] = sc.subset(keep)
     gear_scene, hull_scene = parts.get("gear"), parts.get("hull")
     # (part, material) groups and their triangle budgets: half by area, half by source detail
     groups = []

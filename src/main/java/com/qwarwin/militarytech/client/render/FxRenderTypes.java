@@ -1,5 +1,6 @@
 package com.qwarwin.militarytech.client.render;
 
+import net.minecraft.client.renderer.RenderState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
@@ -27,6 +28,21 @@ public final class FxRenderTypes extends RenderType {
                     .setFogState(NO_FOG)
                     .setCullState(NO_CULL)
                     .createCompositeState(false));
+
+    /** Canopy glass: blended like entityTranslucent, but writes no depth, so the cockpit behind always shows. */
+    public static RenderType glass(net.minecraft.util.ResourceLocation tex) {
+        return create("militarytech_glass", DefaultVertexFormats.NEW_ENTITY, GL11.GL_QUADS, 256, true, true,
+                RenderType.State.builder()
+                        .setTextureState(new RenderState.TextureState(tex, false, false))
+                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                        .setDiffuseLightingState(DIFFUSE_LIGHTING)
+                        .setAlphaState(DEFAULT_ALPHA)
+                        .setCullState(NO_CULL)
+                        .setLightmapState(LIGHTMAP)
+                        .setOverlayState(OVERLAY)
+                        .setWriteMaskState(COLOR_WRITE)
+                        .createCompositeState(true));
+    }
 
     private FxRenderTypes(String name, VertexFormat format, int mode, int size, boolean crumbling, boolean sort,
                           Runnable setup, Runnable clear) {
