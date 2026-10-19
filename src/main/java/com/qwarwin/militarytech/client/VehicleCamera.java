@@ -1,6 +1,7 @@
 package com.qwarwin.militarytech.client;
 
 import com.qwarwin.militarytech.MilitaryTech;
+import com.qwarwin.militarytech.entity.AirSpec;
 import com.qwarwin.militarytech.entity.AircraftEntity;
 import com.qwarwin.militarytech.entity.CameraEntity;
 import com.qwarwin.militarytech.entity.VehicleEntity;
@@ -56,7 +57,19 @@ public final class VehicleCamera {
     }
 
     public static float zoom() {
-        return mode == SIGHT ? zoom : 1F;
+        return mode == SIGHT || bombSight ? zoom : 1F;
+    }
+
+    /** Looking straight down through the bomb sight under the nose (aircraft). */
+    private static boolean bombSight;
+
+    public static boolean isBombSight() {
+        return bombSight;
+    }
+
+    static void toggleBombSight() {
+        bombSight = !bombSight;
+        zoom = bombSight ? 2F : 1F;
     }
 
     /** C / F5: outside -> sight -> inside (when the vehicle has an interior) -> outside. */
@@ -67,7 +80,7 @@ public final class VehicleCamera {
     }
 
     static void scroll(double delta) {
-        if (mode == SIGHT) {
+        if (mode == SIGHT || bombSight) {
             zoom = MathHelper.clamp(zoom * (delta > 0 ? 1.3F : 1F / 1.3F), 1F, 10F);
         } else {
             distance = MathHelper.clamp(distance * (delta > 0 ? 0.88F : 1F / 0.88F), 0.45F, 2.5F);
@@ -78,6 +91,7 @@ public final class VehicleCamera {
         Minecraft mc = Minecraft.getInstance();
         if (v == null) {
             mode = OUTSIDE;
+            bombSight = false;
             zoom = 1F;
             if (mc.player != null && mc.getCameraEntity() != mc.player) {
                 mc.setCameraEntity(mc.player);
@@ -102,6 +116,11 @@ public final class VehicleCamera {
     public static Vector3d position(Minecraft mc, VehicleEntity v, float partial) {
         Vector3d base = new Vector3d(MathHelper.lerp(partial, v.xo, v.getX()), MathHelper.lerp(partial, v.yo, v.getY()),
                 MathHelper.lerp(partial, v.zo, v.getZ()));
+        if (bombSight && v instanceof AircraftEntity) {
+            // the sight's window under the cockpit
+            AirSpec air = ((AircraftEntity) v).air();
+            return v.toWorld(new Vector3d(air.cockpit.x * 0, 0.4, air.cockpit.z)).subtract(v.position()).add(base);
+        }
         if (mode == INSIDE) {
             return v.toWorld(insideEye(v, mc.player)).subtract(v.position()).add(base);
         }
@@ -174,6 +193,11 @@ public final class VehicleCamera {
         cam.zo = cam.zOld = p.z;
         cam.yRot = cam.yRotO = mc.player.getViewYRot(pt);
         cam.xRot = cam.xRotO = mc.player.getViewXRot(pt);
+        if (bombSight && v instanceof AircraftEntity) {
+            // straight down, a little ahead, turning with the aircraft
+            cam.yRot = cam.yRotO = MathHelper.rotLerp(pt, v.yRotO, v.yRot);
+            cam.xRot = cam.xRotO = 82F;
+        }
         if (mc.getCameraEntity() != cam) {
             mc.setCameraEntity(cam);
         }

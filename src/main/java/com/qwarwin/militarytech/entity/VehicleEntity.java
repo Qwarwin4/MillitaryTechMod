@@ -989,6 +989,8 @@ public abstract class VehicleEntity extends Entity {
         public float forward, strafe;
         public boolean jump, sprint;
         public float yaw, pitch;
+        /** aircraft: on a bombing run (bomb sight open) */
+        public boolean bombRun;
         /** where the crosshair is in the world, for mouse-aim flying */
         public Vector3d look = Vector3d.ZERO;
     }

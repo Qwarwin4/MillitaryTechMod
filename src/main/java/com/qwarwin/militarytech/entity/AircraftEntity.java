@@ -448,6 +448,14 @@ public class AircraftEntity extends VehicleEntity {
             rudder = -in.strafe;
             tYaw = in.yaw;
             tPitch = in.pitch;
+            if (in.bombRun && !isOnGround()) {
+                // bombing run: wings level, nose on the horizon, slowed to a steady release speed; A/D for small
+                // corrections of the course, the mouse only looks through the sight
+                tPitch = 0F;
+                tYaw = yRot;
+                rudder = -in.strafe * 0.5F;
+                thr = (float) MathHelper.clamp((stall * 1.45) / Math.max(0.01, maxV), 0.2, 0.7);
+            }
         } else {
             // nobody flying it: engine dies, it glides down nose first
             thr = 0F;

@@ -31,6 +31,8 @@ MUNITIONS = {
     "kh59": dict(src="rupack.glb", node=("w_lasm",), length=5.7, tris=2500),
     # the rocket pod hung for S-8s: the B-13L model, painted like the pods on the Su-25s
     "b8_pod": dict(src="b13.glb", length=3.2, tris=3000, color=(92, 99, 80), fat=1.35),
+    # RN-28: a slim free-fall nuclear bomb, the FAB-250 shape stretched, with yellow bands
+    "rn28": dict(src="fab250.glb", length=3.4, tris=3000, fat=0.85, bands=True),
     "kh101": dict(src="x555.glb", length=7.45, tris=4000),
     "kh102": dict(src="x555.glb", length=7.45, tris=4000),
 }
@@ -116,7 +118,7 @@ def build(name, cfg):
             UV[..., 0] = (i + 0.5) / 16
             UV[..., 1] = 0.5
         sections.setdefault(ref, []).append((P3, UV, N3))
-    if name == "kh102":
+    if name == "kh102" or cfg.get("bands"):
         # the nuclear one: two yellow bands round the body, so it can't be mistaken for a Kh-101
         palette.append((214, 177, 30))
         sections.setdefault("palette", []).append(bands(sc, len(palette) - 1))

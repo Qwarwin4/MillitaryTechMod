@@ -41,7 +41,7 @@ public enum Munition {
     KH101(Kind.HEAT, Guidance.CRUISE, 4.4, 0.0, 1.0, 3000, 700.0F, 16.0F, "kh101", Tracer.NONE),
     KH102(Kind.HEAT, Guidance.CRUISE, 4.4, 0.0, 1.0, 3000, 0.0F, 0.0F, "kh102", Tracer.NONE),
     // free-fall tactical nuclear bomb, for anything that can lift it
-    RN28(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.997, 900, 0.0F, 0.0F, "nuke", Tracer.NONE);
+    RN28(Kind.BOMB, Guidance.NONE, 0.0, 0.050, 0.997, 900, 0.0F, 0.0F, "rn28", Tracer.NONE);
 
     public enum Kind {
         BULLET, SHELL, DART, HE, HEAT, THERMOBARIC, BOMB, AIR, BALLISTIC, WARHEAD

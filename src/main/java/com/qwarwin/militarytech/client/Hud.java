@@ -419,7 +419,9 @@ public final class Hud {
         int ground = mc.level.getHeight(Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(a.getX()), MathHelper.floor(a.getZ()));
         int alt = (int) Math.max(0, a.getY() - ground);
         double kmh = a.getSpeed() * 72 * 3;
-        if (VehicleCamera.isSight()) {
+        if (VehicleCamera.isBombSight()) {
+            bombSight(ms, mc, a, w, h, kmh, alt, sel);
+        } else if (VehicleCamera.isSight()) {
             // in the cockpit: everything on the HUD glass in front of the pilot
             glassHud(ms, mc, a, w, h, pt, kmh, alt, sel);
         } else {
@@ -439,6 +441,50 @@ public final class Hud {
         if (a.isOnGround() && a.getSpeed() < 0.1) {
             centered(ms, mc, I18n.get("hud.militarytech.takeoff_hint"), cx, h - 70, 0xFFB0B0B0);
         }
+    }
+
+    /**
+     * Looking down through the bomb sight: the round eyepiece, the drift line along the track, and the pipper where
+     * the selected bombs would land if released now. Fly the pipper over the target and press RMB.
+     */
+    private static void bombSight(MatrixStack ms, Minecraft mc, AircraftEntity a, int w, int h, double kmh, int alt,
+                                  @Nullable Munition sel) {
+        int cx = w / 2, cy = h / 2;
+        int r = Math.min(w, h) / 2 - 6;
+        AbstractGui.fill(ms, 0, 0, w, cy - r, 0xE0000000);
+        AbstractGui.fill(ms, 0, cy + r, w, h, 0xE0000000);
+        AbstractGui.fill(ms, 0, cy - r, cx - r, cy + r, 0xE0000000);
+        AbstractGui.fill(ms, cx + r, cy - r, w, cy + r, 0xE0000000);
+        circle(ms, cx, cy, r, 0xFF101010);
+        int c = 0xFFFFB040;
+        // drift line along the track and the range marks on it
+        AbstractGui.fill(ms, cx, cy - r + 8, cx + 1, cy + r - 8, 0x80FFB040);
+        for (int i = -4; i <= 4; i++) {
+            int y = cy + i * r / 5;
+            AbstractGui.fill(ms, cx - (i == 0 ? 10 : 4), y, cx + (i == 0 ? 11 : 5), y + 1, c);
+        }
+        boolean bombs = sel != null && sel.kind == Munition.Kind.BOMB;
+        if (!bombs) {
+            centered(ms, mc, I18n.get("hud.militarytech.bomb_select"), cx, cy + r - 30, RED);
+        } else if (predicted != null) {
+            int[] p = Projection.toScreen(predicted, w, h);
+            if (p != null) {
+                // the pipper: where they fall if you let go now
+                circle(ms, p[0], p[1], 6, RED);
+                circle(ms, p[0], p[1], 7, RED);
+                AbstractGui.fill(ms, p[0], p[1], p[0] + 1, p[1] + 1, RED);
+                HudKit.line(ms, cx, cy, p[0], p[1], 0x60FF4040);
+            }
+            double fall = Math.sqrt(2 * Math.max(1, alt) / (sel.gravity * 400)) ;
+            text(ms, mc, I18n.get("hud.militarytech.bomb_fall", String.format("%.1f", fall)), cx - r + 12, cy + r - 40, c);
+        }
+        text(ms, mc, I18n.get("hud.militarytech.ias", (int) kmh), cx - r + 12, cy + r - 28, c);
+        text(ms, mc, I18n.get("hud.militarytech.alt_short", alt), cx - r + 12, cy + r - 16, c);
+        if (sel != null) {
+            String n = I18n.get(sel.key()) + "  " + a.countOf(sel);
+            text(ms, mc, n, cx + r - 12 - mc.font.width(n), cy + r - 16, c);
+        }
+        centered(ms, mc, I18n.get("hud.militarytech.bomb_hint"), cx, cy - r + 10, 0xC0FFB040);
     }
 
     private static void flightPanels(MatrixStack ms, Minecraft mc, AircraftEntity a, int w, int h, float pt, double kmh, int alt,

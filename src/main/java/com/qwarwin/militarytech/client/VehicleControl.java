@@ -197,6 +197,12 @@ public final class VehicleControl {
                 action = true;
             }
         }
+        for (int n = KeyBinds.presses(KeyBinds.BOMBSIGHT); n > 0; n--) {
+            if (v instanceof AircraftEntity && v.isDriver(mc.player)) {
+                VehicleCamera.toggleBombSight();
+            }
+        }
+        CONTROLS.bombRun = VehicleCamera.isBombSight() && v instanceof AircraftEntity;
         for (int n = KeyBinds.presses(KeyBinds.LOADOUT); n > 0; n--) {
             if (v instanceof AircraftEntity && ((AircraftEntity) v).air().internalBay && !v.isOnGround() && v.isGunner(mc.player)) {
                 // strategic bomber in flight: K enters the cruise missiles' target coordinates

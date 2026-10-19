@@ -52,7 +52,7 @@ AMMO = {"shell_125_he": "shell_125", "atgm_refleks": "refleks", "shell_73": "she
         "missile_sam": "sam", "missile_r73": "r73", "missile_r40": "r40", "missile_kh29": "kh29", "missile_kh59": "kh59",
         "missile_kh101": "kh101", "missile_kh102": "kh102", "bomb_fab250": "fab250", "bomb_fab500": "fab500",
         "bomb_fab1500": "fab1500", "bomb_fab3000": "fab3000", "bomb_fab9000": "fab9000",
-        "missile_oreshnik": "oreshnik_missile", "bomb_rn28": "nuke"}
+        "missile_oreshnik": "oreshnik_missile", "bomb_rn28": "rn28"}
 
 
 def ref(name):
