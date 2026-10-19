@@ -233,7 +233,9 @@ public final class VehicleCamera {
         if (veh instanceof VehicleEntity && ((VehicleEntity) veh).spec.enclosed && !((VehicleEntity) veh).isOutside(event.getPlayer())) {
             // the crew sits inside
             event.setCanceled(true);
-        } else if (veh instanceof AircraftEntity && mode == SIGHT && event.getPlayer() == Minecraft.getInstance().player) {
+        } else if (veh instanceof AircraftEntity) {
+            // a Minecraft body doesn't fit under a fighter's canopy: it stuck out through the glass, so the crew of
+            // an aircraft isn't drawn; the seats and the cockpit show through the glass instead
             event.setCanceled(true);
         } else if (veh instanceof VehicleEntity && ((VehicleEntity) veh).spec.riderScale != 1F) {
             // pilots sit in the cockpit, scaled to fit under the canopy
