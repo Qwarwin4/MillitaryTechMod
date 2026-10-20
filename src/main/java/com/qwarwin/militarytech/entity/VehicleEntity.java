@@ -106,7 +106,6 @@ public abstract class VehicleEntity extends Entity {
 
     // ---- server side input from the crew
     protected boolean trigger1, trigger2;
-    private long lastPreload;
     protected final int[] cooldown = new int[6];
     private final int[] muzzleIndex = new int[6];
     protected int rippleLeft;
@@ -1115,10 +1114,19 @@ public abstract class VehicleEntity extends Entity {
         }
         // Minecraft moves a player's loaded area only when he walks or steers a vanilla boat: everyone riding along
         // (gunner, commander, co-pilot, troops) needs it moved with the vehicle or the world stops loading round them
+        boolean crewed = false;
         for (Entity p : getPassengers()) {
             if (p instanceof ServerPlayerEntity) {
                 ((ServerWorld) level).getChunkSource().move((ServerPlayerEntity) p);
+                crewed = true;
             }
+        }
+        if (crewed && tickCount % 20 == 0) {
+            // the ground round it stays loaded and ticking even when the riders' own loading lags behind, and
+            // anything moving gets the ground ahead generated before it arrives
+            com.qwarwin.militarytech.util.ChunkTickets.keep((ServerWorld) level, getId(), position(), 4);
+            com.qwarwin.militarytech.util.ChunkTickets.preload((ServerWorld) level, this, getDeltaMovement(),
+                    spec.air != null ? 8 : 5, spec.air != null ? 4 : 3);
         }
         if (empTicks > 0 && --empTicks == 0) {
             setFlag(FLAG_EMP, false);
@@ -1222,11 +1230,6 @@ public abstract class VehicleEntity extends Entity {
                 positionRider(p);
             }
             ((ServerWorld) level).getChunkSource().move(player);
-            if (spec.air != null && level.getGameTime() - lastPreload >= 20) {
-                // a jet outruns chunk generation: get the ground ahead ready before the pilot sees it
-                lastPreload = level.getGameTime();
-                com.qwarwin.militarytech.util.ChunkTickets.preload((ServerWorld) level, this, getDeltaMovement(), 8, 4);
-            }
             if (m.crashed) {
                 crash();
                 return;
