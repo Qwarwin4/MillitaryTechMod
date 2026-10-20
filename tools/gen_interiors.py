@@ -267,6 +267,8 @@ def tank(vid, c):
                 g.B(x - 0.02, -0.25, -L - 0.4, x + 0.02, 0.25, -0.2, "int_box")
             g.B(-0.32, 0.23, -L - 0.4, 0.32, 0.27, -0.2, "int_box")
             g.B(-0.15, -0.3, -L - 0.25, 0.15, -0.2, -L + 0.1, "int_olive")
+    if c.get("extra"):
+        c["extra"](h, c)
     save_controls(vid, controls)
     gv.finish(b, {p.name: 4 for p in b.parts})
 
@@ -488,6 +490,24 @@ def oreshnik_housing():
 # turret floor plate 1.56, roof 2.72-2.8, sides sloping in from 1.47 to 1.08, front 1.1, rear -2.0
 MSTA = dict(floor=0.6, ceil=1.08, front=2.45, rear=-1.6, hw=0.92, pivot=None, tr=None, ring=0, roof=0, carousel=False,
             breech=0)
+def msta_hull(h, c):
+    """behind the driver: charges in their cases racked along both sides, the filter-ventilation unit, batteries"""
+    f, top, hw = c["floor"], c["ceil"], c["hw"]
+    for side in (-1, 1):
+        x = side * (hw - 0.14)
+        for k in range(5):
+            z = 0.35 + k * 0.2
+            h.B(x - 0.1, f + 0.04, z, x + 0.1, f + 0.2, z + 0.17, "int_brass")
+            h.B(x - 0.1, f + 0.22, z, x + 0.1, f + 0.38, z + 0.17, "int_brass")
+        h.B(x - 0.12, f, 0.3, x + 0.12, f + 0.03, 1.4, "int_steel")
+    h.B(0.25, f, -0.6, 0.65, f + 0.36, -0.2, {"all": "int_olive", "north": ("int_olive", [
+        ("rect", 0.15, 0.2, 0.85, 0.5, (40, 46, 38)), ("text", "ФВУ", 0.5, 0.75, 0.15, (225, 225, 215))])})
+    h.B(-0.65, f, -0.6, -0.3, f + 0.25, -0.3, ("int_box", [("text", "+  -", 0.5, 0.5, 0.2, (200, 60, 50))]))
+    h.B(-0.65, f + 0.25, -0.6, -0.3, f + 0.28, -0.3, "int_red")
+    h.B(-0.2, top - 0.08, 1.6, 0.2, top - 0.02, 1.75, "int_lamp")
+
+
+MSTA["extra"] = msta_hull
 MSTA_PIVOT = (0, 1.2, -0.55)
 MSTA_TRUNNION = (0, 2.25, 1.4)      # absolute, see Specs.MSTA (pivot + trunnion)
 
@@ -545,6 +565,48 @@ def msta():
             tt.B(xa - 0.08, y0 + 0.68, z, xa + 0.08, y0 + 0.83, z + 0.17, "int_brass")
     tt.B(-0.08, roof - 0.1, z1 + 1.6, 0.08, roof - 0.02, z1 + 1.75, "int_lamp")
     tt.B(-0.08, roof - 0.1, z2 - 0.9, 0.08, roof - 0.02, z2 - 0.75, "int_lamp")
+    # commander's cupola: a ring of periscopes under the roof over his seat
+    cx, cz = -0.7, z2 - 1.05
+    for k in range(6):
+        a = 2 * math.pi * k / 6
+        ox, oz = cx + 0.2 * math.sin(a), cz + 0.2 * math.cos(a)
+        tt.B(ox - 0.05, roof - 0.13, oz - 0.05, ox + 0.05, roof, oz + 0.05,
+             {"all": "int_box", "down": "int_scope", "north": "int_scope", "south": "int_scope"})
+    tt.B(cx - 0.26, roof - 0.03, cz - 0.26, cx + 0.26, roof, cz + 0.26, ("int_steel", [("hatch", 0.5, 0.5, 0.35)]))
+    # gunner's elevation and traverse handwheels, the firing button on the elevation wheel
+    for wy, wz in ((y0 + 0.62, z2 - 0.55), (y0 + 0.42, z2 - 0.85)):
+        wx = 0.58
+        tt.B(wx - 0.02, wy - 0.11, wz - 0.01, wx + 0.02, wy + 0.11, wz + 0.01, "int_steel")
+        tt.B(wx - 0.02, wy - 0.01, wz - 0.11, wx + 0.02, wy + 0.01, wz + 0.11, "int_steel")
+        for dy, dz in ((0.1, 0), (-0.1, 0), (0, 0.1), (0, -0.1)):
+            tt.B(wx - 0.025, wy + dy - 0.02 - abs(dz) * 0.8, wz + dz - 0.02 - abs(dy) * 0.8,
+                 wx + 0.025, wy + dy + 0.02 + abs(dz) * 0.8, wz + dz + 0.02 + abs(dy) * 0.8, "int_box")
+        tt.B(wx - 0.04, wy - 0.03, wz - 0.03, wx + 0.04, wy + 0.03, wz + 0.03, "int_red")
+    tt.B(0.6, y0 + 0.03, z2 - 0.85, 0.66, y0 + 0.4, z2 - 0.79, "int_steel")
+    # R-168 radio and the intercom boxes by each crew place
+    tt.B(x1 + 0.02, y0 + 0.55, z1 + 1.28, x1 + 0.2, y0 + 0.9, z1 + 1.62, {"all": "int_olive", "east": ("int_olive", [
+        ("rect", 0.1, 0.15, 0.55, 0.45, (30, 34, 28)), ("disc", 0.75, 0.3, 0.06, (20, 20, 20)),
+        ("disc", 0.75, 0.7, 0.06, (20, 20, 20)), ("text", "Р-168", 0.3, 0.75, 0.12, (220, 220, 210))])})
+    for ix, iz in ((0.97, z2 - 1.05), (-0.97, z2 - 1.45), (0.97, z1 + 0.75), (-0.97, z1 + 0.25)):
+        sx = 1 if ix > 0 else -1
+        tt.B(ix - sx * 0.02 - 0.05, y0 + 0.62, iz - 0.06, ix - sx * 0.02 + 0.05, y0 + 0.74, iz + 0.06,
+             ("int_box", [("disc", 0.5, 0.5, 0.2, (90, 90, 80))]))
+    # rammer conveyor along the floor from the racks to the breech, rollers across it
+    for x in (-0.16, 0.16):
+        tt.B(x - 0.02, y0 + 0.03, z1 + 0.3, x + 0.02, y0 + 0.1, z2 - 1.9, "int_steel")
+    k = 0
+    z = z1 + 0.4
+    while z < z2 - 2.0:
+        tt.B(-0.15, y0 + 0.05, z, 0.15, y0 + 0.08, z + 0.04, "int_box")
+        z += 0.18
+    # vent fan in the roof, extinguishers, grab rails
+    tt.B(-0.14, roof - 0.07, z1 + 0.85, 0.14, roof, z1 + 1.13, ("int_box", [("disc", 0.5, 0.5, 0.42, (70, 74, 68)),
+                                                                           ("disc", 0.5, 0.5, 0.12, (30, 30, 28))]))
+    for ex in (0.88, -0.88):
+        tt.B(ex - 0.05, y0 + 0.03, z1 + 1.3, ex + 0.05, y0 + 0.4, z1 + 1.4, "int_red")
+        tt.B(ex - 0.02, y0 + 0.4, z1 + 1.33, ex + 0.02, y0 + 0.45, z1 + 1.37, "int_box")
+    for zr in (z1 + 0.6, z2 - 1.45):
+        tt.B(-0.4, roof - 0.07, zr, 0.4, roof - 0.04, zr + 0.03, "int_steel")
     # 2A64 breech: ring, block, recoil guard, the rammer tray behind it
     g = b.part("msta_interior_gun")
     # (the part in front of the turret's front wall is the gun model's own cradle)
@@ -556,6 +618,11 @@ def msta():
     g.B(-0.38, 0.26, -1.85, 0.38, 0.3, -0.7, "int_box")
     g.B(-0.16, -0.36, -2.2, 0.16, -0.26, -1.5, "int_olive")
     g.B(-0.05, -0.33, -2.15, 0.05, -0.27, -1.55, "int_brass")
+    # breech handle, the firing mechanism and the recoil indicator
+    g.B(0.22, -0.06, -1.42, 0.36, 0.04, -1.32, "int_steel")
+    g.B(0.32, -0.12, -1.42, 0.36, 0.04, -1.36, ("int_red", []))
+    g.B(-0.3, 0.12, -1.1, -0.22, 0.22, -0.85, "int_box")
+    g.B(0.24, 0.1, -1.3, 0.3, 0.16, -0.8, ("int_steel", [("stripe", 0.0, 1.0, (200, 40, 30))]))
     gv.finish(b, {p.name: 4 for p in b.parts})
 
 

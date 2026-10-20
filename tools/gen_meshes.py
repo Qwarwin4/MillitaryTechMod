@@ -120,6 +120,10 @@ VEHICLES = {
     # tubes, twin 2A38M); the tube packs and cannons on the sides elevate, the rest turns
     "pantsir": dict(
         src="pantsir", tracked=False, ry=180, k=0.65, dy=0.04, dz=3.67, tris=90000, keep_all=True,
+        # the cab's windscreen and side windows (open in the source), found by ray casts from inside the cab
+        windows=[[(-1.06, 2.33, 4.88), (1.06, 2.33, 4.88), (1.06, 2.93, 4.88), (-1.06, 2.93, 4.88)],
+                 [(1.095, 2.33, 4.08), (1.095, 2.33, 4.88), (1.095, 2.93, 4.88), (1.095, 2.93, 4.08)],
+                 [(-1.095, 2.33, 4.08), (-1.095, 2.33, 4.88), (-1.095, 2.93, 4.88), (-1.095, 2.93, 4.08)]],
         rules=[("gun", both(name("Object_13"), box(-1.6, 2.85, -3.6, 1.6, 3.75, 0.95),
                             lambda i: abs(i["center"][0]) >= 0.6)),
                ("turret", both(name("Object_13"), box(-2.0, 2.5, -4.2, 2.0, 5.5, 1.0)))],
@@ -514,6 +518,23 @@ def build(vid, v):
             UV = np.zeros(P3.shape[:2] + (2,))
             UV[..., 0], UV[..., 1] = cu, cv
         sections.setdefault(p, {}).setdefault(ref, []).append((P3, UV, N3))
+
+    # glazing the source leaves open (the Pantsir's KamAZ cab): flat tinted panes, drawn see-through
+    if v.get("windows"):
+        tris = []
+        for quad in v["windows"]:
+            q = [np.array(c, dtype=float) for c in quad]
+            tris += [[q[0], q[1], q[2]], [q[0], q[2], q[3]]]
+        P3 = np.array(tris)
+        n = np.cross(P3[:, 1] - P3[:, 0], P3[:, 2] - P3[:, 0])
+        n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-12
+        N3 = np.repeat(n[:, None, :], 3, axis=1)
+        UV = np.full(P3.shape[:2] + (2,), 0.5)
+        sections.setdefault("hull", {}).setdefault("glass_tint", []).append((P3, UV, N3))
+        g = np.zeros((4, 4, 4), dtype=np.uint8)
+        g[..., :3] = (38, 50, 58)
+        g[..., 3] = 150
+        Image.fromarray(g, "RGBA").save(os.path.join(tex_dir, "glass_tint.png"))
 
     mdir = os.path.join(ASSETS, "models", "entity")
     for p, by_tex in sections.items():
