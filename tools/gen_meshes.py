@@ -119,7 +119,7 @@ VEHICLES = {
     # Pantsir-S1 on the KamAZ-6560: Object_13 is the combat module (search radar, tracking radar, 2 x 6 missile
     # tubes, twin 2A38M); the tube packs and cannons on the sides elevate, the rest turns
     "pantsir": dict(
-        src="pantsir", tracked=False, ry=180, k=0.65, dy=0.04, dz=3.67, tris=45000,
+        src="pantsir", tracked=False, ry=180, k=0.65, dy=0.04, dz=3.67, tris=90000, keep_all=True,
         rules=[("gun", both(name("Object_13"), box(-1.6, 2.85, -3.6, 1.6, 3.75, 0.95),
                             lambda i: abs(i["center"][0]) >= 0.6)),
                ("turret", both(name("Object_13"), box(-2.0, 2.5, -4.2, 2.0, 5.5, 1.0)))],
@@ -490,9 +490,17 @@ def build(vid, v):
         share = 0.5 * ar / atot + 0.5 * len(sub) / ntot
         keep = 0.15 if p == "hull" else 0.45
         n = max(min(len(sub), 900), int(budget * share), int(len(sub) * keep))
-        V, F, UVw = mk.decimate_textured(sub, n)
-        P3 = V[F]
-        N3 = mk._corner_normals(V, F)
+        if v.get("keep_all"):
+            # palette-textured low-poly models: decimating across their many uv seams opens cracks, keep every triangle
+            P3, UVw = sub.P.copy(), sub.UV.copy()
+            e1, e2 = P3[:, 1] - P3[:, 0], P3[:, 2] - P3[:, 0]
+            fn = np.cross(e1, e2)
+            fn /= np.linalg.norm(fn, axis=1, keepdims=True) + 1e-12
+            N3 = np.repeat(fn[:, None, :], 3, axis=1)
+        else:
+            V, F, UVw = mk.decimate_textured(sub, n)
+            P3 = V[F]
+            N3 = mk._corner_normals(V, F)
         r = tex_of[mi]
         if isinstance(r, tuple):
             ref, UV = r[1], UVw
