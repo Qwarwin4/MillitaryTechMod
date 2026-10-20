@@ -44,7 +44,7 @@ public final class ChunkTickets {
 
     /**
      * Terrain ahead of something fast that a player flies or watches: loaded (and generated if new) along the next
-     * {@code seconds} of flight before it gets there, a {@code radius} chunks wide swath, so the world doesn't end
+     * {@code seconds} of flight before it gets there, {@code radius} chunks to each side, so the world doesn't end
      * in front of the nose. Refresh every second.
      */
     public static void preload(ServerWorld world, Entity entity, Vector3d velocity, int seconds, int radius) {
@@ -52,12 +52,16 @@ public final class ChunkTickets {
             return;
         }
         double speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-        if (speed < 0.25) {
+        if (speed < 1.0) {
+            // anything slower is well inside the area the player loads anyway
             return;
         }
         Vector3d dir = new Vector3d(velocity.x / speed, 0, velocity.z / speed);
-        double reach = Math.min(640, speed * 20 * seconds);
-        for (double d = 24; d <= reach; d += 24) {
+        double reach = Math.min(800, speed * 20 * seconds);
+        // small tickets (radius 2: a low priority, so they never hold up the chunks round the player), starting where
+        // the view distance ends
+        double from = Math.max(48, (world.getServer().getPlayerList().getViewDistance() - 2) * 16);
+        for (double d = from; d <= reach; d += 40) {
             Vector3d at = entity.position().add(dir.scale(d));
             ChunkPos pos = new ChunkPos(((int) Math.floor(at.x)) >> 4, ((int) Math.floor(at.z)) >> 4);
             world.getChunkSource().addRegionTicket(PRELOAD, pos, radius, entity.getId());

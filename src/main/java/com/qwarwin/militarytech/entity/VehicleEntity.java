@@ -1121,12 +1121,9 @@ public abstract class VehicleEntity extends Entity {
                 crewed = true;
             }
         }
-        if (crewed && tickCount % 20 == 0) {
-            // the ground round it stays loaded and ticking even when the riders' own loading lags behind, and
-            // anything moving gets the ground ahead generated before it arrives
-            com.qwarwin.militarytech.util.ChunkTickets.keep((ServerWorld) level, getId(), position(), 4);
-            com.qwarwin.militarytech.util.ChunkTickets.preload((ServerWorld) level, this, getDeltaMovement(),
-                    spec.air != null ? 8 : 5, spec.air != null ? 4 : 3);
+        if (crewed && spec.air != null && tickCount % 20 == 0) {
+            // a jet outruns the riders' own loading: the ground ahead, past the view distance, generated in advance
+            com.qwarwin.militarytech.util.ChunkTickets.preload((ServerWorld) level, this, getDeltaMovement(), 10, 2);
         }
         if (empTicks > 0 && --empTicks == 0) {
             setFlag(FLAG_EMP, false);
