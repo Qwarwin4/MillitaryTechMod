@@ -358,6 +358,7 @@ public abstract class VehicleEntity extends Entity {
             return;
         }
         entityData.set(CONTROL, s);
+        resyncClients();
         for (Entity p : getPassengers()) {
             if (p instanceof PlayerEntity) {
                 ((PlayerEntity) p).displayClientMessage(new TranslationTextComponent("msg.militarytech.has_control",
@@ -876,13 +877,28 @@ public abstract class VehicleEntity extends Entity {
 
     @Override
     protected void removePassenger(Entity passenger) {
+        boolean wasDriver = !level.isClientSide && isDriver(passenger);
         super.removePassenger(passenger);
         if (!level.isClientSide) {
             putSeat(passenger, -1);
+            if (wasDriver) {
+                resyncClients();
+            }
         }
         if (getGunner() == null) {
             trigger1 = trigger2 = false;
             rippleLeft = 0;
+        }
+    }
+
+    /**
+     * Every client's copy back onto the server's position. A client ignores position packets for what it drives
+     * itself, and Minecraft only sends moves relative to the last position it sent: the one who just got out would
+     * apply the next move to the spot where he got in, and the vehicle would jump there until he came back in range.
+     */
+    protected void resyncClients() {
+        if (!level.isClientSide) {
+            ((ServerWorld) level).getChunkSource().broadcast(this, new net.minecraft.network.play.server.SEntityTeleportPacket(this));
         }
     }
 
@@ -1078,6 +1094,8 @@ public abstract class VehicleEntity extends Entity {
             clientTurretTick();
             if (isControlledByLocalInstance()) {
                 lerpSteps = 0;
+                // keep the base the server's relative moves are added to where the vehicle really is
+                setPacketCoordinates(getX(), getY(), getZ());
                 DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHooks.driveLocal(this));
             } else {
                 tickLerp();
@@ -1094,6 +1112,13 @@ public abstract class VehicleEntity extends Entity {
         }
         if (getGunner() == null) {
             trigger1 = trigger2 = false;
+        }
+        // Minecraft moves a player's loaded area only when he walks or steers a vanilla boat: everyone riding along
+        // (gunner, commander, co-pilot, troops) needs it moved with the vehicle or the world stops loading round them
+        for (Entity p : getPassengers()) {
+            if (p instanceof ServerPlayerEntity) {
+                ((ServerWorld) level).getChunkSource().move((ServerPlayerEntity) p);
+            }
         }
         if (empTicks > 0 && --empTicks == 0) {
             setFlag(FLAG_EMP, false);
