@@ -480,10 +480,90 @@ def oreshnik_housing():
     gv.finish(b, {"oreshnik_extra": 16})
 
 
+# ---------------------------------------------------------------------------
+# 2S19 Msta-S: the T-80 hull with the driver in front, a big box turret over most of it (no ring: its floor is the
+# hull roof), gunner and commander forward, two loaders behind, the 2A64 breech with its rammer, rounds on the walls
+
+# measured inside the model by ray casts: hull floor 0.48, sides 0.98, the roof dropping to 1.1 over the driver;
+# turret floor plate 1.56, roof 2.72-2.8, sides sloping in from 1.47 to 1.08, front 1.1, rear -2.0
+MSTA = dict(floor=0.6, ceil=1.08, front=2.45, rear=-1.6, hw=0.92, pivot=None, tr=None, ring=0, roof=0, carousel=False,
+            breech=0)
+MSTA_PIVOT = (0, 1.2, -0.55)
+MSTA_TRUNNION = (0, 2.25, 1.4)      # absolute, see Specs.MSTA (pivot + trunnion)
+
+
+def msta():
+    tank("msta", MSTA)
+    b = Bake("interior_msta_turret", gv.MODID, gv.GREEN, density=48)
+    tt = b.part("msta_interior_turret")
+    px, py, pz = MSTA_PIVOT
+    # inside the model's walls with a margin
+    x1, x2 = -1.0, 1.0
+    y0, roof = 1.58 - py, 2.66 - py
+    z1, z2 = -1.75 - pz, 0.7 - pz
+    t = 0.03
+    eye = 2.22 - py
+    slits = [(eye - 0.12, eye + 0.1)]
+    tt.B(x1, y0, z1, x2, y0 + t, z2, ("int_floor", [("stripe", 0.0, 0.03, (40, 40, 36))]))
+    slit_wall(tt, x1 - t, y0, z1, x1, roof, z2, "int_wall", slits)
+    slit_wall(tt, x2, y0, z1, x2 + t, roof, z2, "int_wall", slits)
+    slit_wall(tt, x1, y0, z1 - t, x2, roof, z1, "int_wall_dark", slits)
+    # the front wall round the gun's opening
+    tt.B(x1, y0, z2, -0.42, roof, z2 + t, "int_wall")
+    tt.B(0.42, y0, z2, x2, roof, z2 + t, "int_wall")
+    tt.B(-0.42, y0, z2, 0.42, y0 + 0.35, z2 + t, "int_wall")
+    tt.B(x1, roof, z1, x2, roof + t, z2, ("int_wall", [("hatch", 0.25, 0.7, 0.1), ("hatch", 0.75, 0.7, 0.1),
+                                                        ("hatch", 0.5, 0.2, 0.1)]))
+    # gun cradle guards either side of the breech's path
+    for x in (-0.48, 0.48):
+        tt.B(x - 0.02, y0, z2 - 1.9, x + 0.02, y0 + 0.75, z2 - 0.1, "int_box")
+    # gunner (left of the gun) and commander (right), seats, sights and panels; loaders behind them
+    for x, side in ((0.85, 1), (-0.85, -1)):
+        seat(tt, x, y0 + 0.06, z2 - 1.05, w=0.34, back=0.4)
+        tt.B(x - 0.13, roof - 0.42, z2 - 0.5, x + 0.13, roof - 0.1, z2 - 0.22,
+             {"all": "int_box", "north": ("int_box", [("disc", 0.5, 0.5, 0.06, (20, 30, 34))])})
+        tt.B(x - 0.05, roof - 0.36, z2 - 0.56, x + 0.05, roof - 0.26, z2 - 0.5, "int_seat")
+        panel(tt, x - side * 0.05 - 0.16, y0 + 0.35, z2 - 0.08, x - side * 0.05 + 0.16, y0 + 0.7, z2, "north", 2, 2)
+    for x in (0.7, -0.7):
+        seat(tt, x, y0 + 0.06, z1 + 0.75, w=0.3, back=0.35)
+    # the fire control computer by the gunner, the laying gear
+    tt.B(0.8, y0 + 0.55, z2 - 1.6, x2 - 0.01, y0 + 0.9, z2 - 1.2, {"all": "int_box", "west": ("int_box", [
+        ("rect", 0.12, 0.2, 0.88, 0.75, (26, 64, 36)), ("disc", 0.3, 0.88, 0.04, (220, 40, 30)),
+        ("disc", 0.7, 0.88, 0.04, (60, 200, 60))])})
+    tt.B(0.55, y0 + 0.55, z2 - 0.75, 0.68, y0 + 0.68, z2 - 0.62, "int_steel")
+    # rounds: 152 mm shells stood up along the rear wall and racked on the sides, charges in their cases
+    for k in range(9):
+        x = -0.84 + k * 0.21
+        tt.B(x - 0.07, y0, z1 + 0.04, x + 0.07, y0 + 0.5, z1 + 0.18, "int_shell")
+        tt.B(x - 0.04, y0 + 0.5, z1 + 0.07, x + 0.04, y0 + 0.6, z1 + 0.15, "int_brass")
+        tt.B(x - 0.07, y0 + 0.66, z1 + 0.04, x + 0.07, y0 + 0.98, z1 + 0.18, "int_brass")
+    for side in (-1, 1):
+        xa = side * (x2 - 0.12)
+        for k in range(4):
+            z = z1 + 0.45 + k * 0.2
+            tt.B(xa - 0.08, y0 + 0.5, z, xa + 0.08, y0 + 0.65, z + 0.17, "int_shell")
+            tt.B(xa - 0.08, y0 + 0.68, z, xa + 0.08, y0 + 0.83, z + 0.17, "int_brass")
+    tt.B(-0.08, roof - 0.1, z1 + 1.6, 0.08, roof - 0.02, z1 + 1.75, "int_lamp")
+    tt.B(-0.08, roof - 0.1, z2 - 0.9, 0.08, roof - 0.02, z2 - 0.75, "int_lamp")
+    # 2A64 breech: ring, block, recoil guard, the rammer tray behind it
+    g = b.part("msta_interior_gun")
+    # (the part in front of the turret's front wall is the gun model's own cradle)
+    g.B(-0.24, -0.24, -0.75, 0.24, 0.24, -0.5, "int_steel")
+    g.B(-0.22, -0.22, -1.5, 0.22, 0.22, -0.7, ("int_steel", [("stripe", 0.45, 0.55, (40, 42, 38))]))
+    g.B(-0.3, -0.3, -1.62, 0.3, 0.3, -1.5, "int_steel")
+    for x in (-0.38, 0.38):
+        g.B(x - 0.02, -0.28, -1.85, x + 0.02, 0.28, -0.7, "int_box")
+    g.B(-0.38, 0.26, -1.85, 0.38, 0.3, -0.7, "int_box")
+    g.B(-0.16, -0.36, -2.2, 0.16, -0.26, -1.5, "int_olive")
+    g.B(-0.05, -0.33, -2.15, 0.05, -0.27, -1.55, "int_brass")
+    gv.finish(b, {p.name: 4 for p in b.parts})
+
+
 def main():
     for vid, c in TANKS.items():
         tank(vid, c)
     bmp1()
+    msta()
     cab("grad", (0.5, 2.15, 2.6), 2.1, 1.35)
     # the Oreshnik's MZKT model has its own two cabs; a generated one only stuck out of them
     oreshnik_housing()

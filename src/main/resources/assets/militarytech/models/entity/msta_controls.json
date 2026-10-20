@@ -1,0 +1,24 @@
+{
+ "controls": [
+  {
+   "model": "msta_lever",
+   "pivot": [
+    -0.25,
+    0.7,
+    2.445
+   ],
+   "kind": "lever_l",
+   "tilt": 0
+  },
+  {
+   "model": "msta_lever",
+   "pivot": [
+    0.25,
+    0.7,
+    2.445
+   ],
+   "kind": "lever_r",
+   "tilt": 0
+  }
+ ]
+}

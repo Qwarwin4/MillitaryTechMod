@@ -320,11 +320,11 @@ public final class Specs {
         b.height = 3.0F;
         b.box(-1.73, 0, -3.49, 1.73, 1.52, 3.47);
         b.box(-1.57, 1.2, -3.42, 1.57, 3.05, 2.42);
-        // driver in front, gunner and commander in the turret, two loaders behind them
-        b.seats = new Vector3d[]{v(0, 0.35, 2.6), v(0.5, 0.95, -0.3), v(-0.5, 0.95, -0.3), v(0.5, 0.95, -1.5),
-                v(-0.5, 0.95, -1.5)};
+        // driver in front, gunner and commander in the turret, two loaders behind them (tools/gen_interiors.py msta)
+        b.seats = new Vector3d[]{v(0, 0.35, 2.05), v(0.85, 1.55, -0.35), v(-0.85, 1.55, -0.35), v(0.7, 1.55, -1.0),
+                v(-0.7, 1.55, -1.0)};
         b.insideSeats = 5;
-        b.interior = false;
+        b.interior = true;
         b.wheelZ = T72_WHEELS;
         b.wheelModel = null;
         b.pivot = v(0.00, 1.20, -0.55);
