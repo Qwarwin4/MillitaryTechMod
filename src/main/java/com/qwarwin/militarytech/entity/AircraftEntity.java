@@ -349,17 +349,10 @@ public class AircraftEntity extends VehicleEntity {
         }
     }
 
-    /** New aircraft come with the first preset's pylons (empty unless crates aren't needed). */
+    /** New aircraft roll out clean: every pylon empty, stores are hung by hand. */
     private void defaultPylons() {
         int[] ids = new int[air().pylons.length];
         java.util.Arrays.fill(ids, -1);
-        if (!air().loadouts.isEmpty()) {
-            AirSpec.Loadout l = air().loadouts.get(0);
-            for (int i = 0; i < ids.length; i++) {
-                AirSpec.Store st = l.at(i);
-                ids[i] = st == null ? -1 : st.munition.ordinal();
-            }
-        }
         setPylonIds(ids);
     }
 
