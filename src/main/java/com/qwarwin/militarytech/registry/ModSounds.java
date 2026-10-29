@@ -17,7 +17,7 @@ public final class ModSounds {
     public static final String[] NAMES = {"tank_gun", "grom", "mg", "cannon_30", "aircraft_gun", "atgm_launch",
             "missile_launch", "rocket_launch", "grad_launch", "bomb_release", "oreshnik_launch", "incoming", "reload",
             "hydraulics", "tank_engine", "turbine", "truck_engine", "jet_engine", "lock_tone", "seeker_tone",
-            "missile_warning", "missile_motor", "nuke", "geiger"};
+            "missile_warning", "missile_motor", "nuke", "geiger", "howitzer"};
 
     private static final Map<String, RegistryObject<SoundEvent>> BY_NAME = new HashMap<>();
 

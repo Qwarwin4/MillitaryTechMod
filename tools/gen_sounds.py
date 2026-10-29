@@ -160,11 +160,14 @@ def main():
 
     names = ["tank_gun", "grom", "mg", "cannon_30", "aircraft_gun", "atgm_launch", "missile_launch", "rocket_launch",
              "grad_launch", "bomb_release", "oreshnik_launch", "incoming", "reload", "hydraulics", "tank_engine",
-             "turbine", "truck_engine", "jet_engine", "lock_tone", "seeker_tone", "missile_warning", "missile_motor", "nuke", "geiger"]
+             "turbine", "truck_engine", "jet_engine", "lock_tone", "seeker_tone", "missile_warning", "missile_motor", "nuke", "geiger", "howitzer"]
     gv.save_json({n: {"category": "neutral", "subtitle": f"subtitles.{gv.MODID}.{n}",
                       "sounds": [{"name": f"{gv.MODID}:{n}", "stream": False}]} for n in names},
                  os.path.join(gv.ASSETS, "sounds.json"))
     print("  sounds:", len(names))
+    # the guns and launchers from real recordings, over the synthesised ones
+    import real_sounds
+    real_sounds.main()
 
 
 if __name__ == "__main__":

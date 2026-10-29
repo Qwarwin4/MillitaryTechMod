@@ -1,242 +1,252 @@
 {
- "tank_gun": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.tank_gun",
-  "sounds": [
-   {
-    "name": "militarytech:tank_gun",
-    "stream": false
-   }
-  ]
- },
- "grom": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.grom",
-  "sounds": [
-   {
-    "name": "militarytech:grom",
-    "stream": false
-   }
-  ]
- },
- "mg": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.mg",
-  "sounds": [
-   {
-    "name": "militarytech:mg",
-    "stream": false
-   }
-  ]
- },
- "cannon_30": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.cannon_30",
-  "sounds": [
-   {
-    "name": "militarytech:cannon_30",
-    "stream": false
-   }
-  ]
- },
- "aircraft_gun": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.aircraft_gun",
-  "sounds": [
-   {
-    "name": "militarytech:aircraft_gun",
-    "stream": false
-   }
-  ]
- },
- "atgm_launch": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.atgm_launch",
-  "sounds": [
-   {
-    "name": "militarytech:atgm_launch",
-    "stream": false
-   }
-  ]
- },
- "missile_launch": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.missile_launch",
-  "sounds": [
-   {
-    "name": "militarytech:missile_launch",
-    "stream": false
-   }
-  ]
- },
- "rocket_launch": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.rocket_launch",
-  "sounds": [
-   {
-    "name": "militarytech:rocket_launch",
-    "stream": false
-   }
-  ]
- },
- "grad_launch": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.grad_launch",
-  "sounds": [
-   {
-    "name": "militarytech:grad_launch",
-    "stream": false
-   }
-  ]
- },
- "bomb_release": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.bomb_release",
-  "sounds": [
-   {
-    "name": "militarytech:bomb_release",
-    "stream": false
-   }
-  ]
- },
- "oreshnik_launch": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.oreshnik_launch",
-  "sounds": [
-   {
-    "name": "militarytech:oreshnik_launch",
-    "stream": false
-   }
-  ]
- },
- "incoming": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.incoming",
-  "sounds": [
-   {
-    "name": "militarytech:incoming",
-    "stream": false
-   }
-  ]
- },
- "reload": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.reload",
-  "sounds": [
-   {
-    "name": "militarytech:reload",
-    "stream": false
-   }
-  ]
- },
- "hydraulics": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.hydraulics",
-  "sounds": [
-   {
-    "name": "militarytech:hydraulics",
-    "stream": false
-   }
-  ]
- },
- "tank_engine": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.tank_engine",
-  "sounds": [
-   {
-    "name": "militarytech:tank_engine",
-    "stream": false
-   }
-  ]
- },
- "turbine": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.turbine",
-  "sounds": [
-   {
-    "name": "militarytech:turbine",
-    "stream": false
-   }
-  ]
- },
- "truck_engine": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.truck_engine",
-  "sounds": [
-   {
-    "name": "militarytech:truck_engine",
-    "stream": false
-   }
-  ]
- },
- "jet_engine": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.jet_engine",
-  "sounds": [
-   {
-    "name": "militarytech:jet_engine",
-    "stream": false
-   }
-  ]
- },
- "lock_tone": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.lock_tone",
-  "sounds": [
-   {
-    "name": "militarytech:lock_tone",
-    "stream": false
-   }
-  ]
- },
- "seeker_tone": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.seeker_tone",
-  "sounds": [
-   {
-    "name": "militarytech:seeker_tone",
-    "stream": false
-   }
-  ]
- },
- "missile_warning": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.missile_warning",
-  "sounds": [
-   {
-    "name": "militarytech:missile_warning",
-    "stream": false
-   }
-  ]
- },
- "missile_motor": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.missile_motor",
-  "sounds": [
-   {
-    "name": "militarytech:missile_motor",
-    "stream": false
-   }
-  ]
- },
- "nuke": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.nuke",
-  "sounds": [
-   {
-    "name": "militarytech:nuke",
-    "stream": false
-   }
-  ]
- },
- "geiger": {
-  "category": "neutral",
-  "subtitle": "subtitles.militarytech.geiger",
-  "sounds": [
-   {
-    "name": "militarytech:geiger",
-    "stream": false
-   }
-  ]
- }
+  "tank_gun": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.tank_gun",
+    "sounds": [
+      {
+        "name": "militarytech:tank_gun",
+        "stream": false
+      }
+    ]
+  },
+  "grom": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.grom",
+    "sounds": [
+      {
+        "name": "militarytech:grom",
+        "stream": false
+      }
+    ]
+  },
+  "mg": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.mg",
+    "sounds": [
+      {
+        "name": "militarytech:mg",
+        "stream": false
+      }
+    ]
+  },
+  "cannon_30": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.cannon_30",
+    "sounds": [
+      {
+        "name": "militarytech:cannon_30",
+        "stream": false
+      }
+    ]
+  },
+  "aircraft_gun": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.aircraft_gun",
+    "sounds": [
+      {
+        "name": "militarytech:aircraft_gun",
+        "stream": false
+      }
+    ]
+  },
+  "atgm_launch": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.atgm_launch",
+    "sounds": [
+      {
+        "name": "militarytech:atgm_launch",
+        "stream": false
+      }
+    ]
+  },
+  "missile_launch": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.missile_launch",
+    "sounds": [
+      {
+        "name": "militarytech:missile_launch",
+        "stream": false
+      }
+    ]
+  },
+  "rocket_launch": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.rocket_launch",
+    "sounds": [
+      {
+        "name": "militarytech:rocket_launch",
+        "stream": false
+      }
+    ]
+  },
+  "grad_launch": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.grad_launch",
+    "sounds": [
+      {
+        "name": "militarytech:grad_launch",
+        "stream": false
+      }
+    ]
+  },
+  "bomb_release": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.bomb_release",
+    "sounds": [
+      {
+        "name": "militarytech:bomb_release",
+        "stream": false
+      }
+    ]
+  },
+  "oreshnik_launch": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.oreshnik_launch",
+    "sounds": [
+      {
+        "name": "militarytech:oreshnik_launch",
+        "stream": false
+      }
+    ]
+  },
+  "incoming": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.incoming",
+    "sounds": [
+      {
+        "name": "militarytech:incoming",
+        "stream": false
+      }
+    ]
+  },
+  "reload": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.reload",
+    "sounds": [
+      {
+        "name": "militarytech:reload",
+        "stream": false
+      }
+    ]
+  },
+  "hydraulics": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.hydraulics",
+    "sounds": [
+      {
+        "name": "militarytech:hydraulics",
+        "stream": false
+      }
+    ]
+  },
+  "tank_engine": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.tank_engine",
+    "sounds": [
+      {
+        "name": "militarytech:tank_engine",
+        "stream": false
+      }
+    ]
+  },
+  "turbine": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.turbine",
+    "sounds": [
+      {
+        "name": "militarytech:turbine",
+        "stream": false
+      }
+    ]
+  },
+  "truck_engine": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.truck_engine",
+    "sounds": [
+      {
+        "name": "militarytech:truck_engine",
+        "stream": false
+      }
+    ]
+  },
+  "jet_engine": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.jet_engine",
+    "sounds": [
+      {
+        "name": "militarytech:jet_engine",
+        "stream": false
+      }
+    ]
+  },
+  "lock_tone": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.lock_tone",
+    "sounds": [
+      {
+        "name": "militarytech:lock_tone",
+        "stream": false
+      }
+    ]
+  },
+  "seeker_tone": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.seeker_tone",
+    "sounds": [
+      {
+        "name": "militarytech:seeker_tone",
+        "stream": false
+      }
+    ]
+  },
+  "missile_warning": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.missile_warning",
+    "sounds": [
+      {
+        "name": "militarytech:missile_warning",
+        "stream": false
+      }
+    ]
+  },
+  "missile_motor": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.missile_motor",
+    "sounds": [
+      {
+        "name": "militarytech:missile_motor",
+        "stream": false
+      }
+    ]
+  },
+  "nuke": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.nuke",
+    "sounds": [
+      {
+        "name": "militarytech:nuke",
+        "stream": false
+      }
+    ]
+  },
+  "geiger": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.geiger",
+    "sounds": [
+      {
+        "name": "militarytech:geiger",
+        "stream": false
+      }
+    ]
+  },
+  "howitzer": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.howitzer",
+    "sounds": [
+      {
+        "name": "militarytech:howitzer",
+        "stream": false
+      }
+    ]
+  }
 }

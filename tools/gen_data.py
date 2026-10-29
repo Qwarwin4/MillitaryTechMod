@@ -457,14 +457,15 @@ SOUND_RU = {"tank_gun": "Выстрел 125 мм", "grom": "Выстрел «Г�
             "incoming": "Свист приближающихся блоков", "reload": "Перезарядка", "hydraulics": "Гидравлика",
             "tank_engine": "Танковый дизель", "turbine": "Газовая турбина", "truck_engine": "Мотор грузовика",
             "jet_engine": "Реактивный двигатель", "lock_tone": "Захват", "seeker_tone": "ГСН ищет цель",
-            "missile_warning": "Ракетная опасность", "missile_motor": "Двигатель ракеты", "nuke": "Ядерный взрыв", "geiger": "Щелчки дозиметра"}
+            "missile_warning": "Ракетная опасность", "missile_motor": "Двигатель ракеты", "nuke": "Ядерный взрыв", "geiger": "Щелчки дозиметра", "howitzer": "Выстрел гаубицы"}
 SOUND_EN = {"tank_gun": "125 mm gun fires", "grom": "Grom fires", "mg": "Machine gun", "cannon_30": "30 mm cannon",
             "aircraft_gun": "Aircraft cannon", "atgm_launch": "ATGM launch", "missile_launch": "Missile launch",
             "rocket_launch": "Rocket launch", "grad_launch": "Grad salvo", "bomb_release": "Bomb released",
             "oreshnik_launch": "Oreshnik launch", "incoming": "Incoming warheads", "reload": "Reloading",
             "hydraulics": "Hydraulics", "tank_engine": "Tank diesel", "turbine": "Gas turbine", "truck_engine": "Truck engine",
             "jet_engine": "Jet engine", "lock_tone": "Lock tone", "seeker_tone": "Seeker tone",
-            "missile_warning": "Missile warning", "missile_motor": "Missile motor", "nuke": "Nuclear detonation", "geiger": "Geiger counter clicks"}
+            "missile_warning": "Missile warning", "missile_motor": "Missile motor", "nuke": "Nuclear detonation", "geiger": "Geiger counter clicks",
+            "howitzer": "Howitzer fires"}
 
 
 def lang():

@@ -340,7 +340,7 @@ public final class Specs {
                 .ammo(HE_152, 40)
                 .interval(120).spread(0.25F)
                 .mount(WeaponSpec.Mount.GUN, v(0, 0, 6.2))
-                .sound("tank_gun", 18F);
+                .sound("howitzer", 18F);
         b.weapon("kord")
                 .ammo(KORD, 300).secondary().auto(3).spread(0.8F)
                 .mount(WeaponSpec.Mount.TURRET, v(-0.6, 1.9, 1.3))

@@ -257,24 +257,9 @@ def main():
                         "nuclear_warhead", "shell_125_apfsds")
         render_icon(sc, name, 225 if not long else 245, 30)
         item_model(name)
-    for name, model in AMMO.items():
-        mesh = os.path.join(gv.ASSETS, "models", "entity", "munition", model + ".mesh")
-        if os.path.exists(mesh):
-            # real model: draw the mesh with its textures
-            import meshkit
-            items = []
-            for tex, P, UV, N in meshkit.read_mesh_sections(mesh):
-                img = Image.open(os.path.join(gv.ASSETS, "textures", tex.split(":")[1] + ".png"))
-                items.append((P, UV, img, N))
-            os.makedirs(TMP, exist_ok=True)
-            tmp = os.path.join(TMP, name + ".png")
-            meshkit.render(items, (ICON * 4, ICON * 4), 240, 28, ground=False, transparent=True).save(tmp)
-            finish_icon(tmp, os.path.join(gv.ASSETS, "textures", "item", name + ".png"))
-        else:
-            sc = Scene(gv.RES)
-            sc.part(ref("munition/" + model))
-            render_icon(sc, name, 240, 28)
-        item_model(name)
+    # ammunition: painted icons (tools/gen_ammo_icons.py)
+    import gen_ammo_icons
+    gen_ammo_icons.main()
     shutil.rmtree(TMP, ignore_errors=True)
     print("  icons:", len(VEHICLES) + len(parts) + len(AMMO))
 

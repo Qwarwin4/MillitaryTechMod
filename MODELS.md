@@ -31,3 +31,19 @@
 | Р-73 | [Game Ready R-73](https://sketchfab.com/3d-models/00e9be4be4d447a7963eae1fa4ab5cb9) | jokesforboats | CC BY 4.0 |
 | Х-101, Х-102 | [Russian X-555 air-launched cruise missile](https://sketchfab.com/3d-models/204c992ab27c4c1cad6a60b7c20b8c01) | LtxxwSibeRia | CC BY-NC 4.0 |
 | Блок Б-8 (подвес НАР) | [Soviet, Russian aviation missle block B-13 1/72](https://sketchfab.com/3d-models/5311145c05764751b1724b5028e8de61) | viltz | CC BY 4.0 |
+
+# Звуки выстрелов
+
+Записи с [Freesound](https://freesound.org), все под CC0 (общественное достояние). Обрезаны, смешаны и сведены в моно
+скриптом `tools/real_sounds.py`; остальные звуки (двигатели, тоны, ядерный взрыв) синтезирует `tools/gen_sounds.py`.
+
+| Звук в моде | Запись | Автор |
+|---|---|---|
+| Выстрел танковой пушки, часть выстрела гаубицы | [Tank fire Mixed](https://freesound.org/s/127845/) | GaryQ |
+| Выстрел гаубицы «Мсты» | [Excalibur Howitzer Shot](https://freesound.org/s/175430/), [Artillery Shots](https://freesound.org/s/182822/) | qubodup |
+| 30-мм пушки, ГШ-30 | [Autocannon Three Shot Burst](https://freesound.org/s/854186/) | qubodup |
+| Пулемёты | [Machine Gun 001 - single shot](https://freesound.org/s/212601/) | pgi |
+| НУРС, «Град», ТОС | [Rocket Launch](https://freesound.org/s/521377/) | Jarusca |
+| Пуск ракет | [Missile firing](https://freesound.org/s/151858/) | NHMWretched |
+| Пуск ПТУР | [Launching Anti-Tank Missiles](https://freesound.org/s/184274/) | qubodup |
+| Старт «Орешника» | [Rocket Launch](https://freesound.org/s/182794/) | qubodup |
