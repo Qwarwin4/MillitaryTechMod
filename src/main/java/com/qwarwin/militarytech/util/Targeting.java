@@ -22,6 +22,7 @@ import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
+import net.minecraft.world.gen.Heightmap;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -149,6 +150,34 @@ public final class Targeting {
         }
         Team ta = pa.getTeam();
         return ta != null && ta.isAlliedTo(pb.getTeam());
+    }
+
+    /**
+     * How far a search radar with {@code max} reach picks this up. Missiles and aircraft: all the way. A Shahed-size
+     * UAV: 1200 blocks. A quadcopter is a few kilograms of plastic: 230. Hugging the ground (under 12 blocks) it's
+     * lost in the clutter and only seen at half that.
+     */
+    public static double detectRange(World level, Entity e, double max) {
+        if (e instanceof ProjectileEntity || e instanceof AircraftEntity) {
+            return max;
+        }
+        double w = e.getBbWidth();
+        double r = Math.min(max, w < 1.0 ? 230.0 : w < 2.6 ? 1200.0 : max);
+        int ground = level.getHeight(Heightmap.Type.MOTION_BLOCKING, MathHelper.floor(e.getX()), MathHelper.floor(e.getZ()));
+        return e.getY() - ground < 12 ? r * 0.5 : r;
+    }
+
+    /** Chance a scan picks a contact up at all: a quadcopter's echo comes and goes. */
+    public static double scanChance(Entity e) {
+        return e instanceof ProjectileEntity || e instanceof AircraftEntity || e.getBbWidth() >= 1.0 ? 1.0 : 0.4;
+    }
+
+    /** Chance an IR seeker locks on: a quadcopter's motors are barely warm, a Shahed's engine is a stove. */
+    public static double lockChance(Entity e) {
+        if (e instanceof ProjectileEntity || e instanceof AircraftEntity) {
+            return 0.9;
+        }
+        return e.getBbWidth() < 1.0 ? 0.4 : 0.8;
     }
 
     public static boolean canSee(World level, Vector3d from, Entity target) {

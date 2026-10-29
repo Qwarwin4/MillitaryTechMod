@@ -105,7 +105,7 @@ public class AirDefenseTurretEntity extends VehicleEntity {
         if (!missiles) {
             // radar tracking isn't perfect: the error wanders, more so against small, jinking targets
             double size = Math.max(0.3, target.getBbWidth());
-            float wander = (float) (1.2 / size) * (trackTicks < 40 ? 1F : 0.6F);
+            float wander = (float) (1.6 / size) * (trackTicks < 40 ? 1F : 0.6F);
             errYaw = MathHelper.clamp(errYaw * 0.9F + (random.nextFloat() - 0.5F) * wander, -3F * wander, 3F * wander);
             errPitch = MathHelper.clamp(errPitch * 0.9F + (random.nextFloat() - 0.5F) * wander, -3F * wander, 3F * wander);
         } else {
@@ -123,7 +123,7 @@ public class AirDefenseTurretEntity extends VehicleEntity {
     @Override
     protected void prepareProjectile(ProjectileEntity pe, Munition m) {
         Entity t = targetId < 0 ? null : level.getEntity(targetId);
-        if (t != null && m.guidance == Munition.Guidance.IR) {
+        if (t != null && m.guidance == Munition.Guidance.IR && random.nextDouble() < Targeting.lockChance(t)) {
             pe.setTargetEntity(t);
         }
     }
@@ -152,8 +152,8 @@ public class AirDefenseTurretEntity extends VehicleEntity {
     }
 
     private boolean valid(Entity e, Vector3d eye) {
-        return e.isAlive() && canEngage(e) && e.distanceToSqr(eye) < range() * range() && hostile(e)
-                && Targeting.canSee(level, eye, e);
+        double r = Targeting.detectRange(level, e, range());
+        return e.isAlive() && canEngage(e) && e.distanceToSqr(eye) < r * r && hostile(e) && Targeting.canSee(level, eye, e);
     }
 
     @Nullable
@@ -164,7 +164,7 @@ public class AirDefenseTurretEntity extends VehicleEntity {
             // missiles first, then aircraft, then the rest; nearer first
             double prio = e instanceof ProjectileEntity ? 0.3 : e instanceof AircraftEntity ? 0.6 : 1.0;
             double score = e.distanceToSqr(eye) * prio;
-            if (score < bestScore && valid(e, eye)) {
+            if (score < bestScore && valid(e, eye) && random.nextDouble() < Targeting.scanChance(e)) {
                 bestScore = score;
                 best = e;
             }

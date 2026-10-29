@@ -118,8 +118,10 @@ public enum Munition {
             case R73:
                 return 4.5;
             case R40:
-            case SAM:
                 return 6.0;
+            case SAM:
+                // the fuse's beam sees a big target from further off than a quadcopter
+                return Math.min(6.0, 2.0 + 2.0 * targetWidth);
             case AA_30:
                 return Math.min(4.0, 0.7 + 0.8 * targetWidth);
             default:

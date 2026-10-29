@@ -115,7 +115,7 @@ public class PantsirEntity extends TruckEntity {
                 t = inSight();
             }
         }
-        if (t != null) {
+        if (t != null && random.nextDouble() < Targeting.lockChance(t)) {
             pe.setTargetEntity(t);
         }
     }
@@ -164,7 +164,7 @@ public class PantsirEntity extends TruckEntity {
             scan = 10;
             contacts.clear();
             for (Entity e : candidates(eye)) {
-                if (valid(e, eye)) {
+                if (valid(e, eye) && random.nextDouble() < Targeting.scanChance(e)) {
                     contacts.add(e);
                 }
             }
@@ -202,7 +202,7 @@ public class PantsirEntity extends TruckEntity {
         if (lay == gunT) {
             aim = Targeting.lead(muzzle, gunT, Munition.AA_30.speed).subtract(muzzle);
             double size = Math.max(0.3, gunT.getBbWidth());
-            float wander = (float) (0.9 / size) * (trackTicks < 30 ? 1F : 0.6F);
+            float wander = (float) (1.4 / size) * (trackTicks < 30 ? 1F : 0.6F);
             errYaw = MathHelper.clamp(errYaw * 0.9F + (random.nextFloat() - 0.5F) * wander, -2.5F * wander, 2.5F * wander);
             errPitch = MathHelper.clamp(errPitch * 0.9F + (random.nextFloat() - 0.5F) * wander, -2.5F * wander, 2.5F * wander);
         } else {
@@ -288,7 +288,8 @@ public class PantsirEntity extends TruckEntity {
     }
 
     private boolean valid(Entity e, Vector3d eye) {
-        return canEngage(e) && e.distanceToSqr(eye) < MISSILE_RANGE * MISSILE_RANGE && hostile(e) && clearNear(eye, e);
+        double r = Targeting.detectRange(level, e, MISSILE_RANGE);
+        return canEngage(e) && e.distanceToSqr(eye) < r * r && hostile(e) && clearNear(eye, e);
     }
 
     /**
