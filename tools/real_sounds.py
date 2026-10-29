@@ -29,6 +29,9 @@ SOURCES = {
     151858: "Missile firing fl.mp3, NHMWretched",
     184274: "Launching Anti-Tank Missiles.flac, qubodup",
     182794: "Rocket Launch.flac, qubodup",
+    187564: "Truck Engine Idle Loops.flac, qubodup",
+    437888: "G08-25_4-E Jet Constant Noise.wav, craigsmith",
+    146770: "Rocket Boost Engine Loop.wav, qubodup",
 }
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"}
 
@@ -61,6 +64,15 @@ def cut(x, a, b, fade=0.25):
     if k:
         y[-k:] *= np.linspace(1, 0, k) ** 1.5
     return y
+
+
+def loop(x, a, length, xfade=0.25):
+    """a seamless loop of {length} seconds from a: the tail past the end is crossfaded into the start"""
+    n, f = int(length * SR), int(xfade * SR)
+    y = x[int(a * SR):int(a * SR) + n + f].copy()
+    w = np.sin(np.linspace(0, np.pi / 2, f)) ** 2
+    y[:f] = y[:f] * w + y[n:n + f] * (1 - w)
+    return y[:n]
 
 
 def pitch(x, k):
@@ -105,6 +117,11 @@ def main():
     write("missile_launch", cut(load(151858), 0.0, 4.7, 0.35))
     write("atgm_launch", cut(load(184274), 9.98, 13.5, 0.4))
     write("oreshnik_launch", cut(load(182794), 19.18, 26.5, 0.35))
+    # the BMP-1's 73 mm Grom: a low-pressure gun, so the tank shot shorter and higher
+    write("grom", pitch(cut(tank, 0.0, 2.6, 0.45), 1.3))
+    write("truck_engine", loop(load(187564), 1.0, 2.0))
+    write("jet_engine", loop(load(437888), 12.0, 3.0, 0.4))
+    write("missile_motor", loop(load(146770), 0.3, 3.5, 0.4))
 
 
 if __name__ == "__main__":
