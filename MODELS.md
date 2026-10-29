@@ -34,7 +34,7 @@
 
 # Звуки выстрелов и двигателей
 
-Записи с [Freesound](https://freesound.org), все под CC0 (общественное достояние). Обрезаны, смешаны и сведены в моно
+Записи с [Freesound](https://freesound.org), почти все под CC0 (общественное достояние), исключения отмечены. Обрезаны, смешаны и сведены в моно
 скриптом `tools/real_sounds.py`; остальные звуки (танковые двигатели, тоны, ядерный взрыв) синтезирует `tools/gen_sounds.py`.
 
 | Звук в моде | Запись | Автор |
@@ -51,3 +51,5 @@
 | Двигатель грузовиков («Град», «Панцирь», «Орешник») | [Truck Engine Idle Loops](https://freesound.org/s/187564/) | qubodup |
 | Реактивный двигатель | [Jet Constant Noise](https://freesound.org/s/437888/) | craigsmith |
 | Маршевый двигатель ракеты | [Rocket Boost Engine Loop](https://freesound.org/s/146770/) | qubodup |
+| Двигатель танков | [Tank Engine Loop](https://freesound.org/s/200303/) (CC BY 4.0) | qubodup |
+| Газотурбинный двигатель Т-80У | [T-80 Turbine Sound](https://freesound.org/s/456277/) (CC BY-NC 4.0, только некоммерческое использование) | SoundFX.studio |

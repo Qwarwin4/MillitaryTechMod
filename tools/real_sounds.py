@@ -32,6 +32,13 @@ SOURCES = {
     187564: "Truck Engine Idle Loops.flac, qubodup",
     437888: "G08-25_4-E Jet Constant Noise.wav, craigsmith",
     146770: "Rocket Boost Engine Loop.wav, qubodup",
+    200303: "Tank Engine Loop.flac, qubodup",
+    456277: "T-80 Turbine Sound, SoundFX.studio (CC BY-NC 4.0)",
+}
+# preview paths for when the sound pages are rate-limited but the CDN isn't
+PREVIEWS = {
+    200303: "200/200303_71257",
+    456277: "456/456277_9495232",
 }
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"}
 
@@ -41,9 +48,12 @@ def fetch(sid):
     if os.path.exists(path):
         return path
     os.makedirs(SOUNDS_DIR, exist_ok=True)
-    page = urllib.request.urlopen(urllib.request.Request(f"https://freesound.org/s/{sid}/", headers=UA), timeout=40).read()
-    m = re.search(rb"previews/(\d+)/%d_(\d+)-(?:lq|hq)\.mp3" % sid, page)
-    url = f"https://cdn.freesound.org/previews/{m.group(1).decode()}/{sid}_{m.group(2).decode()}-hq.mp3"
+    if sid in PREVIEWS:
+        url = f"https://cdn.freesound.org/previews/{PREVIEWS[sid]}-hq.mp3"
+    else:
+        page = urllib.request.urlopen(urllib.request.Request(f"https://freesound.org/s/{sid}/", headers=UA), timeout=40).read()
+        m = re.search(rb"previews/(\d+)/%d_(\d+)-(?:lq|hq)\.mp3" % sid, page)
+        url = f"https://cdn.freesound.org/previews/{m.group(1).decode()}/{sid}_{m.group(2).decode()}-hq.mp3"
     open(path, "wb").write(urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60).read())
     time.sleep(3)
     return path
@@ -122,6 +132,12 @@ def main():
     write("truck_engine", loop(load(187564), 1.0, 2.0))
     write("jet_engine", loop(load(437888), 12.0, 3.0, 0.4))
     write("missile_motor", loop(load(146770), 0.3, 3.5, 0.4))
+    try:
+        write("tank_engine", loop(load(200303), 0.2, 4.0, 0.5))
+        # T-80U: its GTD-1250 gas turbine
+        write("turbine", loop(load(456277), 4.0, 6.0, 0.6))
+    except Exception as e:
+        print("  engines: no recordings yet, the synthesised ones stay:", e)
 
 
 if __name__ == "__main__":
