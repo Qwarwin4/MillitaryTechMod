@@ -103,7 +103,12 @@ VEHICLES = {
     "grad": dict(
         src="21___bm-21_grad", tracked=False, bake=True, ry=0, k=1.0, dy=0.05, dz=-0.05, tris=45000, by="node",
         rules=[("gun", both(box(-0.9, 1.9, -3.6, 0.9, 3.5, -0.4), lambda i: i["max"][1] > 2.2)),
+               # the gunner's station on its arm (sight, handwheels, gauges): it turns with the mount, the
+               # handwheels hang below and past the box, so by name
+               ("turret", rx(r"^polySurface522(56|58|61)_")),
                ("turret", box(-1.3, 1.6, -3.6, 1.4, 2.6, -0.4))],
+        # the laying handwheels stick out of the cradle's node on the right, low down: they stay with the mount
+        move=[("gun", "turret", lambda i: i["min"][0] > 0.79 and i["max"][0] > 1.0 and i["max"][1] < 1.9)],
         pivot=(0, 1.6, -2.2), gun_dir=(-0.052, 0.329, 0.943), trunnion_model=(0.0, 2.05, -2.5)),
     "oreshnik": dict(
         src="topolm", tracked=False, ry=0, k=0.67, dy=0, dz=-0.92, tris=40000,
@@ -368,6 +373,21 @@ def build(vid, v):
     from PIL import Image
     s = place(v)
     parts = s.split(v["rules"], by=v.get("by", "component"))
+    # pieces of a node that belong to another part: moved by connected component
+    for src_part, dst_part, test in v.get("move", []):
+        sc = parts[src_part]
+        comp = sc.components()
+        take = np.zeros(len(sc.P), dtype=bool)
+        for c in np.unique(comp):
+            m = comp == c
+            p = sc.P[m].reshape(-1, 3)
+            if test({"center": (p.min(0) + p.max(0)) / 2, "min": p.min(0), "max": p.max(0), "tris": int(m.sum())}):
+                take |= m
+        if take.any():
+            moved = sc.subset(take)
+            parts[src_part] = sc.subset(~take)
+            parts[dst_part] = parts[dst_part].merge(moved) if dst_part in parts else moved
+            print(f"  moved {int(take.sum())} tris from {src_part} to {dst_part}")
     piv, tr, local0 = frames(v)
     budget = v.get("tris", 45000)
     wheel_list = []

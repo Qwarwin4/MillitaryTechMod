@@ -49,6 +49,9 @@ public class OreshnikEntity extends TruckEntity {
     @Override
     public void tick() {
         super.tick();
+        if (isWrecked()) {
+            return;
+        }
         boolean up = hasFlag(FLAG_ERECT);
         erect = Math.max(0, Math.min(ERECT_TICKS, erect + (up ? 1 : -1)));
         erectAnimO = erectAnim;

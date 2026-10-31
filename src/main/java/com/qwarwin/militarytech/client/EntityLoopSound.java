@@ -38,7 +38,8 @@ public class EntityLoopSound extends TickableSound {
 
     @Override
     public void tick() {
-        if (!entity.isAlive()) {
+        if (!entity.isAlive() || entity instanceof com.qwarwin.militarytech.entity.VehicleEntity
+                && ((com.qwarwin.militarytech.entity.VehicleEntity) entity).isWrecked()) {
             stop();
             return;
         }

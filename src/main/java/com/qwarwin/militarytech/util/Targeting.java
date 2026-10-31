@@ -97,13 +97,16 @@ public final class Targeting {
 
     /** Things worth shooting at. */
     public static boolean isShootable(Entity e) {
+        if (e instanceof VehicleEntity && ((VehicleEntity) e).isWrecked()) {
+            return false;
+        }
         return e instanceof LivingEntity || e instanceof VehicleEntity || isAirTarget(e) || e.getType().is(SHOOTABLE);
     }
 
     /** Aircraft, missiles and drones: what an air-to-air seeker locks on to. */
     public static boolean isAirTarget(Entity e) {
         if (e instanceof AircraftEntity) {
-            return ((AircraftEntity) e).isFlying();
+            return ((AircraftEntity) e).isFlying() && !((AircraftEntity) e).isWrecked();
         }
         if (e instanceof ProjectileEntity) {
             return ((ProjectileEntity) e).isGuided();

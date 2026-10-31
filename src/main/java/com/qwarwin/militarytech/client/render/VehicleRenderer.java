@@ -14,6 +14,7 @@ import com.qwarwin.militarytech.entity.VehicleEntity;
 import com.qwarwin.militarytech.entity.VehicleSpec;
 import com.qwarwin.militarytech.entity.WeaponSpec;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -42,6 +43,11 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         boolean inside = VehicleCamera.showInterior(e);
         // flash red for a moment after taking a hit is vanilla's job for mobs; vehicles just show smoke
         int overlay = OverlayTexture.NO_OVERLAY;
+        if (e.isWrecked()) {
+            // burnt out: soot-black whatever the light
+            light = LightTexture.pack(1, Math.min(4, LightTexture.sky(light)));
+            inside = false;
+        }
         ms.pushPose();
         ms.mulPose(Vector3f.YP.rotationDegrees(-hullYaw));
         if (e instanceof AircraftEntity) {

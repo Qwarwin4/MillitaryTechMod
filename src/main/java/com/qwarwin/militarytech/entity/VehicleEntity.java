@@ -9,6 +9,7 @@ import com.qwarwin.militarytech.registry.ModItems;
 import com.qwarwin.militarytech.registry.ModSounds;
 import com.qwarwin.militarytech.util.Explosions;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.MoverType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -84,6 +85,8 @@ public abstract class VehicleEntity extends Entity {
     }
 
     public static final int FLAG_GEAR_UP = 1, FLAG_ERECT = 2, FLAG_BRAKE = 4, FLAG_ENGINE = 8, FLAG_ACTIVE = 16, FLAG_EMP = 32;
+    /** Burnt out: the hull stays where it died, dark and smoking, nothing works; the wrench clears it away. */
+    public static final int FLAG_WRECK = 64;
     protected static final float DEG = (float) (Math.PI / 180.0);
 
     public final VehicleSpec spec;
@@ -689,7 +692,7 @@ public abstract class VehicleEntity extends Entity {
     /** Right click: the spot clicked picks the seat; clicking a door opens it, or gets you in through it. */
     @Override
     public ActionResultType interactAt(PlayerEntity player, Vector3d vec, Hand hand) {
-        if (hand != Hand.MAIN_HAND || player.getVehicle() == this) {
+        if (hand != Hand.MAIN_HAND || player.getVehicle() == this || isWrecked()) {
             return ActionResultType.PASS;
         }
         ItemStack stack = player.getItemInHand(hand);
@@ -843,6 +846,9 @@ public abstract class VehicleEntity extends Entity {
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
+        if (isWrecked()) {
+            return false;
+        }
         for (int s = 0; s < spec.seats.length; s++) {
             if (isSeatFree(s)) {
                 return true;
@@ -1082,6 +1088,10 @@ public abstract class VehicleEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+        if (isWrecked()) {
+            wreckTick();
+            return;
+        }
         tickDoors();
         trackAngleO = trackAngle;
         if (level.isClientSide) {
@@ -1146,6 +1156,39 @@ public abstract class VehicleEntity extends Entity {
     public abstract void simulate(@Nullable Controls in);
 
     /** Client-side particles and the like, every tick. */
+    public boolean isWrecked() {
+        return hasFlag(FLAG_WRECK);
+    }
+
+    private int wreckAge;
+
+    /** A wreck only falls and settles; it smokes for a few minutes, the first one thick and with flames. */
+    private void wreckTick() {
+        wreckAge++;
+        if (level.isClientSide) {
+            tickLerp();
+            if (wreckAge < 6000 && random.nextInt(wreckAge < 1200 ? 1 : 4) == 0) {
+                double r = spec.width * 0.35;
+                level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, getX() + (random.nextDouble() - 0.5) * r,
+                        getY() + spec.height * 0.8, getZ() + (random.nextDouble() - 0.5) * r, 0, 0.05, 0);
+                if (wreckAge < 1200 && random.nextInt(3) == 0) {
+                    level.addParticle(ParticleTypes.FLAME, getX() + (random.nextDouble() - 0.5) * r,
+                            getY() + spec.height * 0.6, getZ() + (random.nextDouble() - 0.5) * r, 0, 0.02, 0);
+                }
+            }
+            return;
+        }
+        Vector3d m = getDeltaMovement();
+        setDeltaMovement(m.x * 0.9, m.y - 0.08, m.z * 0.9);
+        move(MoverType.SELF, getDeltaMovement());
+        if (isOnGround()) {
+            setDeltaMovement(getDeltaMovement().multiply(0.5, 0, 0.5));
+        }
+        if (getY() < -64) {
+            remove();
+        }
+    }
+
     protected void effects() {
     }
 
@@ -1639,6 +1682,18 @@ public abstract class VehicleEntity extends Entity {
         if (hand != Hand.MAIN_HAND) {
             return ActionResultType.PASS;
         }
+        if (isWrecked()) {
+            if (stack.getItem() != ModItems.WRENCH.get()) {
+                return ActionResultType.PASS;
+            }
+            if (!level.isClientSide) {
+                // cut up for scrap
+                level.playSound(null, getX(), getY(), getZ(), SoundEvents.ANVIL_DESTROY, SoundCategory.NEUTRAL, 0.8F, 0.8F);
+                spawnAtLocation(new ItemStack(net.minecraft.item.Items.IRON_INGOT, 2 + random.nextInt(4)));
+                remove();
+            }
+            return ActionResultType.sidedSuccess(level.isClientSide);
+        }
         if (level.isClientSide) {
             return ActionResultType.SUCCESS;
         }
@@ -1786,8 +1841,16 @@ public abstract class VehicleEntity extends Entity {
         if (direct != null && hasPassenger(direct)) {
             return false;
         }
-        if (source.getEntity() instanceof PlayerEntity && ((PlayerEntity) source.getEntity()).abilities.instabuild
-                && direct == source.getEntity()) {
+        // a creative player's own hand, not his drone or his shells: those do damage like anyone's
+        boolean melee = "player".equals(source.getMsgId()) && direct == source.getEntity();
+        if (isWrecked()) {
+            if (melee && ((PlayerEntity) direct).abilities.instabuild) {
+                remove();
+                return true;
+            }
+            return false;
+        }
+        if (melee && ((PlayerEntity) direct).abilities.instabuild) {
             // creative: a hit with the wrench removes it, any other hit does nothing
             if (((PlayerEntity) direct).getMainHandItem().getItem() != ModItems.WRENCH.get()) {
                 return false;
@@ -1819,16 +1882,21 @@ public abstract class VehicleEntity extends Entity {
 
     /** Health hit zero (null cause: a creative player took it apart). */
     protected void destroy(@Nullable DamageSource cause) {
-        if (!isAlive()) {
+        if (!isAlive() || isWrecked()) {
             return;
         }
         Vector3d c = position().add(0, spec.height * 0.6, 0);
         List<Entity> crew = getPassengers();
         ejectPassengers();
-        remove();
-        if (cause == null) {
+        if (cause == null || cause == DamageSource.OUT_OF_WORLD) {
+            remove();
             return;
         }
+        // what's left: the burnt-out hull, until someone clears it with the wrench
+        setHealth(0F);
+        setFlag(FLAG_WRECK, true);
+        setFlag(FLAG_ENGINE, false);
+        trigger1 = trigger2 = false;
         // the ammunition aboard cooks off: more explosive, bigger bang
         double charge = 0;
         for (int i = 0; i < spec.ammoSlots(); i++) {

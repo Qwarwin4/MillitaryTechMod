@@ -73,6 +73,12 @@ class Scene:
     def subset(self, mask):
         return Scene(self.P[mask], self.UV[mask], self.C[mask], self.mat[mask], self.node[mask], self.materials, self.node_names)
 
+    def merge(self, other):
+        """two subsets of the same scene (same materials and nodes) as one"""
+        return Scene(np.concatenate([self.P, other.P]), np.concatenate([self.UV, other.UV]),
+                     np.concatenate([self.C, other.C]), np.concatenate([self.mat, other.mat]),
+                     np.concatenate([self.node, other.node]), self.materials, self.node_names)
+
     def transform(self, M):
         P = self.P @ M[:3, :3].T + M[:3, 3]
         if np.linalg.det(M[:3, :3]) < 0:
