@@ -13,9 +13,20 @@ public interface FireControl {
 
     double maxElevation();
 
-    /** {yaw, pitch, 1 if out of reach}. */
+    /** {yaw, pitch, 1 if out of reach, charge}. */
     default float[] solution(BlockPos target) {
-        return Ballistics.solve(rocket(), rackOrigin(), Vector3d.atCenterOf(target), maxElevation(), highArc());
+        return Ballistics.solve(rocket(), rackOrigin(), Vector3d.atCenterOf(target), maxElevation(), highArc(),
+                charges(), barrel());
+    }
+
+    /** Propellant charges as fractions of the full muzzle velocity, smallest first; rockets have one. */
+    default double[] charges() {
+        return new double[]{1.0};
+    }
+
+    /** From the trunnion to the muzzle along the bore, blocks. */
+    default double barrel() {
+        return 0;
     }
 
     /** Plunging fire (above 45 degrees) instead of the flat trajectory. */

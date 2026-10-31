@@ -1379,7 +1379,7 @@ public abstract class VehicleEntity extends Entity {
                     yawOf(dir) + (random.nextFloat() - 0.5F) * spread * 2F);
         }
         ProjectileEntity pe = ProjectileEntity.launch(level, m, this, shooter != null ? shooter.getUUID() : owner, pos,
-                dir.scale(m.speed).add(launchVelocity()));
+                dir.scale(m.speed * charge(w)).add(launchVelocity()));
         if (pe != null) {
             prepareProjectile(pe, m);
             level.addFreshEntity(pe);
@@ -1439,6 +1439,11 @@ public abstract class VehicleEntity extends Entity {
             return Vector3d.directionFromRotation(xRot, yRot);
         }
         return aimVector();
+    }
+
+    /** Muzzle velocity as a fraction of the munition's own: guns with variable charges override it. */
+    protected double charge(int weapon) {
+        return 1.0;
     }
 
     /** Added to every projectile: an aircraft's own speed. */

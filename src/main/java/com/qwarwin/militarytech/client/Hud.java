@@ -295,9 +295,11 @@ public final class Hud {
         int now = mc.player.tickCount;
         if (predictedTick != now) {
             predictedTick = now;
-            Vector3d from = fc.rackOrigin();
             Vector3d dir = Vector3d.directionFromRotation(g.getGunPitch(), g.getTurretYaw());
-            predicted = predict(mc, fc.rocket(), from, dir.scale(fc.rocket().speed));
+            Vector3d from = fc.rackOrigin().add(dir.scale(fc.barrel()));
+            BlockPos tg = g.getTarget();
+            double charge = tg != null ? fc.solution(tg)[3] : 1.0;
+            predicted = predict(mc, fc.rocket(), from, dir.scale(fc.rocket().speed * charge));
         }
         int x = w - 160, y = 8;
         AbstractGui.fill(ms, x - 4, y - 4, w - 4, y + 54, PANEL);

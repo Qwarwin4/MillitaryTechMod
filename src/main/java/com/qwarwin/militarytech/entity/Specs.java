@@ -338,7 +338,7 @@ public final class Specs {
         b.camDistance = 12;
         b.weapon("howitzer_152")
                 .ammo(HE_152, 40)
-                .interval(120).spread(0.25F)
+                .interval(120).spread(0.08F)
                 .mount(WeaponSpec.Mount.GUN, v(0, 0, 6.2))
                 .sound("howitzer", 18F);
         b.weapon("kord")

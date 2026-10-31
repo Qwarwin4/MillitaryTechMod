@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import javax.annotation.Nullable;
@@ -58,7 +59,13 @@ public class TargetPacket {
                 if (m.select >= 0) {
                     ((VehicleEntity) e).selectAmmo(m.select);
                 } else {
-                    ((VehicleEntity) e).setTarget(m.target);
+                    BlockPos t = m.target;
+                    if (t != null) {
+                        // the client only knows the ground height where its chunks are loaded (it put 64 in
+                        // otherwise): the server looks it up, loading the chunk if it has to
+                        t = new BlockPos(t.getX(), p.level.getHeight(Heightmap.Type.MOTION_BLOCKING, t.getX(), t.getZ()), t.getZ());
+                    }
+                    ((VehicleEntity) e).setTarget(t);
                 }
             }
         });
