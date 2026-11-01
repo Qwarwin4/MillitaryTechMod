@@ -79,6 +79,32 @@ public class PantsirEntity extends TruckEntity {
         toggleAuto(player);
     }
 
+    public boolean iff() {
+        return !hasFlag(FLAG_NO_IFF);
+    }
+
+    /**
+     * K: identification friend-or-foe. On, the radar asks every contact for its owner (the vehicles, aircraft,
+     * missiles, drones and Shaheds of this mod and of FPV Drones all answer) and leaves the owner's and his team's
+     * alone. Off, whatever flies is a target, ours included: for when someone else's drones fly with stolen codes.
+     */
+    @Override
+    protected void nextLoadout(ServerPlayerEntity player) {
+        boolean on = !iff();
+        setFlag(FLAG_NO_IFF, !on);
+        if (owner == null) {
+            owner = player.getUUID();
+        }
+        gunTargetId = samTargetId = -1;
+        for (Entity p : getPassengers()) {
+            if (p instanceof PlayerEntity) {
+                ((PlayerEntity) p).displayClientMessage(new TranslationTextComponent(on ? "msg.militarytech.pantsir_iff_on"
+                        : "msg.militarytech.pantsir_iff_off").withStyle(on ? TextFormatting.GREEN : TextFormatting.RED), true);
+            }
+        }
+        level.playSound(null, getX(), getY(), getZ(), ModSounds.get("lock_tone"), SoundCategory.NEUTRAL, 1.5F, on ? 1.5F : 0.8F);
+    }
+
     private void toggleAuto(PlayerEntity player) {
         boolean on = !isAuto();
         setFlag(FLAG_ACTIVE, on);
@@ -280,10 +306,10 @@ public class PantsirEntity extends TruckEntity {
     }
 
     private boolean hostile(Entity e) {
-        java.util.UUID other = e instanceof ProjectileEntity ? ((ProjectileEntity) e).getOwnerId() : Targeting.ownerOf(e);
-        if (owner == null) {
+        if (!iff() || owner == null) {
             return true;
         }
+        java.util.UUID other = e instanceof ProjectileEntity ? ((ProjectileEntity) e).getOwnerId() : Targeting.ownerOf(e);
         return !Targeting.isFriendly(level, owner, other);
     }
 

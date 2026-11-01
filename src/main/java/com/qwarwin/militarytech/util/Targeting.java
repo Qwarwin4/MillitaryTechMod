@@ -5,6 +5,7 @@ import com.qwarwin.militarytech.entity.AircraftEntity;
 import com.qwarwin.militarytech.entity.ProjectileEntity;
 import com.qwarwin.militarytech.entity.VehicleEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.FlyingEntity;
 import net.minecraft.entity.LivingEntity;
@@ -135,8 +136,29 @@ public final class Targeting {
         if (e instanceof PlayerEntity) {
             return e.getUUID();
         }
+        if (e instanceof ProjectileEntity) {
+            return ((ProjectileEntity) e).getOwnerId();
+        }
+        for (Entity p : e.getPassengers()) {
+            if (p instanceof PlayerEntity) {
+                return p.getUUID();
+            }
+        }
+        // other mods' drones, Shaheds, missiles and pets keep their owner in their save data (FPV Drones: Owner,
+        // Operator); only the server answers, which is where the targeting runs
+        if (e.level.isClientSide) {
+            return null;
+        }
+        CompoundNBT tag = e.saveWithoutId(new CompoundNBT());
+        for (String k : OWNER_KEYS) {
+            if (tag.hasUUID(k)) {
+                return tag.getUUID(k);
+            }
+        }
         return null;
     }
+
+    private static final String[] OWNER_KEYS = {"Owner", "Operator", "OwnerUUID"};
 
     /** Same player or same scoreboard team. Unknown owners count as hostile. */
     public static boolean isFriendly(World level, @Nullable UUID a, @Nullable UUID b) {

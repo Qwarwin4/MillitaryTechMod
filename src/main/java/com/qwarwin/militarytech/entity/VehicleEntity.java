@@ -87,6 +87,8 @@ public abstract class VehicleEntity extends Entity {
     public static final int FLAG_GEAR_UP = 1, FLAG_ERECT = 2, FLAG_BRAKE = 4, FLAG_ENGINE = 8, FLAG_ACTIVE = 16, FLAG_EMP = 32;
     /** Burnt out: the hull stays where it died, dark and smoking, nothing works; the wrench clears it away. */
     public static final int FLAG_WRECK = 64;
+    /** Pantsir with identification friend-or-foe switched off: everything in the air is a target. */
+    public static final int FLAG_NO_IFF = 128;
     protected static final float DEG = (float) (Math.PI / 180.0);
 
     public final VehicleSpec spec;
