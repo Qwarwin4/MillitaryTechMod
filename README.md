@@ -1,129 +1,178 @@
-# Military Tech
+<p align="center"><img src="docs/images/banner.webp" width="900" alt="Military Tech"></p>
 
-Мод на военную технику для Minecraft 1.16.5 (Forge 36). Сделан для игры с друзьями, а не ради реализма:
-танк здесь заряжается за несколько секунд, а самолёт летит 70 блоков в секунду.
+<p align="center"><b>English</b> | <a href="README.ru.md">Русский</a></p>
 
-## Что есть
+<p align="center">
+  <img src="https://img.shields.io/badge/Minecraft-1.16.5-62B47A?style=for-the-badge&labelColor=1b1f24" height="32" alt="Minecraft 1.16.5">
+  <img src="https://img.shields.io/badge/Forge-36.2-DFA86A?style=for-the-badge&labelColor=1b1f24" height="32" alt="Forge 36.2">
+  <img src="https://img.shields.io/badge/Version-1.0.0-7C9A46?style=for-the-badge&labelColor=1b1f24" height="32" alt="Version 1.0.0">
+  <img src="https://img.shields.io/badge/License-MIT-4B5563?style=for-the-badge&labelColor=1b1f24" height="32" alt="License MIT">
+  <img src="https://img.shields.io/badge/Java-17_to_build-E76F00?style=for-the-badge&labelColor=1b1f24&logo=openjdk&logoColor=white" height="32" alt="JDK 17 to build">
+</p>
 
-**Танки и бронетехника**
-- **Т-72Б3**: 125 мм 2А46М-5 (БОПС, ОФС, управляемая «Рефлекс»), спаренный ПКТ, «Контакт-5».
-- **Т-80У**: газотурбинный, самый быстрый на гусеницах.
-- **Т-90М «Прорыв»**: «Реликт», клетки на корме башни, больше прочности и быстрее заряжание.
-- **БМПТ «Терминатор»**: две 2А42 30 мм и четыре ПТУР «Атака». Перенесён сюда из FPV Drones.
-- **БМП-1**: 73 мм «Гром», «Малютка» на направляющей. Внутри 11 мест (экипаж и восемь десантников), ещё шестеро
-  едут на крыше. Плавает.
-- **ТОС «Солнцепёк»**: 30 термобарических ракет на шасси Т-72. Огонь по координатам (R), как у «Града».
-  Термобар работает в две фазы, как настоящий: сначала облако топлива расползается по земле и затекает в окопы, двери
-  и окна, через секунду оно вспыхивает целиком. Внутри облака не спасают стены, снаружи бьёт ударная волна.
+<p align="center">
+  <a href="https://discord.gg/YOUR_INVITE"><img src="https://img.shields.io/badge/Discord-Join_server-5865F2?style=for-the-badge&labelColor=1b1f24&logo=discord&logoColor=white" height="40" alt="Discord: join the server"></a>
+  <a href="https://t.me/qwarwin4git"><img src="https://img.shields.io/badge/Telegram-Follow-26A5E4?style=for-the-badge&labelColor=1b1f24&logo=telegram&logoColor=white" height="40" alt="Telegram: follow the channel"></a>
+  <a href="mailto:qwarwin@gmail.com"><img src="https://img.shields.io/badge/Gmail-Contact-EA4335?style=for-the-badge&labelColor=1b1f24&logo=gmail&logoColor=white" height="40" alt="Gmail: contact"></a>
+</p>
 
-Третий вид (C ещё раз после прицела) — внутри машины: боевое отделение с местами экипажа, казёнником и каруселью,
-десант БМП-1, кабины грузовиков. Броня изнутри не рисуется, наружу видно через смотровые щели на уровне глаз.
-Пилоты сидят в кабинах самолётов (их видно снаружи), из кабины видно сквозь фонарь.
+Military vehicles for Minecraft 1.16.5 on Forge 36: tanks, IFVs, rocket artillery, self-propelled guns, air defense
+and jets. Made to play with friends, not as a simulator: a tank reloads in a few seconds and a jet does 70 blocks per
+second. The vehicles are real 3D models with seats, interiors and working cockpits.
 
-На танках и БМПТ можно ехать на броне (сверх мест экипажа): таких видно, их не защищает броня, зато они могут
-стрелять из своего оружия.
+## Gallery
 
-**Артиллерия**
-- **БМ-21 «Град»** на «Урале»: 40 реактивных снарядов. Залпом (ЛКМ) или по одному (ПКМ).
-  Наводить можно вручную или по координатам: R → ввести X и Z, пакет наведётся сам.
-- **«Орешник»**: пусковая на шасси МЗКТ. Поднимаешь контейнер (G), задаёшь координаты (R), пускаешь (ЛКМ).
-  Ракета уходит вверх, через несколько секунд на цель падают семь раскалённых блоков, каждый делится на шесть
-  суббоеприпасов.
-- **Ядерная БЧ для «Орешника»**: отдельный предмет, ставится ПКМ по пусковой, выбирается в окне наведения (R). Ящики с
-  БК её не пополняют. Вспышка, воронка, ударная волна, пожары, гриб и радиация у эпицентра; о пуске узнают все на
-  сервере. Размеры воронки и взрыва настраиваются.
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/images/t72b3.webp" alt="T-72B3"><br><sub><b>T-72B3</b></sub></td>
+    <td width="50%" align="center"><img src="docs/images/t80u.webp" alt="T-80U"><br><sub><b>T-80U</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/images/t90m.webp" alt="T-90M Proryv"><br><sub><b>T-90M Proryv</b></sub></td>
+    <td width="50%" align="center"><img src="docs/images/bmpt.webp" alt="BMPT Terminator"><br><sub><b>BMPT Terminator</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/images/bmp1.webp" alt="BMP-1"><br><sub><b>BMP-1</b></sub></td>
+    <td width="50%" align="center"><img src="docs/images/tos1a.webp" alt="TOS-1A Solntsepyok"><br><sub><b>TOS-1A Solntsepyok</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/images/grad.webp" alt="BM-21 Grad"><br><sub><b>BM-21 Grad</b></sub></td>
+    <td width="50%" align="center"><img src="docs/images/oreshnik.webp" alt="Oreshnik"><br><sub><b>Oreshnik</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/images/msta.webp" alt="2S19 Msta-S"><br><sub><b>2S19 Msta-S</b></sub></td>
+    <td width="50%" align="center"><img src="docs/images/pantsir.webp" alt="Pantsir-S1"><br><sub><b>Pantsir-S1</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/images/su25.webp" alt="Su-25"><br><sub><b>Su-25</b></sub></td>
+    <td width="50%" align="center"><img src="docs/images/su34.webp" alt="Su-34"><br><sub><b>Su-34</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/images/mig23.webp" alt="MiG-23UB"><br><sub><b>MiG-23UB</b></sub></td>
+    <td width="50%" align="center"><img src="docs/images/tu160.webp" alt="Tu-160 White Swan"><br><sub><b>Tu-160 White Swan</b></sub></td>
+  </tr>
+</table>
 
-**ПВО** (ставятся на землю и работают сами, ПКМ — включить/выключить)
-- **Зенитная турель 2×30 мм**: снаряды с дистанционным подрывом, сама сопровождает и сбивает чужие самолёты,
-  ракеты и дроны в радиусе ~180 блоков. Наводка не идеальная: по маленькому шустрому дрону попасть трудно, по
-  самолёту — куда проще.
-- **Зенитная ракетная турель**: 8 ЗУР, сама пускает их по чужим самолётам до ~450 блоков (и по Шахедам из FPV Drones).
-- Своих не трогают: свой — это хозяин турели и его команда (`/team`).
+## What's inside
 
-**Авиация** (управление «как в тундре»: самолёт летит туда, куда смотришь)
-- **Су-25**: ГШ-30-2, подвески «Штурмовой», «НАР», «8×ФАБ-500», «Противотанковый» (Х-29Л).
-- **Су-34**: ГШ-301, «Ударный» (Х-59, Х-29, ФАБ), «Тяжёлый» (ФАБ-1500), **168 × С-8КО**.
-- **МиГ-23УБ**: «Перехват» Р-40 + Р-73, «Ближний бой» 4×Р-73, 4×ФАБ-500 или 4 блока Б-8.
+### Tanks and armor
 
-Боеприпасы авиации:
-- ФАБ-250, ФАБ-500, ФАБ-1500;
-- НАР С-8КО в блоках Б-8;
-- УРВВ Р-73 и Р-40 (захват цели перед пуском);
-- УРВЗ Х-29Л (летит в точку прицела, пока держишь её);
-- УРВП Х-59 (выстрелил и забыл, бьёт в крышу).
+- **T-72B3.** 125 mm 2A46M-5 with APFSDS, HE-frag and the guided Refleks, coaxial PKT, Kontakt-5 ERA.
+- **T-80U.** Gas turbine, the fastest thing on tracks.
+- **T-90M Proryv.** Relikt ERA, cage armor on the turret, the toughest of the three and the fastest to reload.
+- **BMPT Terminator.** Two 30 mm 2A42 and four Ataka ATGMs.
+- **BMP-1.** 73 mm Grom and a Malyutka on the rail, crew and dismounts inside, more troops ride on the roof. Swims.
 
-## Управление
+Third person view has a third step: inside the vehicle. You see the fighting compartment with the crew seats, the
+breech and the autoloader, the troop bay of the BMP and the truck cabs; the outside is visible through the vision
+slits. Tanks and the BMPT also carry riders on the hull, unprotected but free to use their own weapons.
 
-| | Танки и БМП | «Град» / «Орешник» | Самолёты |
+### Artillery
+
+- **BM-21 Grad** on a Ural: 40 rockets, a full salvo (LMB) or one at a time (RMB), aimed by hand or at coordinates (R).
+- **TOS-1A Solntsepyok.** A pack of 30 thermobaric rockets on a T-72 chassis, fired at coordinates. The thermobaric
+  warhead works in two phases like the real one: a fuel cloud spreads along the ground and flows into trenches, doors
+  and windows, then ignites as a whole a second later. Walls don't help inside the cloud, the blast wave hits outside.
+- **2S19 Msta-S.** 152 mm self-propelled howitzer, HE-frag only, elevation −4…+68°, fires at coordinates out to
+  ~3000 blocks. G switches between direct and high-angle fire.
+- **Oreshnik** on an MZKT chassis: raise the container (G), set the coordinates (R), launch (LMB). The missile climbs,
+  and a few seconds later six glowing reentry vehicles fall on the target, each splitting into six submunitions.
+- **Nuclear warhead for the Oreshnik.** A separate item, installed with RMB on the launcher and chosen in the aiming
+  window. Flash, crater, blast wave, fires, a mushroom cloud and fallout near ground zero; the whole server is told
+  about the launch. Ammo crates don't restock it, the crater and blast size are configurable.
+
+### Air defense
+
+- **Pantsir-S1** on a KamAZ: 12 SAMs out to 1800 blocks and twin 30 mm guns. G turns on the automatic mode: it finds
+  and shoots down aircraft, drones and missiles by itself.
+- **AA gun turret 2×30 mm.** Placed on the ground, works on its own: airburst shells against hostile aircraft, missiles
+  and drones within ~180 blocks. A small fast drone is hard to hit, a jet much easier.
+- **SAM turret.** 8 missiles, engages hostile aircraft out to ~450 blocks (and Shaheds from FPV Drones).
+- Turrets leave your own stuff alone: the owner and their `/team` count as friends. RMB turns a turret on and off.
+
+### Aircraft
+
+Controls are War Thunder style: the jet flies where you look.
+
+- **Su-25.** GSh-30-2; Assault, Rockets, 8×FAB-500 and Anti-tank (Kh-29L) loadouts.
+- **Su-34.** GSh-301; Strike (Kh-59, Kh-29, FAB), Heavy (FAB-1500) and **168 × S-8KO** rockets.
+- **MiG-23UB.** Interceptor (R-40 + R-73), Dogfight (4×R-73), 4×FAB-500 or four B-8 rocket pods.
+- **Tu-160 White Swan.** Strategic missile carrier with internal bays: 12 Kh-101 cruise missiles, a nuclear
+  Kh-102 mix, FAB-3000/FAB-9000 or a carpet of 48 FAB-500. K in flight sets the target coordinates; the bomb sight
+  puts the jet on a bomb run.
+
+Stores: FAB-250, FAB-500, FAB-1500, FAB-3000, FAB-9000, the RN-28 nuclear bomb, S-8KO in B-8 pods, R-73 and R-40
+air-to-air missiles (lock before launch), Kh-29L (flies to the point you hold), Kh-59 (fire and forget, hits the roof),
+Kh-101 and the nuclear Kh-102 cruise missiles. Any store fits any pylon as long as it's under the pylon's weight
+limit, weight costs speed and agility. A server can ban any store, or all nuclear ones, in the config.
+
+**Pilot kit:** ZSh-7 helmet with a mask, flight jacket, trousers and boots. The mask filters fallout (a third of the
+dose, the full kit a sixth) and gives air under water.
+
+## Controls
+
+| | Tanks and IFVs | Grad / Oreshnik / Msta | Aircraft |
 |---|---|---|---|
-| WASD | ехать | ехать | W/S тяга, A/D руль (и руление на земле) |
-| Мышь | башня смотрит, куда смотришь | наводка пакета | курс: самолёт догоняет прицел |
-| ЛКМ | пушка | залп / пуск | пушка |
-| ПКМ | ПКТ / ПТУР | одиночный снаряд | сброс / пуск выбранной подвески |
-| R | сменить снаряд | ввод координат цели | следующий тип подвески |
-| G | — | поднять / опустить контейнер | шасси |
-| K | — | — | сменить вариант подвески (на земле) |
-| C или F5 | снаружи / прицел / внутри | снаружи / прицел / кабина | снаружи / кабина |
-| Колёсико | зум в прицеле, дистанция камеры снаружи | | |
-| Alt | свободный обзор | | свободный обзор |
-| Shift | вылезти | вылезти | катапультироваться :) |
+| WASD | drive | drive | W/S throttle, A/D rudder and ground steering |
+| Mouse | the turret follows your view | aim the launcher | heading: the jet chases the sight |
+| LMB | main gun | salvo / launch / fire | gun |
+| RMB | coax / ATGM | single rocket | release the selected store |
+| R | next shell | target coordinates | next store type |
+| G | — | raise / lower the launcher, Msta: high angle | landing gear |
+| K | — | — | next loadout (on the ground), target coordinates (Tu-160) |
+| C or F5 | outside / sight / inside | outside / sight / cab | outside / cockpit |
+| V | change seat | change seat | change seat |
+| Wheel | sight zoom, camera distance outside | | |
+| Alt | free look | | free look |
+| Shift | get out | get out | eject :) |
 
-Взлёт: дай полную тягу (W), разгонись по прямой и потяни мышь вверх, когда скорость позволит. Убери шасси (G).
-Сажать на выпущенное шасси, плавно и без крена, иначе машина разобьётся.
+Takeoff: full throttle (W), roll straight and pull the mouse up once you have the speed, then gear up (G). Land on
+the gear, gently and with the wings level, or the aircraft breaks up.
 
-## Боекомплект и ремонт
+## Fuel, ammo and repairs
 
-- Техника из творческого режима ставится полностью заряженной.
-- В выживании:
-  - **Ящик с боекомплектом**: ПКМ по технике пополняет всё оружие.
-  - **Ремкомплект**: чинит треть прочности.
-  - Shift + ПКМ пустой рукой по пустой технике: забрать её обратно предметом. Прочность и боезапас сохраняются.
-- Крафт всего описан в [RECIPES.md](RECIPES.md).
+- Vehicles from creative are placed fully loaded.
+- In survival:
+  - **Ammo crate:** RMB a vehicle to restock what fits. Loading a shell, a rocket or a bomb takes time and only works
+    with the vehicle stopped.
+  - **Fuel barrel:** RMB a vehicle to refuel it; vehicles burn fuel as they move.
+  - **Repair kit:** restores a third of the health.
+  - **Wrench:** Shift+RMB an empty vehicle to take it back as an item, health and ammo included.
+- All recipes are in [RECIPES.md](RECIPES.md).
 
-## Совместимость с FPV Drones
+## Works with FPV Drones
 
-Мод работает и сам по себе. Если стоит FPV Drones:
-- дроны, «Шахеды» и ракеты из него считаются воздушными целями для Р-73/Р-40 и неконтактных взрывателей;
-- грузовик, зенитка и «Корнет» из него поражаются нашим оружием;
-- ПТУРы FPV Drones пробивают нашу броню так же, как наши.
+The mod runs on its own. With [FPV Drones](https://github.com/Qwarwin4/FpvWarMod) installed:
+- its drones, Shaheds and missiles are air targets for the R-73/R-40, the turrets and proximity fuzes;
+- its truck, AA gun and Kornet can be hit by the weapons here, and its ATGMs go through this mod's armor.
 
-За это отвечают теги `data/militarytech/tags/entity_types/air_targets.json` и `shootable.json`. В них можно
-дописать сущности из других модов.
+It's wired through entity tags with optional entries, `data/militarytech/tags/entity_types/air_targets.json` and
+`shootable.json`; add entities from other mods there.
 
-## Настройки
+## Config
 
-`saves/<мир>/serverconfig/militarytech-server.toml`:
-- разрушение блоков взрывами;
-- урон осколками;
-- множитель урона по технике;
-- сила ФАБов;
-- скорость наземной техники и авиации;
-- нужны ли ящики с БК;
-- прогрузка чанков ракетами;
-- дальность «Орешника» и мощность его суббоеприпасов;
-- радиус воронки и взрыва ядерной БЧ, время радиации.
+`saves/<world>/serverconfig/militarytech-server.toml`: block damage from explosions, fragment damage, damage to
+vehicles, FAB power, ground and air speed, fuel, timed loading, ammo crates, chunk loading by missiles, Oreshnik range
+and submunition power, nuclear crater, blast and fallout time, banned aircraft stores.
 
-## Сборка
+## Building
 
-Нужен JDK 17 (Gradle 7.6). Запусти `build.bat` (Windows) или `./build.sh` (Linux). Готовый мод будет в
-`build/libs/militarytech-<версия>.jar`.
+JDK 17 (Gradle 7.6). Run `build.bat` on Windows or `./build.sh` on Linux; the mod ends up in
+`build/libs/militarytech-<version>.jar`.
 
-## Модели, текстуры и звуки
+## Models, textures and sounds
 
-Техника сделана из настоящих 3D-моделей (авторы и лицензии в [MODELS.md](MODELS.md)): `tools/gen_meshes.py` упрощает
-сетку, перепекает все текстуры модели в одну и режет её на корпус, башню и ствол (или шасси у самолётов).
-Остальное генерируется скриптами из `tools/`, без ручной рисовки:
+The vehicles are real 3D models, authors and licenses are in [MODELS.md](MODELS.md). `tools/gen_meshes.py` simplifies
+each mesh, bakes all its textures into one and cuts it into hull, turret and gun (or airframe and gear). Everything
+else is generated by the scripts in `tools/`:
 
 ```
 python3 tools/gen_all.py
 ```
 
-Нужны Python 3 с numpy и Pillow; для звуков ещё ffmpeg с libvorbis.
+Python 3 with numpy and Pillow, ffmpeg with libvorbis for the sounds. The detail maps in `tools/detail/` come from CC0
+textures by [ambientCG](https://ambientcg.com).
 
-- `uvbake.py` делает развёртку: каждая грань каждого бокса получает свой участок текстуры с фиксированной
-  плотностью пикселей.
-- Затем текстура раскрашивается материалами: краска с камуфляжем, пылью, грязью и сколами; блоки ДЗ, траки,
-  обшивка самолётов с панелями и заклёпками.
-- `preview.py` — простой программный рендер. На нём проверяются модели и рисуются иконки предметов.
-- В `tools/detail/` лежат карты деталей из CC0-текстур [ambientCG](https://ambientcg.com) (подтёки, грязь, царапины,
-  формы сколов краски, металл, брезент, резина, ржавчина). Ими покрываются все материалы.
+## License
+
+The code is MIT. The 3D models keep their own licenses (CC BY 4.0), see [MODELS.md](MODELS.md).
