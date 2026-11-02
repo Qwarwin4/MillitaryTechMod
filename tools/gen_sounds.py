@@ -54,6 +54,23 @@ def boom(sec, crack, thump_hz, tail_k, decay):
     return c, th, tail, t
 
 
+def helicopter(t2, n2):
+    """Ka-52: two three-bladed rotors turning opposite ways, the blade slap of each (whole periods in the 2 s loop,
+    so they beat against each other once a second), over the turbines' whine and the rush of air"""
+    sig = np.zeros(n2)
+    for f in (26.5, 27.5):
+        phase = (t2 * f) % 1.0
+        sig += np.exp(-phase * 9.0) * (0.8 + 0.2 * np.sin(2 * np.pi * 0.5 * t2))
+    # smoothed round the loop's end too, so the seam can't click
+    k = np.zeros(n2)
+    k[:300] = 1 / 300
+    sig = np.real(np.fft.ifft(np.fft.fft(sig - sig.mean()) * np.fft.fft(np.roll(k, -150)))) * 1.6
+    sig += 0.55 * loop_noise(n2, 600) + 0.25 * loop_noise(n2, 5000)
+    for f in (2400.0, 2460.0):
+        sig += 0.06 * np.sin(2 * np.pi * f * t2)
+    write("helicopter", np.tanh(sig * 1.4))
+
+
 def main():
     if not shutil.which("ffmpeg"):
         print("no ffmpeg, skipping sounds")
@@ -149,6 +166,7 @@ def main():
     for f in (1900, 1960):
         sig += 0.12 * np.sin(2 * np.pi * f * t2)
     write("missile_motor", sig)
+    helicopter(t2, n2)
 
     # cockpit tones
     n, t = t_(0.25)
@@ -160,7 +178,7 @@ def main():
 
     names = ["tank_gun", "grom", "mg", "cannon_30", "aircraft_gun", "atgm_launch", "missile_launch", "rocket_launch",
              "grad_launch", "bomb_release", "oreshnik_launch", "incoming", "reload", "hydraulics", "tank_engine",
-             "turbine", "truck_engine", "jet_engine", "lock_tone", "seeker_tone", "missile_warning", "missile_motor", "nuke", "geiger", "howitzer"]
+             "turbine", "truck_engine", "jet_engine", "lock_tone", "seeker_tone", "missile_warning", "missile_motor", "nuke", "geiger", "howitzer", "helicopter"]
     gv.save_json({n: {"category": "neutral", "subtitle": f"subtitles.{gv.MODID}.{n}",
                       "sounds": [{"name": f"{gv.MODID}:{n}", "stream": False}]} for n in names},
                  os.path.join(gv.ASSETS, "sounds.json"))

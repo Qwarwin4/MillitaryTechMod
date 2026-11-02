@@ -17,6 +17,7 @@
 | МиГ-23УБ | [Mig-23 UB](https://sketchfab.com/3d-models/mig-23-ub-dd4e5995803b4ba28929323f20a18b3d) | Tim Samedov | CC BY 4.0 |
 | 2С19 «Мста-С» | [2S19 MSTA-S Self-Propelled Artillery](https://sketchfab.com/3d-models/c12432ada9a84859bc74c3d5ef7046f8) | MirzaArrafiERV_45 | CC BY 4.0 |
 | «Панцирь-С1» | [Pantsir-S1](https://sketchfab.com/3d-models/pantsir-s1-3cb67b0bae10418190e7ce32142231e4) | SanderWolf | CC BY 4.0 |
+| Ка-52 | [Ka-52 Alligator](https://sketchfab.com/3d-models/ka-52-alligator-47c1fc0efafa4056b44370f75d7b72bb) | Jeyhun1985 | CC BY 4.0 |
 | Ту-160 | [Tupolev TU-160](https://sketchfab.com/3d-models/d3af9e67f8024dcc9b23a3e91d492e40) | ioai25312 | CC BY 4.0 |
 
 Бомбы и ракеты собраны скриптом `tools/gen_munition_meshes.py` (повёрнуты носом вперёд, приведены к реальной длине).

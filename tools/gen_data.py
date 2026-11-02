@@ -10,7 +10,7 @@ import gen_vehicles as gv  # noqa: E402
 M = gv.MODID
 DATA = os.path.join(gv.RES, "data", M)
 
-VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig23", "tu160", "pantsir", "msta", "zak", "zrk"]
+VEHICLES = ["t72b3", "t80u", "t90m", "bmpt", "bmp1", "tos1a", "grad", "oreshnik", "su25", "su34", "mig23", "tu160", "ka52", "pantsir", "msta", "zak", "zrk"]
 
 RU = {
     "itemGroup.militarytech": "Военная техника",
@@ -18,6 +18,12 @@ RU = {
     "entity.militarytech.t72b3": "Т-72Б3", "entity.militarytech.t80u": "Т-80У", "entity.militarytech.t90m": "Т-90М «Прорыв»",
     "entity.militarytech.bmpt": "БМПТ «Терминатор»", "entity.militarytech.bmp1": "БМП-1",
     "entity.militarytech.grad": "БМ-21 «Град»", "entity.militarytech.oreshnik": "«Орешник»",
+    "entity.militarytech.ka52": "Ка-52 «Аллигатор»",
+    "weapon.militarytech.2a42": "2А42 30 мм",
+    "loadout.militarytech.ka52_atgm": "ПТУР: 12 «Атак» + 2 блока Б-8 + Р-73",
+    "loadout.militarytech.ka52_rockets": "НАР: 4 блока Б-8 + Р-73",
+    "loadout.militarytech.ka52_tankbuster": "Противотанковый: 24 «Атаки» + Р-73",
+    "tooltip.militarytech.ka52": "Ударный вертолёт соосной схемы, реальный размер. Пробел — вверх, Ctrl — вниз, W/S — наклон вперёд/назад, A/D — вбок, мышь — разворот и прицел. 2А42 следит за прицелом, ПТУР «Атака» идут по лучу туда, куда смотришь. Отпусти всё — зависнет на месте.",
     "entity.militarytech.su25": "Су-25", "entity.militarytech.su34": "Су-34", "entity.militarytech.mig23": "МиГ-23УБ",
     "entity.militarytech.tu160": "Ту-160 «Белый лебедь»",
     "entity.militarytech.tos1a": "ТОС-1А «Солнцепёк»", "entity.militarytech.zak": "Зенитная турель 2×30 мм",
@@ -245,6 +251,12 @@ EN = {
     "entity.militarytech.t72b3": "T-72B3", "entity.militarytech.t80u": "T-80U", "entity.militarytech.t90m": "T-90M",
     "entity.militarytech.bmpt": "BMPT Terminator", "entity.militarytech.bmp1": "BMP-1",
     "entity.militarytech.grad": "BM-21 Grad", "entity.militarytech.oreshnik": "Oreshnik",
+    "entity.militarytech.ka52": "Ka-52 Alligator",
+    "weapon.militarytech.2a42": "2A42 30 mm",
+    "loadout.militarytech.ka52_atgm": "ATGM: 12 Ataka + 2 B-8 pods + R-73",
+    "loadout.militarytech.ka52_rockets": "Rockets: 4 B-8 pods + R-73",
+    "loadout.militarytech.ka52_tankbuster": "Tank buster: 24 Ataka + R-73",
+    "tooltip.militarytech.ka52": "Coaxial attack helicopter, real size. Space up, Ctrl down, W/S tilt forward/back, A/D slide sideways, mouse turns and aims. The 2A42 follows the sight, Ataka missiles ride the beam to where you look. Let go of everything and it hovers.",
     "entity.militarytech.su25": "Su-25", "entity.militarytech.su34": "Su-34", "entity.militarytech.mig23": "MiG-23UB",
     "entity.militarytech.tu160": "Tu-160 White Swan",
     "entity.militarytech.tos1a": "TOS-1A Solntsepyok", "entity.militarytech.zak": "AA Gun Turret 2x30 mm",
@@ -461,7 +473,7 @@ SOUND_RU = {"tank_gun": "Выстрел 125 мм", "grom": "Выстрел «Г�
             "incoming": "Свист приближающихся блоков", "reload": "Перезарядка", "hydraulics": "Гидравлика",
             "tank_engine": "Танковый дизель", "turbine": "Газовая турбина", "truck_engine": "Мотор грузовика",
             "jet_engine": "Реактивный двигатель", "lock_tone": "Захват", "seeker_tone": "ГСН ищет цель",
-            "missile_warning": "Ракетная опасность", "missile_motor": "Двигатель ракеты", "nuke": "Ядерный взрыв", "geiger": "Щелчки дозиметра", "howitzer": "Выстрел гаубицы"}
+            "missile_warning": "Ракетная опасность", "missile_motor": "Двигатель ракеты", "nuke": "Ядерный взрыв", "geiger": "Щелчки дозиметра", "howitzer": "Выстрел гаубицы", "helicopter": "Вертолёт"}
 SOUND_EN = {"tank_gun": "125 mm gun fires", "grom": "Grom fires", "mg": "Machine gun", "cannon_30": "30 mm cannon",
             "aircraft_gun": "Aircraft cannon", "atgm_launch": "ATGM launch", "missile_launch": "Missile launch",
             "rocket_launch": "Rocket launch", "grad_launch": "Grad salvo", "bomb_release": "Bomb released",
@@ -469,7 +481,7 @@ SOUND_EN = {"tank_gun": "125 mm gun fires", "grom": "Grom fires", "mg": "Machine
             "hydraulics": "Hydraulics", "tank_engine": "Tank diesel", "turbine": "Gas turbine", "truck_engine": "Truck engine",
             "jet_engine": "Jet engine", "lock_tone": "Lock tone", "seeker_tone": "Seeker tone",
             "missile_warning": "Missile warning", "missile_motor": "Missile motor", "nuke": "Nuclear detonation", "geiger": "Geiger counter clicks",
-            "howitzer": "Howitzer fires"}
+            "howitzer": "Howitzer fires", "helicopter": "Helicopter"}
 
 
 def lang():
@@ -551,6 +563,8 @@ RECIPES = [
                                      "J": "jet_engine"}, 1),
     ("su34", ["AFA", "ACA", "J J"], {"A": "airframe", "F": "fire_control", "C": "autocannon", "J": "jet_engine"}, 1),
     ("mig23", ["AFA", "JAJ", "J J"], {"A": "airframe", "F": "fire_control", "J": "jet_engine"}, 1),
+    ("ka52", ["AAA", "CFR", "GPG"], {"A": "airframe", "C": "autocannon", "F": "fire_control", "R": "rocket_motor",
+                                     "G": "gas_turbine", "P": "armor_plate"}, 1),
     ("tu160", ["AFA", "JAJ", "JXJ"], {"A": "airframe", "F": "fire_control", "J": "jet_engine", "X": V + "netherite_ingot"}, 1),
     # ammunition
     ("belt_762", ["III", "GGG"], {"I": V + "iron_nugget", "G": V + "gunpowder"}, 2),

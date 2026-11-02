@@ -78,6 +78,8 @@ public final class Specs {
 
     public static final VehicleSpec MIG23 = new VehicleSpec("mig23", VehicleSpec.Category.AIRCRAFT);
 
+    public static final VehicleSpec KA52 = new VehicleSpec("ka52", VehicleSpec.Category.AIRCRAFT);
+
     /** Replace the hit boxes (the real models came with their own proportions). */
     private static void boxes(VehicleSpec s, double[]... b) {
         s.hitBoxes.clear();
@@ -578,6 +580,47 @@ public final class Specs {
         a.loadouts.add(AirSpec.loadout("tu_carpet").put(FAB500, 4, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).build());
         b.air = a;
 
+        // ---- Ka-52 "Alligator": real size (13.5 m long, rotors 14.5 m across), pilot on the left, operator on the
+        // right, the 2A42 on its side mount to starboard, three pylons on each stub wing (the tip ones for air-to-air)
+        b = KA52;
+        b.health = 170F;
+        b.armor = Armor.AIR;
+        b.width = 3.0F;
+        b.height = 3.3F;
+        b.box(-0.95, 0.35, -8.5, 0.95, 3.0, 5.4).box(-3.3, 1.05, -0.7, 3.3, 1.55, 1.0);
+        b.seats = new Vector3d[]{v(0.43, 0.82, 2.35), v(-0.43, 0.82, 2.35)};
+        b.riderScale = 0.8F;
+        b.separateGunner = false;
+        b.hasTurret = false;
+        b.tracked = false;
+        b.enclosed = false;
+        b.engineSound = "helicopter";
+        b.wheelModel = null;
+        b.turretModel = null;
+        b.gunModel = "ka52_gear";
+        a = new AirSpec();
+        a.maxSpeed = 1.9;
+        a.stallSpeed = 0.0;
+        a.takeoffSpeed = 0.0;
+        a.climbRate = 0.35;
+        a.pitchRate = 2.0F;
+        a.yawRate = 4.0F;
+        a.cockpit = v(0.43, 2.12, 2.45);
+        a.camDistance = 18;
+        a.camHeight = 4;
+        a.exhaust = v(0.95, 2.1, -2.6);
+        a.exhaustSpread = 0.95;
+        a.ownPylons = true;
+        a.onlyCarries = true;
+        a.pylons = new Vector3d[]{v(1.94, 1.25, 0.17), v(2.64, 1.27, 0.17), v(3.13, 1.27, 0.17),
+                v(-1.94, 1.25, 0.17), v(-2.64, 1.27, 0.17), v(-3.13, 1.27, 0.17)};
+        a.loadouts.add(AirSpec.loadout("ka52_atgm").put(ATAKA, 6, 0, 3).put(S8KO, 20, 1, 4).put(R73, 1, 2, 5).build());
+        a.loadouts.add(AirSpec.loadout("ka52_rockets").put(S8KO, 20, 0, 1, 3, 4).put(R73, 1, 2, 5).build());
+        a.loadouts.add(AirSpec.loadout("ka52_tankbuster").put(ATAKA, 6, 0, 1, 3, 4).put(R73, 1, 2, 5).build());
+        b.air = a;
+        b.weapon("2a42").ammo(SHELL_30, 460).auto(2).spread(0.4F)
+                .mount(WeaponSpec.Mount.HULL, v(-0.77, 0.9, 2.6)).sound("cannon_30", 5F);
+
         // ---- what each pylon takes (kg), the wingtip rails, what each aircraft can carry at all
         AirSpec su25 = SU25.air;
         su25.pylonMax = new double[]{900, 800, 600, 500, 150, 900, 800, 600, 500, 150};
@@ -594,6 +637,11 @@ public final class Specs {
         mig.pylonAam = new boolean[]{false, false, false, false};
         mig.carries = new Munition[]{R40, R73, S8KO, FAB250, FAB500};
         mig.maxLoad = 3000;
+        AirSpec ka = KA52.air;
+        ka.pylonMax = new double[]{600, 600, 150, 600, 600, 150};
+        ka.pylonAam = new boolean[]{false, false, true, false, false, true};
+        ka.carries = new Munition[]{ATAKA, S8KO, R73, FAB250};
+        ka.maxLoad = 2000;
         AirSpec tu = TU160.air;
         tu.pylonMax = new double[]{3500, 3500, 9500, 3500, 3500, 3500, 3500, 3500, 9500, 3500, 3500, 3500};
         tu.pylonAam = new boolean[12];
@@ -612,6 +660,8 @@ public final class Specs {
         SU34.fuelPerBarrel = 0.15F;
         MIG23.fuelMinutes = 20;
         MIG23.fuelPerBarrel = 0.2F;
+        KA52.fuelMinutes = 30;
+        KA52.fuelPerBarrel = 0.2F;
         TU160.fuelMinutes = 90;
         TU160.nuclearHardened = true;
         TU160.fuelPerBarrel = 0.05F;
@@ -619,7 +669,7 @@ public final class Specs {
         ZRK.fuelMinutes = 0;
     }
 
-    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, PANTSIR, MSTA, ZAK, ZRK};
+    public static final VehicleSpec[] ALL = {T72B3, T80U, T90M, BMPT, BMP1, TOS1A, GRAD, ORESHNIK, SU25, SU34, MIG23, TU160, KA52, PANTSIR, MSTA, ZAK, ZRK};
 
     private Specs() {
     }

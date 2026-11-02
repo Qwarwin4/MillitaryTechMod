@@ -3,6 +3,7 @@ package com.qwarwin.militarytech.registry;
 import com.qwarwin.militarytech.MilitaryTech;
 import com.qwarwin.militarytech.entity.AirDefenseTurretEntity;
 import com.qwarwin.militarytech.entity.AircraftEntity;
+import com.qwarwin.militarytech.entity.HelicopterEntity;
 import com.qwarwin.militarytech.entity.CameraEntity;
 import com.qwarwin.militarytech.entity.GradEntity;
 import com.qwarwin.militarytech.entity.MstaEntity;
@@ -66,6 +67,10 @@ public final class ModEntities {
     public static final RegistryObject<EntityType<AircraftEntity>> SU34 = aircraft(Specs.SU34);
     public static final RegistryObject<EntityType<AircraftEntity>> MIG23 = aircraft(Specs.MIG23);
     public static final RegistryObject<EntityType<AircraftEntity>> TU160 = aircraft(Specs.TU160);
+    public static final RegistryObject<EntityType<HelicopterEntity>> KA52 = reg(Specs.KA52, ENTITIES.register("ka52",
+            () -> EntityType.Builder.<HelicopterEntity>of((t, w) -> new HelicopterEntity(t, w, Specs.KA52),
+                    EntityClassification.MISC).sized(Specs.KA52.width, Specs.KA52.height).clientTrackingRange(24)
+                    .updateInterval(1).setShouldReceiveVelocityUpdates(false).build("ka52")));
 
     public static final RegistryObject<EntityType<ProjectileEntity>> PROJECTILE = ENTITIES.register("projectile",
             () -> EntityType.Builder.<ProjectileEntity>of(ProjectileEntity::new, EntityClassification.MISC)

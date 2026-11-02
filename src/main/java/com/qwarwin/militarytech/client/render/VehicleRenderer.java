@@ -7,6 +7,7 @@ import com.qwarwin.militarytech.client.MeshWheels;
 import com.qwarwin.militarytech.client.VehicleCamera;
 import com.qwarwin.militarytech.entity.AirSpec;
 import com.qwarwin.militarytech.entity.AircraftEntity;
+import com.qwarwin.militarytech.entity.HelicopterEntity;
 import com.qwarwin.militarytech.entity.Munition;
 import com.qwarwin.militarytech.entity.OreshnikEntity;
 import com.qwarwin.militarytech.entity.TruckEntity;
@@ -148,7 +149,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
 
         if (e instanceof AircraftEntity) {
-            aircraftParts((AircraftEntity) e, ms, buf, light);
+            aircraftParts((AircraftEntity) e, ms, buf, light, partial);
         } else if (e instanceof OreshnikEntity) {
             OreshnikEntity o = (OreshnikEntity) e;
             ms.pushPose();
@@ -274,11 +275,24 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
     }
 
-    private static void aircraftParts(AircraftEntity a, MatrixStack ms, IRenderTypeBuffer buf, int light) {
+    private static void aircraftParts(AircraftEntity a, MatrixStack ms, IRenderTypeBuffer buf, int light, float partial) {
         VehicleSpec s = a.spec;
+        if (a instanceof HelicopterEntity) {
+            // coaxial rotors on the mast (x = 0, z = 0), turning opposite ways
+            HelicopterEntity h = (HelicopterEntity) a;
+            float r = MathHelper.lerp(partial, h.rotorAngleO, h.rotorAngle);
+            ms.pushPose();
+            ms.mulPose(Vector3f.YP.rotationDegrees(r));
+            BoxModel.get(s.id + "_rotor").render(ms, buf, light);
+            ms.popPose();
+            ms.pushPose();
+            ms.mulPose(Vector3f.YP.rotationDegrees(-r + 30F));
+            BoxModel.get(s.id + "_rotor2").render(ms, buf, light);
+            ms.popPose();
+        }
         if (a.isGearDown() && s.gunModel != null) {
             BoxModel.get(s.gunModel).render(ms, buf, light);
-        } else if (!a.isGearDown()) {
+        } else if (!a.isGearDown() && !(a instanceof HelicopterEntity)) {
             // gear up: the bay doors shut over the wells
             BoxModel.get(s.id + "_gearup").render(ms, buf, light);
         }
@@ -293,13 +307,27 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             ms.pushPose();
             ms.translate(p.x, p.y, p.z);
             // the pylon stays on the wing whatever hangs from it
-            BoxModel.get("pylon").render(ms, buf, light);
+            if (!air.ownPylons) {
+                BoxModel.get("pylon").render(ms, buf, light);
+            }
             boolean pod = st != null && st.munition == Munition.S8KO;
             if (st == null || !pod && a.getAmmo(1 + i) <= 0) {
                 ms.popPose();
                 continue;
             }
             ms.translate(0, -0.3, 0);
+            if (!pod && st.count > 1) {
+                // a launcher of several (the Ka-52's Ataka): two rows side by side, as many as are left
+                int left = a.getAmmo(1 + i);
+                for (int k = 0; k < Math.min(left, st.count); k++) {
+                    ms.pushPose();
+                    ms.translate(((k % 2) - 0.5) * 0.17, -(k / 2) * 0.16, 0);
+                    BoxModel.get("munition/" + st.munition.model).render(ms, buf, light);
+                    ms.popPose();
+                }
+                ms.popPose();
+                continue;
+            }
             BoxModel.get(pod ? "munition/b8_pod" : "munition/" + st.munition.model).render(ms, buf, light);
             ms.popPose();
         }

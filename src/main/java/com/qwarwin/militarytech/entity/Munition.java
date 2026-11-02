@@ -203,6 +203,8 @@ public enum Munition {
                 return 9000;
             case RN28:
                 return 550;
+            case ATAKA:
+                return 50;
             default:
                 return 0;
         }

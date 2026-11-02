@@ -100,6 +100,10 @@ Controls are War Thunder style: the jet flies where you look.
 - **Tu-160 White Swan.** Strategic missile carrier with internal bays: 12 Kh-101 cruise missiles, a nuclear
   Kh-102 mix, FAB-3000/FAB-9000 or a carpet of 48 FAB-500. K in flight sets the target coordinates; the bomb sight
   puts the jet on a bomb run.
+- **Ka-52 Alligator.** Coaxial attack helicopter at real size, with its own flight model: the rotors spool up, Space
+  climbs, Ctrl descends, W/S tilt the nose to fly forward and back, A/D slide sideways, the mouse turns it; let go and
+  it hovers. The 2A42 cannon follows the sight, Ataka missiles ride the beam to where you look. Loadouts: ATGM
+  (12 Ataka + 2 B-8 + R-73), Rockets (4 B-8 + R-73), Tank buster (24 Ataka + R-73).
 
 Stores: FAB-250, FAB-500, FAB-1500, FAB-3000, FAB-9000, the RN-28 nuclear bomb, S-8KO in B-8 pods, R-73 and R-40
 air-to-air missiles (lock before launch), Kh-29L (flies to the point you hold), Kh-59 (fire and forget, hits the roof),

@@ -36,6 +36,7 @@ public final class ClientSetup {
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.SU34.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.MIG23.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.TU160.get(), VehicleRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(ModEntities.KA52.get(), VehicleRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.PROJECTILE.get(), ProjectileRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ModEntities.CAMERA.get(), NothingRenderer::new);
         KeyBinds.register();

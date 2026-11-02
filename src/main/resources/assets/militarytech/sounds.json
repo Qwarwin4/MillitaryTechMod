@@ -248,5 +248,15 @@
         "stream": false
       }
     ]
+  },
+  "helicopter": {
+    "category": "neutral",
+    "subtitle": "subtitles.militarytech.helicopter",
+    "sounds": [
+      {
+        "name": "militarytech:helicopter",
+        "stream": false
+      }
+    ]
   }
 }

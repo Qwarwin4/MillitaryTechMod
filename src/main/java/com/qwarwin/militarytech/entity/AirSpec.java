@@ -30,6 +30,12 @@ public final class AirSpec {
     public double exhaustSpread = 0.0;
     /** stores ride inside the fuselage (bomb bays): not drawn, the bay doors open to release */
     public boolean internalBay;
+    /** helicopter: climb rate, blocks per tick, with the collective full up or down */
+    public double climbRate = 0.35;
+    /** the model has its own pylons, no generic pylon box under the wing */
+    public boolean ownPylons;
+    /** only what's in {@link #carries} goes on the pylons (a helicopter can't hang a FAB-9000) */
+    public boolean onlyCarries;
     /** the HUD combiner glass: centre in aircraft coordinates (null: just ahead of the cockpit eye) and half size */
     public Vector3d hudGlass;
     public double hudHalfWidth = 0.16, hudHalfHeight = 0.14;
@@ -80,6 +86,10 @@ public final class AirSpec {
         if (m == Munition.S8KO) {
             return 20;
         }
+        if (m == Munition.ATAKA) {
+            // a launcher of four, two over two... the Ka-52 hangs six on a pylon
+            return 6;
+        }
         if (internalBay && m.kind == Munition.Kind.BOMB) {
             return (int) Math.max(1, Math.min(6, Math.floor(pylonMax[pylon] / m.massKg())));
         }
@@ -100,7 +110,7 @@ public final class AirSpec {
         if (pylon < 0 || pylon >= pylons.length) {
             return false;
         }
-        for (Munition c : ALL_STORES) {
+        for (Munition c : onlyCarries ? carries : ALL_STORES) {
             if (c == m) {
                 return true;
             }
@@ -110,7 +120,7 @@ public final class AirSpec {
 
     public List<Munition> allowed(int pylon) {
         List<Munition> out = new ArrayList<>();
-        for (Munition m : ALL_STORES) {
+        for (Munition m : onlyCarries ? carries : ALL_STORES) {
             if (allows(pylon, m)) {
                 out.add(m);
             }

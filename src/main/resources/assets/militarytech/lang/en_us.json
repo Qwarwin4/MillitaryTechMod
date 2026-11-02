@@ -7,6 +7,12 @@
  "entity.militarytech.bmp1": "BMP-1",
  "entity.militarytech.grad": "BM-21 Grad",
  "entity.militarytech.oreshnik": "Oreshnik",
+ "entity.militarytech.ka52": "Ka-52 Alligator",
+ "weapon.militarytech.2a42": "2A42 30 mm",
+ "loadout.militarytech.ka52_atgm": "ATGM: 12 Ataka + 2 B-8 pods + R-73",
+ "loadout.militarytech.ka52_rockets": "Rockets: 4 B-8 pods + R-73",
+ "loadout.militarytech.ka52_tankbuster": "Tank buster: 24 Ataka + R-73",
+ "tooltip.militarytech.ka52": "Coaxial attack helicopter, real size. Space up, Ctrl down, W/S tilt forward/back, A/D slide sideways, mouse turns and aims. The 2A42 follows the sight, Ataka missiles ride the beam to where you look. Let go of everything and it hovers.",
  "entity.militarytech.su25": "Su-25",
  "entity.militarytech.su34": "Su-34",
  "entity.militarytech.mig23": "MiG-23UB",
@@ -338,6 +344,7 @@
  "item.militarytech.su34": "Su-34",
  "item.militarytech.mig23": "MiG-23UB",
  "item.militarytech.tu160": "Tu-160 White Swan",
+ "item.militarytech.ka52": "Ka-52 Alligator",
  "item.militarytech.pantsir": "Pantsir-S1",
  "item.militarytech.msta": "2S19 Msta-S",
  "item.militarytech.zak": "AA Gun Turret 2x30 mm",
@@ -366,5 +373,6 @@
  "subtitles.militarytech.missile_motor": "Missile motor",
  "subtitles.militarytech.nuke": "Nuclear detonation",
  "subtitles.militarytech.geiger": "Geiger counter clicks",
- "subtitles.militarytech.howitzer": "Howitzer fires"
+ "subtitles.militarytech.howitzer": "Howitzer fires",
+ "subtitles.militarytech.helicopter": "Helicopter"
 }

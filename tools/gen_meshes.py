@@ -61,6 +61,11 @@ def both(*tests):
 
 # id: source, placement, split rules, pivots. Placement: rotate about y, then scale, then lift by dy and shift by dz
 # (dy/dz in blocks after scaling). pivot/trunnion in blocks; trunnion relative to pivot, as in VehicleSpec.
+def _head(i):
+    """Ka-52: a piece of a rotor head (hubs, swashplates, pitch links) on the mast over the cabin roof"""
+    return i["mat"].startswith("aec2205a") and i["min"][1] > 2.7 and abs(i["center"][0]) < 0.95 and abs(i["center"][2]) < 0.95
+
+
 VEHICLES = {
     "t72b3": dict(
         src="t-72b3_main_battle_tank", ry=180, k=0.92, dy=0.736, dz=0.59, tris=45000,
@@ -148,6 +153,21 @@ VEHICLES = {
     "tu160": dict(src="tu160", wheels=False, ry=0, k=0.24, dy=0, dz=0, tris=60000, glass_mats=("object_3",), max_tex=2048,
                   bays=[(-0.72, 11.8, 0.72, 15.45), (-3.6, -7.0, -0.85, -1.4), (0.85, -7.0, 3.6, -1.4)],
                   rules=[("gear", lambda i: i["mat"] == "object_2" and i["min"][1] < 3.2)]),
+    # Ka-52 Alligator (Jeyhun1985's War Thunder model, real size in metres): the two coaxial rotors are parts of
+    # their own turning about the mast (x = 0, z = 0), the gear is drawn only while it's down, the navigation
+    # lights' glass goes, the canopy is glass, the cockpit inside stays with the hull
+    "ka52": dict(src="ka52", wheels=False, ry=0, k=1.0, dy=1.47, dz=0, tris=45000, by="component",
+                 glass_mats=("ebae8ef4-bfe2-4235-a6c4-34b233ff9e1e",),
+                 drop_mats=("93b46c04-b7f9-400a-ab1e-f21b457c1533", "e75a195b-81aa-4128-9b02-b17d4e15b9f2",
+                            "595418a2-412b-4bf1-b2c0-746a5dd19734", "06f134dd-a51d-403b-9635-030dcce89050",
+                            "ac5f7b55-8f82-47cf-bde7-a96418cb9f27", "a965ec97-0702-42b4-9f3e-406c5dca10f7"),
+                 origins={"rotor": (0, 0, 0), "rotor2": (0, 0, 0)},
+                 rules=[("rotor", lambda i: i["mat"].startswith(("aed47572", "35353651")) and i["center"][1] > 3.7
+                         or _head(i) and i["center"][1] > 3.75),
+                        ("rotor2", lambda i: i["mat"].startswith(("aed47572", "35353651")) or _head(i)),
+                        ("gear", lambda i: i["mat"].startswith("aec2205a") and i["max"][1] < 1.1
+                         and (abs(i["center"][0]) > 0.5 and i["center"][2] < -0.4
+                              or abs(i["center"][0]) < 0.3 and 2.4 < i["center"][2] < 3.1))]),
     "mig23": dict(src="mig-23_ub", wheels=False, ry=0, k=0.0357, dy=0.046, dz=2.61, tris=40000,
                   bays=[(-0.22, 2.9, 0.22, 3.9), (-1.3, -2.65, -0.55, -1.4), (0.55, -2.65, 1.3, -1.4)],
                   rules=[("gear", lambda i: i["min"][1] < 0.73 and i["max"][1] < 1.52 and i["max"][2] - i["min"][2] < 2.9)]),

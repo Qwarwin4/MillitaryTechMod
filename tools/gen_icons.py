@@ -44,7 +44,7 @@ VEHICLES = {
                 pitch=-30, yaw=200),
     "zrk": dict(wheels=[], hull="zrk_base", turret="zrk_turret", gun="zrk_launcher", pivot=(0, 1.2, 0), tr=(0, 0.65, 0),
                 pitch=-30, yaw=200),
-    "su25": dict(air=True), "su34": dict(air=True), "mig23": dict(air=True), "tu160": dict(air=True),
+    "su25": dict(air=True), "su34": dict(air=True), "mig23": dict(air=True), "tu160": dict(air=True), "ka52": dict(air=True),
 }
 
 

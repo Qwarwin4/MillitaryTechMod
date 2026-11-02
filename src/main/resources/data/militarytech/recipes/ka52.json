@@ -1,0 +1,32 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "AAA",
+  "CFR",
+  "GPG"
+ ],
+ "key": {
+  "A": {
+   "item": "militarytech:airframe"
+  },
+  "C": {
+   "item": "militarytech:autocannon"
+  },
+  "F": {
+   "item": "militarytech:fire_control"
+  },
+  "R": {
+   "item": "militarytech:rocket_motor"
+  },
+  "G": {
+   "item": "militarytech:gas_turbine"
+  },
+  "P": {
+   "item": "militarytech:armor_plate"
+  }
+ },
+ "result": {
+  "item": "militarytech:ka52",
+  "count": 1
+ }
+}

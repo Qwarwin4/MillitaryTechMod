@@ -7,6 +7,12 @@
  "entity.militarytech.bmp1": "БМП-1",
  "entity.militarytech.grad": "БМ-21 «Град»",
  "entity.militarytech.oreshnik": "«Орешник»",
+ "entity.militarytech.ka52": "Ка-52 «Аллигатор»",
+ "weapon.militarytech.2a42": "2А42 30 мм",
+ "loadout.militarytech.ka52_atgm": "ПТУР: 12 «Атак» + 2 блока Б-8 + Р-73",
+ "loadout.militarytech.ka52_rockets": "НАР: 4 блока Б-8 + Р-73",
+ "loadout.militarytech.ka52_tankbuster": "Противотанковый: 24 «Атаки» + Р-73",
+ "tooltip.militarytech.ka52": "Ударный вертолёт соосной схемы, реальный размер. Пробел — вверх, Ctrl — вниз, W/S — наклон вперёд/назад, A/D — вбок, мышь — разворот и прицел. 2А42 следит за прицелом, ПТУР «Атака» идут по лучу туда, куда смотришь. Отпусти всё — зависнет на месте.",
  "entity.militarytech.su25": "Су-25",
  "entity.militarytech.su34": "Су-34",
  "entity.militarytech.mig23": "МиГ-23УБ",
@@ -339,6 +345,7 @@
  "item.militarytech.su34": "Су-34",
  "item.militarytech.mig23": "МиГ-23УБ",
  "item.militarytech.tu160": "Ту-160 «Белый лебедь»",
+ "item.militarytech.ka52": "Ка-52 «Аллигатор»",
  "item.militarytech.pantsir": "«Панцирь-С1»",
  "item.militarytech.msta": "2С19 «Мста-С»",
  "item.militarytech.zak": "Зенитная турель 2×30 мм",
@@ -367,5 +374,6 @@
  "subtitles.militarytech.missile_motor": "Двигатель ракеты",
  "subtitles.militarytech.nuke": "Ядерный взрыв",
  "subtitles.militarytech.geiger": "Щелчки дозиметра",
- "subtitles.militarytech.howitzer": "Выстрел гаубицы"
+ "subtitles.militarytech.howitzer": "Выстрел гаубицы",
+ "subtitles.militarytech.helicopter": "Вертолёт"
 }
