@@ -20,6 +20,26 @@
   {
    "id": "fpvdrones:terminator",
    "required": false
+  },
+  {
+   "id": "fpvdrones:ew_truck",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:ew_station",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:relay",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:radar",
+   "required": false
+  },
+  {
+   "id": "fpvdrones:radar_console",
+   "required": false
   }
  ]
 }

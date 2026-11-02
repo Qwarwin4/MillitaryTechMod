@@ -591,9 +591,10 @@ def recipes():
 
 
 def tags():
-    air = ["fpvdrones:fpv_drone", "fpvdrones:mavic3", "fpvdrones:strike_drone", "fpvdrones:missile"]
+    air = ["fpvdrones:fpv_drone", "fpvdrones:mavic3", "fpvdrones:strike_drone", "fpvdrones:missile", "fpvdrones:interceptor"]
     shoot = ["fpvdrones:launch_truck", "fpvdrones:air_defense_gun", "fpvdrones:kornet", "fpvdrones:radio_beacon",
-             "fpvdrones:terminator"]
+             "fpvdrones:terminator", "fpvdrones:ew_truck", "fpvdrones:ew_station", "fpvdrones:relay", "fpvdrones:radar",
+             "fpvdrones:radar_console"]
     gv.save_json({"replace": False, "values": [{"id": i, "required": False} for i in air]},
                  os.path.join(DATA, "tags", "entity_types", "air_targets.json"))
     gv.save_json({"replace": False, "values": [{"id": i, "required": False} for i in shoot]},
