@@ -4,11 +4,14 @@ import com.qwarwin.militarytech.Config;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MoverType;
 import net.minecraft.particles.ParticleTypes;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 
@@ -65,7 +68,7 @@ public class HelicopterEntity extends AircraftEntity {
         float tYaw = yRot;
         if (in != null) {
             // the turbines run up and the rotors with them: some five seconds from cold
-            rpm = Math.min(1F, rpm + 0.01F);
+            rpm = bladesGone() ? Math.max(0F, rpm - 0.02F) : Math.min(1F, rpm + 0.01F);
             fwd = in.forward;
             side = in.strafe;
             climb = in.jump ? 1 : in.sprint ? -1 : 0;
@@ -80,7 +83,7 @@ public class HelicopterEntity extends AircraftEntity {
             setFlag(FLAG_GEAR_UP, false);
         }
         // lift once the rotors are near their speed; a heavy load leaves less to climb with
-        boolean lift = rpm > 0.85F;
+        boolean lift = rpm > 0.85F && !bladesGone();
         double climbRate = a.climbRate * (1 - 0.35 * load);
 
         // the airframe leans into where it's going: nose down to fly forward, a wing down to slide
@@ -124,7 +127,7 @@ public class HelicopterEntity extends AircraftEntity {
             }
         } else {
             // no lift: it falls, the free-wheeling rotors slow the fall to an autorotation
-            vy = Math.max(vy - 0.06, rpm > 0.2F || in == null && rotorSpinning() ? -0.55 : -1.4);
+            vy = Math.max(vy - 0.06, !bladesGone() && (rpm > 0.2F || in == null && rotorSpinning()) ? -0.55 : -1.4);
         }
         vel = new Vector3d(horiz.x, vy, horiz.z);
         speed = Math.sqrt(horiz.x * horiz.x + horiz.z * horiz.z);
@@ -160,6 +163,32 @@ public class HelicopterEntity extends AircraftEntity {
                 crash();
             }
         }
+    }
+
+    public boolean bladesGone() {
+        return hasFlag(FLAG_NO_BLADES);
+    }
+
+    /** K-37-800: charges cut the blades off at the roots and they fly clear, then the seats can fire up through the disc. */
+    @Override
+    protected void beforeEject() {
+        if (!bladesGone() && level instanceof ServerWorld) {
+            setFlag(FLAG_NO_BLADES, true);
+            setThrottle(0F);
+            ServerWorld sw = (ServerWorld) level;
+            Vector3d hub = toWorld(new Vector3d(0, air().cockpit.y + 1.4, 0));
+            sw.sendParticles(ParticleTypes.EXPLOSION, hub.x, hub.y, hub.z, 3, 0.6, 0.4, 0.6, 0);
+            for (int k = 0; k < 12; k++) {
+                // pieces of six blades thrown out over the disc
+                double a = k * Math.PI / 6, r = 2 + level.random.nextDouble() * 5;
+                sw.sendParticles(ParticleTypes.LARGE_SMOKE, hub.x + Math.cos(a) * r, hub.y + (k % 2) * 0.6, hub.z + Math.sin(a) * r,
+                        3, 0.2, 0.2, 0.2, 0.02);
+                sw.sendParticles(ParticleTypes.CRIT, hub.x + Math.cos(a) * r, hub.y, hub.z + Math.sin(a) * r, 6, 0.3, 0.1, 0.3, 0.6);
+            }
+            level.playSound(null, hub.x, hub.y, hub.z, SoundEvents.GENERIC_EXPLODE, SoundCategory.NEUTRAL, 2.5F, 1.3F);
+            level.playSound(null, hub.x, hub.y, hub.z, SoundEvents.ANVIL_LAND, SoundCategory.NEUTRAL, 1.5F, 0.5F);
+        }
+        super.beforeEject();
     }
 
     private boolean rotorSpinning() {

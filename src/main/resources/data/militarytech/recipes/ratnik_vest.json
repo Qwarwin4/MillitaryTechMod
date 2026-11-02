@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "W W",
+  "APA",
+  "WAW"
+ ],
+ "key": {
+  "W": {
+   "tag": "minecraft:wool"
+  },
+  "A": {
+   "item": "militarytech:armor_plate"
+  },
+  "P": {
+   "item": "minecraft:iron_ingot"
+  }
+ },
+ "result": {
+  "item": "militarytech:ratnik_vest",
+  "count": 1
+ }
+}

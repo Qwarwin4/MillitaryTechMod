@@ -8,7 +8,7 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Network {
-    private static final String PROTOCOL = "4";
+    private static final String PROTOCOL = "5";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             MilitaryTech.id("main"), () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -33,6 +33,10 @@ public final class Network {
                 LoadoutPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(id++, NukeFxPacket.class, NukeFxPacket::encode, NukeFxPacket::decode,
                 NukeFxPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(id++, ChutePacket.class, ChutePacket::encode, ChutePacket::decode,
+                ChutePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(id++, ChuteStatePacket.class, ChuteStatePacket::encode, ChuteStatePacket::decode,
+                ChuteStatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private Network() {

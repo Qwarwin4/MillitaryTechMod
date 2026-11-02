@@ -35,6 +35,8 @@ public final class VehicleSpec {
     public boolean nuclearHardened;
     /** seats from this index on are outside, riding on the armour: visible, unprotected, free to shoot */
     public int insideSeats = 99;
+    /** what each seat is called ("driver", "loader"...); vehicles without troops name every place by its job */
+    public String[] seatRoles;
 
     // driving (blocks/tick, degrees/tick)
     public double maxSpeed = 0.45, reverseSpeed = 0.2, accel = 0.012, turnRate = 2.4;

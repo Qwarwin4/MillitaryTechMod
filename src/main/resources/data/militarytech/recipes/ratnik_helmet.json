@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "APA",
+  "A A"
+ ],
+ "key": {
+  "A": {
+   "item": "militarytech:armor_plate"
+  },
+  "P": {
+   "item": "minecraft:leather"
+  }
+ },
+ "result": {
+  "item": "militarytech:ratnik_helmet",
+  "count": 1
+ }
+}

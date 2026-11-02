@@ -277,7 +277,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
 
     private static void aircraftParts(AircraftEntity a, MatrixStack ms, IRenderTypeBuffer buf, int light, float partial) {
         VehicleSpec s = a.spec;
-        if (a instanceof HelicopterEntity) {
+        if (a instanceof HelicopterEntity && !((HelicopterEntity) a).bladesGone()) {
             // coaxial rotors on the mast (x = 0, z = 0), turning opposite ways
             HelicopterEntity h = (HelicopterEntity) a;
             float r = MathHelper.lerp(partial, h.rotorAngleO, h.rotorAngle);

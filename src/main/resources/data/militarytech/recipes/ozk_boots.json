@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "R R",
+  "L L"
+ ],
+ "key": {
+  "R": {
+   "item": "minecraft:slime_ball"
+  },
+  "L": {
+   "item": "minecraft:leather"
+  }
+ },
+ "result": {
+  "item": "militarytech:ozk_boots",
+  "count": 1
+ }
+}

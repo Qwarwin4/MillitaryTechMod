@@ -23,20 +23,26 @@ final class HudKit {
     static final int TEXT = 0xFFE6EBE2;
     static final int TEXT_DIM = 0xFF9AA596;
 
-    /** A dark glassy panel with a hairline frame and bright corner brackets, a header strip if a title is given. */
+    /**
+     * A dark glass card: soft shadow, a body darkening to the bottom with faint scanlines, a hairline frame lit along
+     * the top, bright corner brackets, and a header strip that fades out to the right with an accent tab.
+     */
     static void panel(MatrixStack ms, Minecraft mc, int x0, int y0, int x1, int y1, int accent, String title, String right) {
-        // background: darker at the bottom
+        int rgb = accent & 0x00FFFFFF;
+        AbstractGui.fill(ms, x0 + 2, y0 + 3, x1 + 3, y1 + 3, 0x38000000);
         int h = y1 - y0;
-        for (int i = 0; i < 4; i++) {
-            int a = 0x58 + i * 0x10;
-            AbstractGui.fill(ms, x0, y0 + h * i / 4, x1, y0 + h * (i + 1) / 4, (a << 24) | 0x0A0F0B);
+        for (int i = 0; i < 8; i++) {
+            int a = 0x78 + i * 0x0C;
+            AbstractGui.fill(ms, x0, y0 + h * i / 8, x1, y0 + h * (i + 1) / 8, (a << 24) | 0x080C0A);
         }
-        int frame = (accent & 0x00FFFFFF) | 0x50000000;
-        AbstractGui.fill(ms, x0, y0, x1, y0 + 1, frame);
-        AbstractGui.fill(ms, x0, y1 - 1, x1, y1, frame);
-        AbstractGui.fill(ms, x0, y0, x0 + 1, y1, frame);
-        AbstractGui.fill(ms, x1 - 1, y0, x1, y1, frame);
-        int L = 6;
+        for (int y = y0 + 1; y < y1 - 1; y += 3) {
+            AbstractGui.fill(ms, x0 + 1, y, x1 - 1, y + 1, 0x0AFFFFFF);
+        }
+        AbstractGui.fill(ms, x0, y0, x1, y0 + 1, rgb | 0x90000000);
+        AbstractGui.fill(ms, x0, y1 - 1, x1, y1, rgb | 0x30000000);
+        AbstractGui.fill(ms, x0, y0 + 1, x0 + 1, y1 - 1, rgb | 0x30000000);
+        AbstractGui.fill(ms, x1 - 1, y0 + 1, x1, y1 - 1, rgb | 0x30000000);
+        int L = 7;
         AbstractGui.fill(ms, x0 - 1, y0 - 1, x0 + L, y0 + 1, accent);
         AbstractGui.fill(ms, x0 - 1, y0 - 1, x0 + 1, y0 + L, accent);
         AbstractGui.fill(ms, x1 - L, y0 - 1, x1 + 1, y0 + 1, accent);
@@ -46,11 +52,85 @@ final class HudKit {
         AbstractGui.fill(ms, x1 - L, y1 - 1, x1 + 1, y1 + 1, accent);
         AbstractGui.fill(ms, x1 - 1, y1 - L, x1 + 1, y1 + 1, accent);
         if (title != null) {
-            AbstractGui.fill(ms, x0 + 1, y0 + 1, x1 - 1, y0 + 12, (accent & 0x00FFFFFF) | 0x30000000);
-            mc.font.drawShadow(ms, title, x0 + 4, y0 + 3, TEXT);
-            if (right != null && !right.isEmpty()) {
-                mc.font.drawShadow(ms, right, x1 - 4 - mc.font.width(right), y0 + 3, TEXT_DIM);
+            int hw = x1 - x0 - 2;
+            for (int i = 0; i < 10; i++) {
+                int a = 0x40 - i * 0x06;
+                AbstractGui.fill(ms, x0 + 1 + hw * i / 10, y0 + 1, x0 + 1 + hw * (i + 1) / 10, y0 + 13, (Math.max(0, a) << 24) | rgb);
             }
+            AbstractGui.fill(ms, x0 + 1, y0 + 13, x1 - 1, y0 + 14, rgb | 0x40000000);
+            AbstractGui.fill(ms, x0 + 1, y0 + 1, x0 + 3, y0 + 13, accent);
+            mc.font.drawShadow(ms, title, x0 + 7, y0 + 3, TEXT);
+            if (right != null && !right.isEmpty()) {
+                int rw = mc.font.width(right);
+                AbstractGui.fill(ms, x1 - 7 - rw, y0 + 2, x1 - 2, y0 + 12, 0x50000000);
+                mc.font.draw(ms, right, x1 - 4 - rw, y0 + 3, AMBER);
+            }
+        }
+    }
+
+    /** Text drawn larger (speed, ammo counters). */
+    static void big(MatrixStack ms, Minecraft mc, String s, int x, int y, float scale, int color) {
+        ms.pushPose();
+        ms.translate(x, y, 0);
+        ms.scale(scale, scale, 1F);
+        mc.font.drawShadow(ms, s, 0, 0, color);
+        ms.popPose();
+    }
+
+    /** Key cap: a little framed box with a label (LMB, RMB). */
+    static void chip(MatrixStack ms, Minecraft mc, String s, int x, int y) {
+        int w = mc.font.width(s) + 6;
+        AbstractGui.fill(ms, x, y, x + w, y + 11, 0x60000000);
+        AbstractGui.fill(ms, x, y + 10, x + w, y + 11, ACCENT_DIM);
+        mc.font.draw(ms, s, x + 3, y + 2, TEXT_DIM);
+    }
+
+    /** Smooth bar with a bright leading edge. */
+    static void gauge(MatrixStack ms, int x, int y, int w, int h, float k, int color) {
+        k = MathHelper.clamp(k, 0, 1);
+        AbstractGui.fill(ms, x, y, x + w, y + h, 0x70202820);
+        int f = (int) (w * k);
+        if (f > 0) {
+            AbstractGui.fill(ms, x, y, x + f, y + h, (color & 0x00FFFFFF) | 0xB0000000);
+            AbstractGui.fill(ms, x + Math.max(0, f - 2), y, x + f, y + h, 0xFFFFFFFF);
+        }
+        for (int i = 1; i < 10; i++) {
+            AbstractGui.fill(ms, x + w * i / 10, y, x + w * i / 10 + 1, y + h, 0x50000000);
+        }
+    }
+
+    /** Ring from twelve o'clock round clockwise to {@code k}; the rest in {@code bg} (0: not drawn). */
+    static void ring(MatrixStack ms, int cx, int cy, int r, float k, int color, int bg) {
+        int n = Math.max(24, (int) (r * 2 * Math.PI * 1.5));
+        for (int i = 0; i < n; i++) {
+            boolean on = i < k * n;
+            if (!on && bg == 0) {
+                continue;
+            }
+            double a = i * 2 * Math.PI / n;
+            int px = cx + (int) Math.round(Math.sin(a) * r), py = cy - (int) Math.round(Math.cos(a) * r);
+            AbstractGui.fill(ms, px, py, px + 1, py + 1, on ? color : bg);
+        }
+    }
+
+    static void disc(MatrixStack ms, int cx, int cy, int r, int color) {
+        for (int y = -r; y <= r; y++) {
+            int x = (int) Math.sqrt(r * r - y * y);
+            AbstractGui.fill(ms, cx - x, cy + y, cx + x + 1, cy + y + 1, color);
+        }
+    }
+
+    /** The screen's edges washed with {@code rgb}, strongest at the border. */
+    static void vignette(MatrixStack ms, int w, int h, int rgb, float k) {
+        int d = Math.min(w, h) / 6;
+        for (int i = 0; i < d; i += 2) {
+            float f = 1 - i / (float) d;
+            int a = (int) (MathHelper.clamp(k, 0, 1) * 150 * f * f);
+            int c = (a << 24) | (rgb & 0x00FFFFFF);
+            AbstractGui.fill(ms, i, i, w - i, i + 2, c);
+            AbstractGui.fill(ms, i, h - i - 2, w - i, h - i, c);
+            AbstractGui.fill(ms, i, i + 2, i + 2, h - i - 2, c);
+            AbstractGui.fill(ms, w - i - 2, i + 2, w - i, h - i - 2, c);
         }
     }
 
@@ -103,7 +183,11 @@ final class HudKit {
             heading += 360;
         }
         int x0 = cx - w / 2, x1 = cx + w / 2;
-        AbstractGui.fill(ms, x0, y - 1, x1, y + 15, 0x50000000);
+        for (int i = 0; i < 8; i++) {
+            // darker in the middle, fading out to the ends
+            int a = 0x18 + 0x08 * Math.min(i, 7 - i);
+            AbstractGui.fill(ms, x0 + w * i / 8, y - 1, x0 + w * (i + 1) / 8, y + 15, a << 24);
+        }
         float pxPerDeg = 2.2F;
         int span = (int) (w / 2 / pxPerDeg) + 5;
         String[] names = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
@@ -117,7 +201,9 @@ final class HudKit {
             }
             int deg = Math.floorMod(d, 360);
             int len = deg % 45 == 0 ? 5 : deg % 15 == 0 ? 3 : 2;
-            AbstractGui.fill(ms, px, y, px + 1, y + len, color);
+            float edge = 1F - (float) Math.pow(Math.abs(px - cx) / (w / 2F), 2);
+            int fa = (int) (((color >>> 24) & 0xFF) * MathHelper.clamp(edge, 0.1F, 1F));
+            AbstractGui.fill(ms, px, y, px + 1, y + len, (fa << 24) | (color & 0x00FFFFFF));
             if (deg % 45 == 0) {
                 String s = names[deg / 45];
                 mc.font.drawShadow(ms, s, px - mc.font.width(s) / 2F, y + 6, deg % 90 == 0 ? TEXT : TEXT_DIM);

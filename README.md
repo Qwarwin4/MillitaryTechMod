@@ -113,6 +113,21 @@ limit, weight costs speed and agility. A server can ban any store, or all nuclea
 **Pilot kit:** ZSh-7 helmet with a mask, flight jacket, trousers and boots. The mask filters fallout (a third of the
 dose, the full kit a sixth) and gives air under water.
 
+**Ejection:** Shift in flight fires the seat (K-36 in the jets): the canopy goes, the pilot is thrown up and clear,
+and the seat's own parachute opens by itself. The Ka-52 has the K-37-800: it shoots its blades off first. A crew
+shot down in the air ejects on its own.
+
+**Parachute (D-10):** RMB puts it on, in its own slot on the back (drawn on the player). P in the air opens it, P on
+the ground takes it off; WASD steers, on landing it's packed again.
+
+**OZK (chemical protection kit):** gas mask, cape, stockings and overboots. The full set keeps out all the fallout
+and the fire, so you can walk about ground zero; the mask alone keeps out most of it and gives air under water.
+
+**Ratnik:** 6B47 helmet, 6B45 body armour, field trousers and boots in digital camouflage; armour like iron, and the
+plates take the edge off bullets and fragments.
+
+**TSh-4 tank helmet:** padded crew helmet with headphones; inside a vehicle it saves 40 % of the knocks.
+
 ## Controls
 
 | | Tanks and IFVs | Grad / Oreshnik / Msta | Aircraft |
@@ -128,7 +143,8 @@ dose, the full kit a sixth) and gives air under water.
 | V | change seat | change seat | change seat |
 | Wheel | sight zoom, camera distance outside | | |
 | Alt | free look | | free look |
-| Shift | get out | get out | eject :) |
+| Shift | get out | get out | eject (in flight) |
+| P | parachute | parachute | parachute |
 
 Takeoff: full throttle (W), roll straight and pull the mouse up once you have the speed, then gear up (G). Land on
 the gear, gently and with the wings level, or the aircraft breaks up.

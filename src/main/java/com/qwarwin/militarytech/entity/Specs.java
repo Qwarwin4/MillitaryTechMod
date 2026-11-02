@@ -210,6 +210,7 @@ public final class Specs {
         b.height = 3.0F;
         b.box(-1.3, 0, -3.65, 1.3, 2.8, 3.75);
         b.seats = new Vector3d[]{v(0.5, 1.3, 2.5), v(-0.5, 1.3, 2.5), v(0, 1.3, 2.5)};
+        b.seatRoles = new String[]{"driver", "commander", "crew"};
         b.interior = true;
         b.separateGunner = false;
         b.tracked = false;
@@ -253,6 +254,7 @@ public final class Specs {
         b.box(-2.094, 0, -11.223, 2.094, 4.523, 11.223);
         // on the cab seats: cushions at 1.15, riders sit about half a block lower than that
         b.seats = new Vector3d[]{v(1.223, 0.52, 8.55), v(-1.223, 0.52, 8.55)};
+        b.seatRoles = new String[]{"driver", "commander"};
         b.interior = true;
         b.separateGunner = false;
         b.tracked = false;
@@ -283,12 +285,14 @@ public final class Specs {
         b.height = 2.96F;
         b.box(-1.933, 0, -4.206, 1.933, 1.592, 3.467).box(-1.364, 1.592, -3.126, 1.251, 3.354, 1.819);
         b.seats = new Vector3d[]{v(0, 0.398, 2.16), v(0.512, 0.398, 1.364), v(-0.512, 0.398, 1.364)};
+        b.seatRoles = new String[]{"driver", "gunner", "commander"};
         b.interior = true;
         b.wheelZ = T72_WHEELS;
         b.wheelModel = null;
-        b.pivot = v(0, 1.489, -1.205);
-        b.trunnion = v(-0.068, 0.216, -1.523);
-        b.sight = v(1.137, 1.137, 0.227);
+        // the turntable's centre (fitted to the ring in the model): the pack turns about it, not about its hinge
+        b.pivot = v(-0.07, 1.489, -0.30);
+        b.trunnion = v(0.0, 0.216, -2.428);
+        b.sight = v(1.207, 1.137, -0.678);
         b.driverEye = v(0, 2.16, 2.501);
         b.view(2, v(-0.512, 2.05, 1.55), false);
         b.minPitch = -55F;
@@ -326,6 +330,7 @@ public final class Specs {
         b.seats = new Vector3d[]{v(0, 0.35, 2.05), v(0.85, 1.55, -0.35), v(-0.85, 1.55, -0.35), v(0.7, 1.55, -1.0),
                 v(-0.7, 1.55, -1.0)};
         b.insideSeats = 5;
+        b.seatRoles = new String[]{"driver", "gunner", "commander", "loader", "loader"};
         b.interior = true;
         b.wheelZ = T72_WHEELS;
         b.wheelModel = null;
@@ -358,6 +363,7 @@ public final class Specs {
         b.box(-1.45, 2.6, -3.9, 1.45, 5.2, 0.8);
         // driver, weapons operator and commander in the KamAZ cab
         b.seats = new Vector3d[]{v(0.55, 1.95, 4.0), v(-0.55, 1.95, 4.0), v(0, 1.95, 3.6)};
+        b.seatRoles = new String[]{"driver", "operator", "commander"};
         b.insideSeats = 3;
         b.interior = true;
         b.separateGunner = true;

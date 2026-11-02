@@ -4,7 +4,11 @@ import com.qwarwin.militarytech.Config;
 import com.qwarwin.militarytech.item.MunitionItem;
 import com.qwarwin.militarytech.registry.ModItems;
 import com.qwarwin.militarytech.registry.ModSounds;
+import com.qwarwin.militarytech.util.ModDamageSources;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.DataParameter;
@@ -57,6 +61,71 @@ public class AircraftEntity extends VehicleEntity {
         return !isOnGround() && (level.isClientSide || speed > 0.3);
     }
 
+    // ------------------------------------------------------------------ ejection
+
+    private boolean ejectAll;
+
+    /** Shift in flight fires the seat (K-36 in the jets, K-37-800 in the Ka-52): up and away, the canopy opens by itself. */
+    protected boolean canEject() {
+        return isFlying() && !isWrecked();
+    }
+
+    /** Before the first seat fires: the canopy goes (the Ka-52 shoots its blades off first). */
+    protected void beforeEject() {
+        if (level instanceof ServerWorld) {
+            Vector3d c = toWorld(air().cockpit).add(0, 0.6, 0);
+            ServerWorld sw = (ServerWorld) level;
+            sw.sendParticles(ParticleTypes.EXPLOSION, c.x, c.y, c.z, 2, 0.4, 0.2, 0.4, 0);
+            sw.sendParticles(ParticleTypes.LARGE_SMOKE, c.x, c.y, c.z, 12, 0.5, 0.3, 0.5, 0.05);
+            level.playSound(null, c.x, c.y, c.z, SoundEvents.GENERIC_EXPLODE, SoundCategory.NEUTRAL, 1.2F, 1.6F);
+        }
+    }
+
+    @Override
+    protected void removePassenger(Entity passenger) {
+        boolean eject = !level.isClientSide && passenger instanceof ServerPlayerEntity && (ejectAll || canEject());
+        if (eject && !ejected) {
+            ejected = true;
+            beforeEject();
+        }
+        super.removePassenger(passenger);
+        if (eject) {
+            Vector3d push = getDeltaMovement().scale(0.5).add(0, 1.55, 0);
+            com.qwarwin.militarytech.util.Parachute.eject((ServerPlayerEntity) passenger, push);
+            level.playSound(null, passenger.getX(), passenger.getY(), passenger.getZ(), ModSounds.get("missile_launch"),
+                    SoundCategory.NEUTRAL, 0.8F, 1.5F);
+        }
+        if (getPassengers().isEmpty()) {
+            ejected = false;
+        }
+    }
+
+    private boolean ejected;
+
+    @Override
+    public Vector3d getDismountLocationForPassenger(LivingEntity passenger) {
+        if (com.qwarwin.militarytech.util.Parachute.ejecting(passenger)) {
+            // straight up out of the cockpit, clear of the airframe
+            int s = seatOf(passenger);
+            Vector3d seat = s >= 0 && s < spec.seats.length ? spec.seats[s] : air().cockpit;
+            Vector3d at = toWorld(new Vector3d(seat.x, Math.max(seat.y, air().cockpit.y), seat.z));
+            return new Vector3d(at.x, at.y + 1.6, at.z);
+        }
+        return super.getDismountLocationForPassenger(passenger);
+    }
+
+    /** Shot down in the air: the crew goes out before it blows up. */
+    @Override
+    protected void destroy(@Nullable DamageSource cause) {
+        if (cause != null && !ModDamageSources.CRASH.equals(cause.getMsgId())
+                && isFlying() && !isWrecked() && isAlive()) {
+            ejectAll = true;
+            ejectPassengers();
+            ejectAll = false;
+        }
+        super.destroy(cause);
+    }
+
     public boolean isGearDown() {
         return !hasFlag(FLAG_GEAR_UP);
     }
@@ -91,7 +160,8 @@ public class AircraftEntity extends VehicleEntity {
             System.arraycopy(a, 0, b, 0, Math.min(a.length, b.length));
             return b;
         }
-        return a;
+        // a copy: changed in place, the synced tag would already equal the new one and never reach the clients
+        return a.clone();
     }
 
     private void setPylonIds(int[] ids) {

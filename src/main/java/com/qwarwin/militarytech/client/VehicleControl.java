@@ -138,6 +138,12 @@ public final class VehicleControl {
             onVehicleChanged(mc, last, v);
             last = v;
         }
+        if (event.phase == TickEvent.Phase.START) {
+            // P: the parachute, in or out of a vehicle
+            for (int n = KeyBinds.presses(KeyBinds.PARACHUTE); n > 0; n--) {
+                Network.CHANNEL.sendToServer(new com.qwarwin.militarytech.network.ChutePacket());
+            }
+        }
         if (event.phase == TickEvent.Phase.START && mc.player.getVehicle() instanceof VehicleEntity) {
             // riders on the armour can move inside too, so this one works without vehicle controls
             for (int n = KeyBinds.presses(KeyBinds.SEAT); n > 0; n--) {

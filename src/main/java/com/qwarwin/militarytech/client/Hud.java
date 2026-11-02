@@ -128,7 +128,6 @@ public final class Hud {
             String r = I18n.get("hud.militarytech.meters", (int) aim.distanceTo(from));
             text(ms, mc, r, cx + 8, cy + 6, GREEN_DIM);
         }
-        turretIndicator(ms, v, w - 222, h - 30, pt);
     }
 
     /** Looking out through a prism block or a firing port: a dark frame with a wide slot. */
@@ -172,102 +171,121 @@ public final class Hud {
         text(ms, mc, String.format("%.1fx", VehicleCamera.zoom()), cx - r + 14, cy + r - 16, GREEN);
     }
 
-    /** Little hull outline with the turret's heading on it, bottom right. */
-    private static void turretIndicator(MatrixStack ms, VehicleEntity v, int x, int y, float pt) {
-        AbstractGui.fill(ms, x - 6, y - 10, x + 6, y + 10, 0x80303030);
-        outline(ms, x - 6, y - 10, x + 6, y + 10, 0xC0A0A0A0);
-        float hull = MathHelper.rotLerp(pt, v.yRotO, v.yRot);
-        float rel = MathHelper.wrapDegrees(v.getTurretYaw(pt) - hull);
-        double a = Math.toRadians(rel);
-        int ex = x - (int) Math.round(Math.sin(a) * 16);
-        int ey = y - (int) Math.round(Math.cos(a) * 16);
-        line(ms, x, y, ex, ey, GREEN);
-        AbstractGui.fill(ms, x - 2, y - 2, x + 3, y + 3, GREEN);
-    }
+    // damage flash: health seen last frame, and when it last went down
+    private static float lastHealth = -1;
+    private static int hitTick = -1000;
+    private static VehicleEntity lastVehicle;
 
     private static void groundPanel(MatrixStack ms, Minecraft mc, VehicleEntity v, int w, int h, boolean gunner) {
         float pt = mc.getFrameTime();
+        int now = mc.player.tickCount;
         int seat = v.seatOf(mc.player);
-        // ---- left: the vehicle itself
-        int x0 = 8, x1 = 186, y1 = h - 8, y0 = y1 - 82;
-        HudKit.panel(ms, mc, x0, y0, x1, y1, HudKit.ACCENT, I18n.get(v.spec.key()), I18n.get(v.seatKey(seat)));
         float hp = v.getHealth() / v.getMaxHealth();
-        text(ms, mc, I18n.get("hud.militarytech.hull"), x0 + 5, y0 + 17, HudKit.TEXT_DIM);
-        HudKit.segments(ms, x0 + 42, y0 + 17, 100, 7, 12, hp);
-        text(ms, mc, (int) (hp * 100) + "%", x0 + 147, y0 + 17, hp > 0.3F ? HudKit.TEXT : HudKit.RED);
+        if (v != lastVehicle) {
+            lastVehicle = v;
+            lastHealth = hp;
+        }
+        if (hp < lastHealth - 0.001F) {
+            hitTick = now;
+        }
+        lastHealth = hp;
+        damageVignette(ms, w, h, now, pt, hp);
+
+        // ---- left: the vehicle card
+        int x0 = 8, x1 = 246, y1 = h - 8, y0 = y1 - 104;
+        HudKit.panel(ms, mc, x0, y0, x1, y1, HudKit.ACCENT, I18n.get(v.spec.key()), I18n.get(v.seatKey(seat)));
+        // top view of the hull with the turret's heading, tinted by the damage
+        int sx = x0 + 34, sy = y0 + 56;
+        schematic(ms, v, sx, sy, hp, pt);
+        // speed: big digits and a bar
         double kmh = Math.abs(v.getSpeed()) * 20 * 3.6;
         if (!v.isDriver(mc.player)) {
             kmh = v.getDeltaMovement().length() * 72;
         }
-        double max = v.spec.maxSpeed * 72;
-        HudKit.dial(ms, x0 + 22, y0 + 58, 15, (float) (kmh / Math.max(1, max)), HudKit.ACCENT);
+        double max = Math.max(1, v.spec.maxSpeed * 72);
+        int cx0 = x0 + 70;
         String sp = String.valueOf((int) Math.round(kmh));
-        mc.font.drawShadow(ms, sp, x0 + 22 - mc.font.width(sp) / 2F, y0 + 64, HudKit.TEXT);
-        text(ms, mc, I18n.get("hud.militarytech.kmh_unit"), x0 + 40, y0 + 64, HudKit.TEXT_DIM);
-        // crew: one pip per seat inside, lit if taken; then riders on the armour
-        int inside = Math.min(v.spec.insideSeats, v.spec.seats.length);
-        text(ms, mc, I18n.get("hud.militarytech.crew"), x0 + 64, y0 + 41, HudKit.TEXT_DIM);
-        for (int i = 0; i < v.spec.seats.length; i++) {
-            int px = x0 + 64 + (i % 12) * 9, py = y0 + 52 + (i / 12) * 9;
-            boolean taken = v.inSeat(i) != null;
-            int c = i == seat ? HudKit.AMBER : taken ? (i < inside ? HudKit.ACCENT : 0xFFB0B0A0) : 0x50808080;
-            AbstractGui.fill(ms, px, py, px + 6, py + 6, c);
-            if (i >= inside) {
-                AbstractGui.fill(ms, px + 1, py + 1, px + 5, py + 5, taken ? 0xFF404038 : 0x30000000);
-            }
+        HudKit.big(ms, mc, sp, cx0, y0 + 17, 2F, HudKit.TEXT);
+        text(ms, mc, I18n.get("hud.militarytech.kmh_unit"), cx0 + (int) (mc.font.width(sp) * 2F) + 4, y0 + 25, HudKit.TEXT_DIM);
+        if (v.isEmpDead() || v.outOfFuel()) {
+            String st = I18n.get(v.outOfFuel() ? "hud.militarytech.no_fuel" : "hud.militarytech.engine_dead");
+            text(ms, mc, st, x1 - 6 - mc.font.width(st), y0 + 25, (now / 8) % 2 == 0 ? HudKit.RED : 0xFF802018);
         }
+        HudKit.gauge(ms, cx0, y0 + 36, x1 - 8 - cx0, 4, (float) (kmh / max), HudKit.ACCENT);
+        // hull and fuel
+        int ry = y0 + 46;
+        text(ms, mc, I18n.get("hud.militarytech.hull"), cx0, ry, HudKit.TEXT_DIM);
+        HudKit.segments(ms, cx0 + 38, ry + 1, 104, 6, 16, hp);
+        text(ms, mc, (int) (hp * 100) + "%", cx0 + 148, ry, hp > 0.3F ? HudKit.TEXT : HudKit.RED);
         if (v.usesFuel()) {
             float f = v.getFuel();
-            text(ms, mc, I18n.get("hud.militarytech.fuel"), x0 + 5, y0 + 28, HudKit.TEXT_DIM);
-            HudKit.segments(ms, x0 + 42, y0 + 28, 100, 7, 12, f);
-            text(ms, mc, (int) (f * 100) + "%", x0 + 147, y0 + 28, f > 0.15F ? HudKit.TEXT : HudKit.RED);
+            ry += 11;
+            text(ms, mc, I18n.get("hud.militarytech.fuel"), cx0, ry, HudKit.TEXT_DIM);
+            HudKit.segments(ms, cx0 + 38, ry + 1, 104, 6, 16, f);
+            text(ms, mc, (int) (f * 100) + "%", cx0 + 148, ry, f > 0.15F ? HudKit.TEXT : HudKit.RED);
+        }
+        // crew: one pip per seat, lit if taken, ours amber; outside seats hollow
+        ry += 13;
+        int inside = Math.min(v.spec.insideSeats, v.spec.seats.length);
+        text(ms, mc, I18n.get("hud.militarytech.crew"), cx0, ry, HudKit.TEXT_DIM);
+        for (int i = 0; i < v.spec.seats.length; i++) {
+            int px = cx0 + 38 + (i % 14) * 8, py = ry + (i / 14) * 8;
+            boolean taken = v.inSeat(i) != null;
+            int c = i == seat ? HudKit.AMBER : taken ? (i < inside ? HudKit.ACCENT : 0xFFB0B0A0) : 0x40808080;
+            AbstractGui.fill(ms, px, py, px + 6, py + 6, c);
+            if (i >= inside) {
+                AbstractGui.fill(ms, px + 1, py + 1, px + 5, py + 5, taken ? 0xFF404038 : 0x60000000);
+            }
         }
         if (v.loadingTicks() > 0) {
             String ld = I18n.get("hud.militarytech.loading", (v.loadingTicks() + 19) / 20);
-            text(ms, mc, ld, x1 - 4 - mc.font.width(ld), y0 + 41, HudKit.AMBER);
+            text(ms, mc, ld, x1 - 6 - mc.font.width(ld), y0 + 17, HudKit.AMBER);
         }
-        String status = v.outOfFuel() ? I18n.get("hud.militarytech.no_fuel") : v.isEmpDead() ? I18n.get("hud.militarytech.engine_dead")
-                : v.spec.doors.isEmpty() ? I18n.get("hud.militarytech.seat_hint") : I18n.get("hud.militarytech.door_hint");
-        text(ms, mc, status, x0 + 64, y0 + 70, v.isEmpDead() || v.outOfFuel() ? HudKit.RED : 0xFF707A70);
+        String hint = v.spec.doors.isEmpty() ? I18n.get("hud.militarytech.seat_hint") : I18n.get("hud.militarytech.door_hint");
+        text(ms, mc, hint, cx0, y1 - 11, 0xFF6A766A);
 
-        // ---- top: heading tape for whoever looks out
-        HudKit.compass(ms, mc, w / 2, 16, 220, mc.player.getViewYRot(pt), HudKit.ACCENT_DIM);
+        // ---- top: heading tape
+        HudKit.compass(ms, mc, w / 2, 16, 260, mc.player.getViewYRot(pt), HudKit.ACCENT_DIM);
 
         if (!gunner || v.spec.weapons.isEmpty()) {
             return;
         }
-        // ---- right: weapons, each ammunition with its own icon and count
+        // ---- right: the weapons card, every ammunition with its icon, big counter and a fill bar
         int rows = Math.min(2, v.spec.weapons.size());
-        int bx1 = w - 8, bx0 = bx1 - 200, by1 = h - 8, by0 = by1 - (26 + rows * 22);
+        int bx1 = w - 8, bx0 = bx1 - 214, by1 = h - 8, by0 = by1 - (30 + rows * 26);
         HudKit.panel(ms, mc, bx0, by0, bx1, by1, HudKit.ACCENT, I18n.get("hud.militarytech.weapons"), null);
-        int line = by0 + 16;
+        int line = by0 + 17;
         for (int wi = 0; wi < rows; wi++) {
             WeaponSpec ws = v.spec.weapons.get(wi);
             int base = v.spec.ammoBase(wi);
             String key = I18n.get(ws.secondary ? "hud.militarytech.rmb" : "hud.militarytech.lmb");
-            text(ms, mc, key, bx0 + 4, line + 5, HudKit.TEXT_DIM);
+            HudKit.chip(ms, mc, key, bx0 + 5, line + 4);
             int cx = bx0 + 34;
+            int chip = ws.ammo.length > 1 ? (bx1 - 6 - cx) / ws.ammo.length : bx1 - 6 - cx;
             for (int o = 0; o < ws.ammo.length; o++) {
                 boolean sel = wi != 0 || v.getSelected() == o;
                 int left = v.getAmmo(base + o), cap = Math.max(1, v.capacity(base + o));
-                int chip = ws.ammo.length > 1 ? 52 : 150;
                 if (sel && ws.ammo.length > 1) {
-                    AbstractGui.fill(ms, cx - 2, line - 1, cx + chip - 2, line + 18, 0x307CFF6A);
-                    AbstractGui.fill(ms, cx - 2, line + 17, cx + chip - 2, line + 18, HudKit.ACCENT);
+                    AbstractGui.fill(ms, cx - 2, line - 2, cx + chip - 3, line + 21, 0x287CFF6A);
+                    AbstractGui.fill(ms, cx - 2, line + 20, cx + chip - 3, line + 21, HudKit.ACCENT);
                 }
                 HudKit.munitionIcon(mc, ws.ammo[o], cx, line, 1F);
                 int c = left == 0 ? HudKit.RED : left < cap / 4 ? HudKit.AMBER : sel ? HudKit.TEXT : HudKit.TEXT_DIM;
-                String n = ws.ammo.length > 1 ? String.valueOf(left) : I18n.get(ws.ammo[o].key()) + "  " + left + "/" + cap;
-                text(ms, mc, n, cx + 18, line + 5, c);
+                String n = String.valueOf(left);
+                HudKit.big(ms, mc, n, cx + 18, line + 1, 1.5F, c);
+                int nx = cx + 18 + (int) (mc.font.width(n) * 1.5F) + 3;
+                if (ws.ammo.length == 1) {
+                    text(ms, mc, "/" + cap + "  " + I18n.get(ws.ammo[o].key()), nx, line + 4, HudKit.TEXT_DIM);
+                }
+                HudKit.gauge(ms, cx + 18, line + 15, chip - 24, 2, left / (float) cap, c);
                 cx += chip;
             }
-            line += 22;
+            line += 26;
         }
-        // reload of the main weapon
+        // reload of the main weapon: a bar on the card and a ring round the crosshair
         WeaponSpec main = v.spec.weapons.get(0);
         int sel = Math.min(v.getSelected(), main.ammo.length - 1);
         int ammo = v.getAmmo(sel);
-        int now = mc.player.tickCount;
         if (sel != lastSelected && lastSelected >= 0) {
             reloadStart = now;
             reloadLength = main.interval / 2;
@@ -279,15 +297,71 @@ public final class Hud {
         lastMainAmmo = ammo;
         if (main.interval >= 20 && now - reloadStart < reloadLength) {
             float k = (now - reloadStart + pt) / (float) reloadLength;
-            text(ms, mc, I18n.get("hud.militarytech.reloading"), bx0 + 4, by1 - 11, HudKit.AMBER);
-            HudKit.bar(ms, bx0 + 70, by1 - 8, bx1 - bx0 - 76, k, HudKit.AMBER);
+            float left = (reloadLength - (now - reloadStart + pt)) / 20F;
+            text(ms, mc, I18n.get("hud.militarytech.reloading"), bx0 + 5, by1 - 12, HudKit.AMBER);
+            String t = String.format("%.1f", Math.max(0, left));
+            text(ms, mc, t, bx1 - 6 - mc.font.width(t), by1 - 12, HudKit.AMBER);
+            HudKit.gauge(ms, bx0 + 76, by1 - 9, bx1 - bx0 - 76 - 12 - mc.font.width(t), 3, k, HudKit.AMBER);
+            HudKit.ring(ms, w / 2, h / 2, 13, k, HudKit.AMBER, 0x40FFFFFF);
         } else if (main.interval >= 20) {
-            text(ms, mc, I18n.get(ammo > 0 ? "hud.militarytech.ready" : "hud.militarytech.empty_gun"), bx0 + 4, by1 - 11,
+            text(ms, mc, I18n.get(ammo > 0 ? "hud.militarytech.ready" : "hud.militarytech.empty_gun"), bx0 + 5, by1 - 12,
                     ammo > 0 ? HudKit.ACCENT : HudKit.RED);
-            if (main.ammo.length > 1) {
-                String hint = I18n.get("hud.militarytech.switch_hint");
-                text(ms, mc, hint, bx1 - 4 - mc.font.width(hint), by1 - 11, 0xFF707A70);
+            if (ammo > 0) {
+                HudKit.ring(ms, w / 2, h / 2, 13, 1F, 0x707CFF6A, 0);
             }
+            if (main.ammo.length > 1) {
+                String sw = I18n.get("hud.militarytech.switch_hint");
+                text(ms, mc, sw, bx1 - 6 - mc.font.width(sw), by1 - 12, 0xFF6A766A);
+            }
+        }
+    }
+
+    /** Top view of the vehicle: tracks, hull tinted green to red with the damage, the turret and its gun. */
+    private static void schematic(MatrixStack ms, VehicleEntity v, int cx, int cy, float hp, float pt) {
+        int c = hp > 0.6F ? 0xFF4FA846 : hp > 0.3F ? 0xFFD0A030 : 0xFFD04030;
+        int dark = 0xFF1A201A;
+        boolean tracked = v.spec.tracked;
+        int hw = 13, hh = 30;
+        AbstractGui.fill(ms, cx - 26, cy - 40, cx + 27, cy + 40, 0x30000000);
+        if (tracked) {
+            AbstractGui.fill(ms, cx - hw - 6, cy - hh, cx - hw, cy + hh, dark);
+            AbstractGui.fill(ms, cx + hw, cy - hh, cx + hw + 6, cy + hh, dark);
+            for (int y = cy - hh + 2; y < cy + hh; y += 4) {
+                AbstractGui.fill(ms, cx - hw - 6, y, cx - hw, y + 1, 0xFF3A443A);
+                AbstractGui.fill(ms, cx + hw, y, cx + hw + 6, y + 1, 0xFF3A443A);
+            }
+        } else {
+            for (int k = -1; k <= 1; k++) {
+                int y = cy + k * 20;
+                AbstractGui.fill(ms, cx - hw - 4, y - 5, cx - hw, y + 5, dark);
+                AbstractGui.fill(ms, cx + hw, y - 5, cx + hw + 4, y + 5, dark);
+            }
+        }
+        int body = (c & 0x00FFFFFF) | 0x90000000;
+        AbstractGui.fill(ms, cx - hw, cy - hh, cx + hw, cy + hh, body);
+        outline(ms, cx - hw, cy - hh, cx + hw, cy + hh, c);
+        // the bow
+        AbstractGui.fill(ms, cx - 3, cy - hh - 3, cx + 4, cy - hh, c);
+        if (!v.spec.hasTurret) {
+            return;
+        }
+        float hull = MathHelper.rotLerp(pt, v.yRotO, v.yRot);
+        double a = Math.toRadians(MathHelper.wrapDegrees(v.getTurretYaw(pt) - hull));
+        int ex = cx - (int) Math.round(Math.sin(a) * 30), ey = cy - (int) Math.round(Math.cos(a) * 30);
+        line(ms, cx, cy, ex, ey, HudKit.TEXT);
+        line(ms, cx + 1, cy, ex + 1, ey, HudKit.TEXT);
+        HudKit.disc(ms, cx, cy, 8, 0xFF20281F);
+        HudKit.ring(ms, cx, cy, 8, 1F, HudKit.TEXT, 0);
+        AbstractGui.fill(ms, cx - 1, cy - 1, cx + 2, cy + 2, HudKit.ACCENT);
+    }
+
+    /** Red at the edges of the screen for a moment when the vehicle is hit, and a slow pulse when it's nearly gone. */
+    private static void damageVignette(MatrixStack ms, int w, int h, int now, float pt, float hp) {
+        float hit = Math.max(0, 1 - (now - hitTick + pt) / 14F);
+        float low = hp < 0.3F ? (0.35F + 0.25F * MathHelper.sin((now + pt) * 0.25F)) * (1 - hp / 0.3F) : 0;
+        float k = Math.max(hit * 0.8F, low);
+        if (k > 0.01F) {
+            HudKit.vignette(ms, w, h, 0xC01A10, k);
         }
     }
 
@@ -302,7 +376,7 @@ public final class Hud {
             predicted = predict(mc, fc.rocket(), from, dir.scale(fc.rocket().speed * charge));
         }
         int x = w - 160, y = 8;
-        AbstractGui.fill(ms, x - 4, y - 4, w - 4, y + 54, PANEL);
+        HudKit.panel(ms, mc, x - 6, y - 4, w - 6, y + 56, HudKit.ACCENT, null, null);
         text(ms, mc, I18n.get(g.spec.key()) + " — " + I18n.get("hud.militarytech.fire_control"), x, y, WHITE);
         if (predicted != null) {
             int d = (int) Math.sqrt(predicted.distanceToSqr(g.getX(), predicted.y, g.getZ()));
@@ -333,7 +407,7 @@ public final class Hud {
 
     private static void oreshnik(MatrixStack ms, Minecraft mc, OreshnikEntity o, int w, int h) {
         int x = w - 170, y = 8;
-        AbstractGui.fill(ms, x - 4, y - 4, w - 4, y + 65, PANEL);
+        HudKit.panel(ms, mc, x - 6, y - 4, w - 6, y + 67, HudKit.ACCENT, null, null);
         text(ms, mc, I18n.get("entity.militarytech.oreshnik"), x, y, WHITE);
         float e = o.erectProgress(1F);
         String st = o.isErected() ? I18n.get("hud.militarytech.erected")

@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "RRR",
+  "RGR",
+  " C "
+ ],
+ "key": {
+  "R": {
+   "item": "minecraft:slime_ball"
+  },
+  "G": {
+   "item": "minecraft:glass_pane"
+  },
+  "C": {
+   "item": "minecraft:charcoal"
+  }
+ },
+ "result": {
+  "item": "militarytech:ozk_mask",
+  "count": 1
+ }
+}

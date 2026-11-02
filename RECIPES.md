@@ -160,6 +160,83 @@ I.I
 ```
 `L` leather, `I` iron_nugget
 
+### Противогаз ПМК-4 (ОЗК)
+```
+RRR
+RGR
+.C.
+```
+`R` slime_ball, `G` glass_pane, `C` charcoal
+
+### Плащ ОЗК
+```
+R.R
+RLR
+RLR
+```
+`R` slime_ball, `L` leather
+
+### Защитные чулки ОЗК
+```
+RLR
+R.R
+R.R
+```
+`R` slime_ball, `L` leather
+
+### Боты ОЗК
+```
+R.R
+L.L
+```
+`R` slime_ball, `L` leather
+
+### Шлем 6Б47 «Ратник»
+```
+APA
+A.A
+```
+`A` Броневой лист, `P` leather
+
+### Бронежилет 6Б45 «Ратник»
+```
+W.W
+APA
+WAW
+```
+`W` любые доски, `A` Броневой лист, `P` iron_ingot
+
+### Брюки ВКПО «Ратник»
+```
+WLW
+W.W
+W.W
+```
+`W` любые доски, `L` leather
+
+### Берцы «Ратник»
+```
+L.L
+I.I
+```
+`L` leather, `I` iron_ingot
+
+### Танковый шлемофон ТШ-4
+```
+LLL
+LWL
+R.R
+```
+`L` leather, `W` любые доски, `R` redstone
+
+### Парашют Д-10
+```
+WWW
+SSS
+.L.
+```
+`W` любые доски, `S` string, `L` leather
+
 ### Ящик для боеприпасов
 ```
 IWI

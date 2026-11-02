@@ -104,7 +104,7 @@ VEHICLES = {
         rules=[("drop", any_of(name("Object_2"), lambda i: i["max"][1] - i["min"][1] > 1.7 and i["max"][0] - i["min"][0] < 0.12)),
                ("gun", box(-1.7, 1.93, -5.7, 1.7, 7, 5.7)),
                ("turret", box(-1.6, 1.48, -3.4, 1.6, 1.93, 1.14))],
-        pivot=(0, 1.49, -1.205), trunnion=(-0.068, 0.216, -1.523)),
+        pivot=(-0.07, 1.49, -0.30), trunnion=(0.0, 0.216, -2.428)),
     "grad": dict(
         src="21___bm-21_grad", tracked=False, bake=True, ry=0, k=1.0, dy=0.05, dz=-0.05, tris=45000, by="node",
         rules=[("gun", both(box(-0.9, 1.9, -3.6, 0.9, 3.5, -0.4), lambda i: i["max"][1] > 2.2)),

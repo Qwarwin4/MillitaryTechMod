@@ -10,6 +10,7 @@ import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
@@ -46,7 +47,7 @@ public final class NukeFx {
     private static float flash, flashO, shake;
 
     // unit sphere, LON x LAT quads, with a fixed bit of noise per vertex so puffs look lumpy
-    private static final int LON = 10, LAT = 6;
+    private static final int LON = 14, LAT = 9;
     private static final float[][] SPHERE = new float[(LON + 1) * (LAT + 1)][];
 
     static {
@@ -80,7 +81,8 @@ public final class NukeFx {
         final float crater, blast;
         final boolean nuclear;
         final int life;
-        final Puff[] cap = new Puff[95], top = new Puff[22], stem = new Puff[30], ring = new Puff[34], base = new Puff[44];
+        final Puff[] cap = new Puff[140], top = new Puff[30], stem = new Puff[46], ring = new Puff[40], base = new Puff[60],
+                wall = new Puff[56], boil = new Puff[20], bolts = new Puff[12];
         int age;
         boolean heard;
 
@@ -91,7 +93,7 @@ public final class NukeFx {
             this.crater = crater;
             this.blast = blast;
             Random r = new Random(Double.doubleToLongBits(pos.x * 31 + pos.z));
-            for (Puff[] set : new Puff[][]{cap, top, stem, ring, base}) {
+            for (Puff[] set : new Puff[][]{cap, top, stem, ring, base, wall, boil, bolts}) {
                 for (int i = 0; i < set.length; i++) {
                     set[i] = new Puff(r);
                 }
@@ -163,6 +165,23 @@ public final class NukeFx {
                 play(mc, SoundEvents.LIGHTNING_BOLT_THUNDER.getLocation(),
                         (float) MathHelper.clamp(0.6 - d / (b.blast * 12), 0.08, 0.6), 0.4F + mc.level.random.nextFloat() * 0.15F);
             }
+            // ash and cinders drifting down for a couple of minutes over everything near it
+            if (b.nuclear && b.heard && b.age < b.life * 0.8) {
+                double d = mc.player.position().distanceTo(b.pos);
+                double near = MathHelper.clamp(1.5 - d / (b.blast * 4), 0, 1);
+                int n = (int) (near * 8 * (1 - b.age / (b.life * 0.8)) + mc.level.random.nextFloat());
+                for (int i = 0; i < n; i++) {
+                    double x = mc.player.getX() + (mc.level.random.nextDouble() - 0.5) * 24;
+                    double y = mc.player.getY() + 4 + mc.level.random.nextDouble() * 10;
+                    double z = mc.player.getZ() + (mc.level.random.nextDouble() - 0.5) * 24;
+                    mc.level.addParticle(mc.level.random.nextInt(4) == 0 ? ParticleTypes.ASH : ParticleTypes.WHITE_ASH, x, y, z, 0, -0.05, 0);
+                }
+                if (b.age < 20 * 25 && near > 0.3 && mc.level.random.nextInt(3) == 0) {
+                    double x = mc.player.getX() + (mc.level.random.nextDouble() - 0.5) * 16;
+                    double z = mc.player.getZ() + (mc.level.random.nextDouble() - 0.5) * 16;
+                    mc.level.addParticle(ParticleTypes.LAVA, x, mc.player.getY() + 8, z, 0, 0, 0);
+                }
+            }
             if (b.age > b.life) {
                 it.remove();
             }
@@ -211,11 +230,28 @@ public final class NukeFx {
             return;
         }
         float f = MathHelper.lerp(event.getPartialTicks(), flashO, flash);
+        Minecraft mc = Minecraft.getInstance();
+        int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
+        // the heat: an orange wash for whoever is close while the fireball burns, deepest at the edges
+        if (mc.player != null) {
+            float heat = 0;
+            for (Blast b : ACTIVE) {
+                if (!b.nuclear) {
+                    continue;
+                }
+                double d = mc.player.position().distanceTo(b.pos);
+                float near = (float) MathHelper.clamp(1.2 - d / (b.blast * 3), 0, 1);
+                float t = b.age / 20F;
+                heat = Math.max(heat, near * (t < 1 ? t : (float) Math.exp(-(t - 1) / 12.0)));
+            }
+            if (heat > 0.02F) {
+                AbstractGui.fill(event.getMatrixStack(), 0, 0, w, h, ((int) (heat * 70) << 24) | 0xFF6A10);
+                HudKit.vignette(event.getMatrixStack(), w, h, 0x601000, heat);
+            }
+        }
         if (f < 0.01F) {
             return;
         }
-        Minecraft mc = Minecraft.getInstance();
-        int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
         int a = (int) (MathHelper.clamp(f * 1.15F, 0, 1) * 255);
         AbstractGui.fill(event.getMatrixStack(), 0, 0, w, h, (a << 24) | 0xFFF8E8);
     }
@@ -244,6 +280,8 @@ public final class NukeFx {
     private static final class Draw {
         double x, y, z, r, dist;
         float cr, cg, cb, alpha, glow;
+        /** where in its boiling the puff's surface is */
+        float phase;
         boolean dome;
     }
 
@@ -260,6 +298,7 @@ public final class NukeFx {
         Matrix4f mat = ms.last().pose();
         IRenderTypeBuffer.Impl buf = mc.renderBuffers().bufferSource();
         List<Draw> smoke = new ArrayList<>();
+        time = (mc.level.getGameTime() + pt) / 20.0;
         IVertexBuilder glow = buf.getBuffer(FxRenderTypes.GLOW);
         for (Blast b : ACTIVE) {
             if (cam.distanceTo(b.pos) > 6000) {
@@ -304,6 +343,37 @@ public final class NukeFx {
                 float h = (float) (1 - ramp(t, 0, 5)) * 0.35F;
                 sphere(glow, mat, cam, g.x, g.y + fbY, g.z, fbR * 1.6, hc[0] * h, hc[1] * h, hc[2] * h, 1F, false);
             }
+            // its surface boils: hotter and cooler cells rolling over it
+            for (Puff p : b.boil) {
+                double u = p.a * Math.PI * 2 + t * (0.3 + p.size * 0.4), w = Math.acos(2 * p.b - 1);
+                double rr = fbR * (0.72 + 0.12 * Math.sin(t * 2 + p.c * 9));
+                double px = Math.sin(w) * Math.cos(u) * rr, py = Math.cos(w) * rr * 0.9, pz = Math.sin(w) * Math.sin(u) * rr;
+                float[] cc = heat(t + p.c * 3);
+                float k = bright * 0.55F;
+                sphere(glow, mat, cam, g.x + px, g.y + fbY + py, g.z + pz, fbR * (0.32 + 0.18 * p.size), cc[0] * k, cc[1] * k, cc[2] * k,
+                        1F, false);
+            }
+        }
+        // the ground under it glows and smoulders for a while
+        double scorch = 1 - ramp(t, 4, 50);
+        if (scorch > 0) {
+            float k = (float) (scorch * Math.min(1, t * 2));
+            disc(glow, mat, cam, g.x, g.y + 0.3, g.z, R * 1.5, 0.9F * k, 0.35F * k, 0.08F * k);
+            disc(glow, mat, cam, g.x, g.y + 0.35, g.z, R * 0.8, 1F * k, 0.6F * k, 0.2F * k);
+        }
+        // lightning crawling in the young cloud
+        if (t > 0.5 && t < 14) {
+            for (Puff p : b.bolts) {
+                // each bolt flickers on for a couple of ticks now and then
+                int slot = (int) (ticks / 3 + p.a * 97);
+                if (((slot * 31 + (int) (p.b * 1000)) % 23) != 0) {
+                    continue;
+                }
+                double h = p.c;
+                double bx = g.x + (p.size - 0.5) * R * 0.8, bz = g.z + (p.b - 0.5) * R * 0.8;
+                double y0 = g.y + R * 0.2 + h * capY * 0.5, y1 = y0 + R * (0.8 + p.size);
+                bolt(glow, mat, cam, bx, y0, bz, y1, R * 0.05, p);
+            }
         }
 
         // the dome of condensed air on the shock front
@@ -319,6 +389,36 @@ public final class NukeFx {
             d.dome = true;
             d.dist = cam.distanceTo(g) + rs;
             out.add(d);
+        }
+        // the Wilson cloud: the air behind the shock condenses in a white shell round the fireball, and clears
+        double wil = ramp(t, 0.15, 0.6) * (1 - ramp(t, 1.6, 4.0));
+        if (wil > 0) {
+            Draw d = new Draw();
+            d.x = g.x;
+            d.y = g.y + fbY * 0.8;
+            d.z = g.z;
+            d.r = R * (1.4 + 1.6 * ramp(t, 0.1, 3.5));
+            d.cr = 0.96F;
+            d.cg = 0.97F;
+            d.cb = 1F;
+            d.alpha = (float) (0.42 * wil);
+            d.phase = 3;
+            add(out, d, cam);
+        }
+        // the dust wall racing out along the ground ahead of the base surge
+        if (rs < b.blast * 1.6) {
+            double wa = (1 - rs / (b.blast * 1.6)) * ramp(t, 0.2, 0.8);
+            for (Puff p : b.wall) {
+                double a = p.a * Math.PI * 2;
+                double rr = rs * (0.92 + 0.08 * p.b);
+                Draw d = new Draw();
+                d.x = g.x + Math.cos(a) * rr;
+                d.y = g.y + R * (0.15 + 0.25 * p.c);
+                d.z = g.z + Math.sin(a) * rr;
+                d.r = R * (0.3 + 0.25 * p.size) * (1 + rs / Math.max(1, b.blast));
+                tone(d, p, 0.6F, 0.52F, 0.42F, hc, 0, wa * 0.9);
+                add(out, d, cam);
+            }
         }
         if (smokeIn <= 0) {
             return;
@@ -457,6 +557,7 @@ public final class NukeFx {
     }
 
     private static void tone(Draw d, Puff p, float r, float g, float b, float[] hc, double fire, double alpha) {
+        d.phase = (float) (p.c * 40 + p.a * 7);
         float f = (float) MathHelper.clamp(fire, 0, 1);
         d.cr = MathHelper.lerp(f, r, hc[0]) * p.tint;
         d.cg = MathHelper.lerp(f, g, hc[1]) * p.tint;
@@ -474,6 +575,8 @@ public final class NukeFx {
     }
 
     /** A smoke puff with sunlight from above and the fire's glow from below baked into its colours. */
+    private static double time;
+
     private static void puff(IVertexBuilder vb, Matrix4f mat, Vector3d cam, Draw d, float sky) {
         if (d.dome) {
             sphere(vb, mat, cam, d.x, d.y, d.z, d.r, d.cr, d.cg, d.cb, d.alpha, true);
@@ -488,16 +591,54 @@ public final class NukeFx {
                 int[] idx = {i * (LON + 1) + j, i * (LON + 1) + j2, (i + 1) * (LON + 1) + j2, (i + 1) * (LON + 1) + j};
                 for (int k : idx) {
                     float[] v = SPHERE[k];
+                    // the surface churns: each lump swells and sinks on its own
+                    double rr = d.r * (1 + 0.07 * Math.sin(time * 0.7 + k * 1.37 + d.phase));
                     double sun = Math.max(0, v[0] * lx + v[1] * ly + v[2] * lz);
                     float light = (float) (0.62 + 0.42 * sun) * sky * v[3];
                     float under = Math.max(0, -v[1] * 0.8F + 0.2F) * d.glow;
                     float r = Math.min(1, d.cr * light + 1.0F * under);
                     float g = Math.min(1, d.cg * light + 0.45F * under);
                     float b = Math.min(1, d.cb * light + 0.12F * under);
-                    vb.vertex(mat, (float) (d.x + v[0] * d.r - cam.x), (float) (d.y + v[1] * d.r - cam.y),
-                            (float) (d.z + v[2] * d.r - cam.z)).color(r, g, b, d.alpha).endVertex();
+                    vb.vertex(mat, (float) (d.x + v[0] * rr - cam.x), (float) (d.y + v[1] * rr - cam.y),
+                            (float) (d.z + v[2] * rr - cam.z)).color(r, g, b, d.alpha).endVertex();
                 }
             }
+        }
+    }
+
+    /** A flat glowing disc on the ground, bright in the middle. */
+    private static void disc(IVertexBuilder vb, Matrix4f mat, Vector3d cam, double x, double y, double z, double r, float cr, float cg,
+                             float cb) {
+        int n = 24;
+        for (int i = 0; i < n; i++) {
+            double a0 = i * 2 * Math.PI / n, a1 = (i + 1) * 2 * Math.PI / n;
+            vb.vertex(mat, (float) (x - cam.x), (float) (y - cam.y), (float) (z - cam.z)).color(cr, cg, cb, 1F).endVertex();
+            vb.vertex(mat, (float) (x - cam.x), (float) (y - cam.y), (float) (z - cam.z)).color(cr, cg, cb, 1F).endVertex();
+            vb.vertex(mat, (float) (x + Math.cos(a1) * r - cam.x), (float) (y - cam.y), (float) (z + Math.sin(a1) * r - cam.z))
+                    .color(0F, 0F, 0F, 1F).endVertex();
+            vb.vertex(mat, (float) (x + Math.cos(a0) * r - cam.x), (float) (y - cam.y), (float) (z + Math.sin(a0) * r - cam.z))
+                    .color(0F, 0F, 0F, 1F).endVertex();
+        }
+    }
+
+    /** A jagged lightning stroke from y0 up to y1. */
+    private static void bolt(IVertexBuilder vb, Matrix4f mat, Vector3d cam, double x, double y0, double z, double y1, double w, Puff p) {
+        java.util.Random r = new java.util.Random((long) (p.a * 1e6));
+        double px = x, py = y0, pz = z;
+        int seg = 8;
+        for (int i = 1; i <= seg; i++) {
+            double nx = x + (r.nextDouble() - 0.5) * (y1 - y0) * 0.25, ny = y0 + (y1 - y0) * i / seg;
+            double nz = z + (r.nextDouble() - 0.5) * (y1 - y0) * 0.25;
+            for (int a = 0; a < 2; a++) {
+                double ox = a == 0 ? w : 0, oz = a == 0 ? 0 : w;
+                vb.vertex(mat, (float) (px - ox - cam.x), (float) (py - cam.y), (float) (pz - oz - cam.z)).color(0.75F, 0.8F, 1F, 1F).endVertex();
+                vb.vertex(mat, (float) (px + ox - cam.x), (float) (py - cam.y), (float) (pz + oz - cam.z)).color(0.75F, 0.8F, 1F, 1F).endVertex();
+                vb.vertex(mat, (float) (nx + ox - cam.x), (float) (ny - cam.y), (float) (nz + oz - cam.z)).color(0.75F, 0.8F, 1F, 1F).endVertex();
+                vb.vertex(mat, (float) (nx - ox - cam.x), (float) (ny - cam.y), (float) (nz - oz - cam.z)).color(0.75F, 0.8F, 1F, 1F).endVertex();
+            }
+            px = nx;
+            py = ny;
+            pz = nz;
         }
     }
 

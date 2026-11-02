@@ -7,9 +7,14 @@ import com.qwarwin.militarytech.entity.VehicleSpec;
 import com.qwarwin.militarytech.item.AmmoCrateItem;
 import com.qwarwin.militarytech.item.MunitionBoxItem;
 import com.qwarwin.militarytech.item.MunitionItem;
+import com.qwarwin.militarytech.item.KitMaterial;
+import com.qwarwin.militarytech.item.ParachuteItem;
 import com.qwarwin.militarytech.item.PilotArmor;
 import com.qwarwin.militarytech.item.TooltipItem;
 import com.qwarwin.militarytech.item.VehicleItem;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.ArmorItem;
+import net.minecraft.item.IArmorMaterial;
 import net.minecraft.item.Item;
 import net.minecraft.item.Rarity;
 import net.minecraftforge.fml.RegistryObject;
@@ -53,6 +58,17 @@ public final class ModItems {
             () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.LEGS, props()));
     public static final RegistryObject<Item> PILOT_BOOTS = ITEMS.register("pilot_boots",
             () -> new net.minecraft.item.ArmorItem(PilotArmor.MATERIAL, net.minecraft.inventory.EquipmentSlotType.FEET, props()));
+    // the chemical protection kit, the combat uniform, the tank crew's headset, the parachute
+    public static final RegistryObject<Item> OZK_MASK = armor("ozk_mask", KitMaterial.OZK, EquipmentSlotType.HEAD);
+    public static final RegistryObject<Item> OZK_CAPE = armor("ozk_cape", KitMaterial.OZK, EquipmentSlotType.CHEST);
+    public static final RegistryObject<Item> OZK_STOCKINGS = armor("ozk_stockings", KitMaterial.OZK, EquipmentSlotType.LEGS);
+    public static final RegistryObject<Item> OZK_BOOTS = armor("ozk_boots", KitMaterial.OZK, EquipmentSlotType.FEET);
+    public static final RegistryObject<Item> RATNIK_HELMET = armor("ratnik_helmet", KitMaterial.RATNIK, EquipmentSlotType.HEAD);
+    public static final RegistryObject<Item> RATNIK_VEST = armor("ratnik_vest", KitMaterial.RATNIK, EquipmentSlotType.CHEST);
+    public static final RegistryObject<Item> RATNIK_TROUSERS = armor("ratnik_trousers", KitMaterial.RATNIK, EquipmentSlotType.LEGS);
+    public static final RegistryObject<Item> RATNIK_BOOTS = armor("ratnik_boots", KitMaterial.RATNIK, EquipmentSlotType.FEET);
+    public static final RegistryObject<Item> TANK_HELMET = armor("tank_helmet", KitMaterial.TANKER, EquipmentSlotType.HEAD);
+    public static final RegistryObject<Item> PARACHUTE = ITEMS.register("parachute", () -> new ParachuteItem(props().stacksTo(1)));
     public static final RegistryObject<Item> MUNITION_BOX = ITEMS.register("munition_box",
             () -> new MunitionBoxItem(props().stacksTo(1)));
     public static final RegistryObject<Item> FUEL_BARREL = ITEMS.register("fuel_barrel",
@@ -131,6 +147,10 @@ public final class ModItems {
 
     public static Item forSpec(VehicleSpec s) {
         return BY_SPEC.get(s.id).get();
+    }
+
+    private static RegistryObject<Item> armor(String name, IArmorMaterial m, EquipmentSlotType slot) {
+        return ITEMS.register(name, () -> new ArmorItem(m, slot, props()));
     }
 
     private ModItems() {

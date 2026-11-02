@@ -89,6 +89,8 @@ public abstract class VehicleEntity extends Entity {
     public static final int FLAG_WRECK = 64;
     /** Pantsir with identification friend-or-foe switched off: everything in the air is a target. */
     public static final int FLAG_NO_IFF = 128;
+    /** Ka-52: the blades were shot off for the ejection */
+    public static final int FLAG_NO_BLADES = 256;
     protected static final float DEG = (float) (Math.PI / 180.0);
 
     public final VehicleSpec spec;
@@ -762,6 +764,9 @@ public abstract class VehicleEntity extends Entity {
     public String seatKey(int s) {
         if (spec.air != null) {
             return s == 0 ? "seat.militarytech.pilot" : "seat.militarytech.copilot";
+        }
+        if (spec.seatRoles != null && s >= 0 && s < spec.seatRoles.length) {
+            return "seat.militarytech." + spec.seatRoles[s];
         }
         if (s == 0) {
             return "seat.militarytech.driver";

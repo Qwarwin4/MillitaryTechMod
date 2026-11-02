@@ -29,6 +29,14 @@ public final class FxRenderTypes extends RenderType {
                     .setCullState(NO_CULL)
                     .createCompositeState(false));
 
+    /** Flat coloured solids lit by hand (parachute canopies): depth tested and written, fogged like the world. */
+    public static final RenderType SOLID = create("militarytech_solid", DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 1 << 16,
+            false, false, RenderType.State.builder()
+                    .setShadeModelState(SMOOTH_SHADE)
+                    .setCullState(NO_CULL)
+                    .setLightmapState(NO_LIGHTMAP)
+                    .createCompositeState(false));
+
     /** Canopy glass: blended like entityTranslucent, but writes no depth, so the cockpit behind always shows. */
     public static RenderType glass(net.minecraft.util.ResourceLocation tex) {
         return create("militarytech_glass", DefaultVertexFormats.NEW_ENTITY, GL11.GL_QUADS, 256, true, true,

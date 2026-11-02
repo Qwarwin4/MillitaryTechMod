@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "WWW",
+  "SSS",
+  " L "
+ ],
+ "key": {
+  "W": {
+   "tag": "minecraft:wool"
+  },
+  "S": {
+   "item": "minecraft:string"
+  },
+  "L": {
+   "item": "minecraft:leather"
+  }
+ },
+ "result": {
+  "item": "militarytech:parachute",
+  "count": 1
+ }
+}
